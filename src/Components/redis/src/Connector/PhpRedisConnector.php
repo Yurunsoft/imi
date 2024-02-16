@@ -26,11 +26,11 @@ class PhpRedisConnector implements IRedisConnector
         {
             $redis->connect($host, $config->port, $config->timeout);
         }
-        if (('' !== $config->password) && !$redis->auth($config->password))
+        if (('' !== $config->password) && !$redis->auth($config->password) && null !== $redis->getLastError())
         {
             throw new \RedisException($redis->getLastError());
         }
-        if (null !== $config->database && !$redis->select($config->database))
+        if (null !== $config->database && !$redis->select($config->database) && null !== $redis->getLastError())
         {
             throw new \RedisException($redis->getLastError());
         }

@@ -674,7 +674,7 @@ abstract class RedisModel extends BaseModel
      */
     public static function __getRedis(?self $redisModel = null): RedisHandler
     {
-        $annotation = static::__getRedisEntity($redisModel ?? static::class, false);
+        $annotation = static::__getRedisEntity($redisModel ?? static::class);
         $redis = RedisManager::getInstance($annotation->poolName);
         if (null !== $annotation->db)
         {

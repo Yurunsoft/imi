@@ -31,7 +31,8 @@ class PhpRedisClusterTest extends PhpRedisTest
     protected function flush(IRedisHandler $redis): void
     {
         // 清空数据
-        foreach ($redis->getNodes() as $node) {
+        foreach ($redis->getNodes() as $node)
+        {
             self::assertTrue($redis->flushdb($node, false));
         }
     }

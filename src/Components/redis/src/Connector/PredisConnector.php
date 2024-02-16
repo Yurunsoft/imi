@@ -6,7 +6,6 @@ namespace Imi\Redis\Connector;
 
 use Imi\Redis\Handler\PredisClusterHandler;
 use Imi\Redis\Handler\PredisHandler;
-use Imi\Util\ArrayUtil;
 
 class PredisConnector implements IRedisConnector
 {
@@ -17,16 +16,19 @@ class PredisConnector implements IRedisConnector
     {
         $params = [
             'scheme' => 'tcp',
-            'host' => $config->host,
-            'port' => $config->port,
+            'host'   => $config->host,
+            'port'   => $config->port,
         ];
-        if ($config->password) {
+        if ($config->password)
+        {
             $params['password'] = $config->password;
         }
-        if (null !== $config->database) {
+        if (null !== $config->database)
+        {
             $params['database'] = $config->database;
         }
-        if ($config->prefix) {
+        if ($config->prefix)
+        {
             $params['prefix'] = $config->prefix;
         }
         $client = new \Predis\Client($params);
@@ -48,7 +50,8 @@ class PredisConnector implements IRedisConnector
         {
             $options['parameters']['database'] = $config->database;
         }
-        if ($config->prefix) {
+        if ($config->prefix)
+        {
             $options['prefix'] = $config->prefix;
         }
 

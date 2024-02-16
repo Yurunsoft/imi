@@ -36,6 +36,6 @@ class PredisTest extends PhpRedisTest
             self::markTestSkipped('Windows redis not support geo.');
         }
 
-        self::assertEquals(1, $redis->geoAdd('imi:geo', 120.31858, 31.49881, 'value_' . \bin2hex(\random_bytes(4))));
+        self::assertEquals(1, $redis->geoAdd('imi:geo', 120.31858, 31.49881, 'value_' . bin2hex(random_bytes(4))));
     }
 }

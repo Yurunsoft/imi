@@ -33,7 +33,7 @@ return [
         ],
         'redis_test'            => [
             'manager' => \Imi\ConnectionCenter\Handler\Singleton\SingletonConnectionManager::class,
-            'pool' => [
+            'pool'    => [
                 'maxResources'    => 10,
                 'minResources'    => 0,
             ],

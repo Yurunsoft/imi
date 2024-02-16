@@ -14,6 +14,7 @@ use PHPUnit\Framework\Assert;
 
 /**
  * @testdox Redis
+ *
  * @deprecated
  */
 class RedisTest extends BaseTest

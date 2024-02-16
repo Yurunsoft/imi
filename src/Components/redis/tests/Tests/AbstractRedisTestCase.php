@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Imi\Redis\Test\Tests;
@@ -15,9 +16,5 @@ abstract class AbstractRedisTestCase extends TestCase
 
     abstract public function testGetDrive(): IRedisHandler;
 
-    /**
-     * @param IRedisHandler $handler
-     * @return void
-     */
     abstract protected function flush(IRedisHandler $handler): void;
 }

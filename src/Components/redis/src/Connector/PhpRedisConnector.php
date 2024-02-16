@@ -6,7 +6,6 @@ namespace Imi\Redis\Connector;
 
 use Imi\Redis\Handler\PhpRedisClusterHandler;
 use Imi\Redis\Handler\PhpRedisHandler;
-use Imi\Util\ArrayUtil;
 
 class PhpRedisConnector implements IRedisConnector
 {
@@ -27,7 +26,7 @@ class PhpRedisConnector implements IRedisConnector
         {
             $redis->connect($host, $config->port, $config->timeout);
         }
-        if (('' !== ($config->password)) && !$redis->auth($config->password))
+        if (('' !== $config->password) && !$redis->auth($config->password))
         {
             throw new \RedisException($redis->getLastError());
         }

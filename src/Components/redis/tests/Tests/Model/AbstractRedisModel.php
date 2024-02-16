@@ -334,10 +334,10 @@ abstract class AbstractRedisModel extends TestCase
         ]);
         $this->assertNotNull($record2);
         foreach ([
-                     'id'    => 2,
-                     'name'  => 'b',
-                     'age'   => 0,
-                 ] as $name => $value)
+            'id'    => 2,
+            'name'  => 'b',
+            'age'   => 0,
+        ] as $name => $value)
         {
             $this->assertEquals($value, $record2->{$name});
         }

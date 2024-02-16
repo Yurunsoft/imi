@@ -32,9 +32,10 @@ class PredisClusterHandler extends AbstractRedisHandler implements IRedisCluster
         $connection = $this->client->getConnection();
         $nodes = $connection->getSlotMap()->getNodes();
 
-        return \array_map(function ($node) {
-            $arr = \explode(':', $node);
+        return array_map(static function ($node) {
+            $arr = explode(':', $node);
             $arr[1] = (int) $arr[1];
+
             return $arr;
         }, $nodes);
     }

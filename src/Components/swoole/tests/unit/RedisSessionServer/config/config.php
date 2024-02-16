@@ -80,7 +80,7 @@ return [
     'connectionCenter' => [
         'redis'            => [
             'manager' => \Imi\ConnectionCenter\Handler\Pool\PoolConnectionManager::class,
-            'pool' => [
+            'pool'    => [
                 'maxResources'    => 10,
                 'minResources'    => 0,
             ],
@@ -100,7 +100,7 @@ return [
         ],
         'redisSession'            => [
             'manager' => \Imi\ConnectionCenter\Handler\Pool\PoolConnectionManager::class,
-            'pool' => [
+            'pool'    => [
                 'maxResources'    => 10,
                 'minResources'    => 0,
             ],

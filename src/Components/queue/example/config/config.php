@@ -62,7 +62,7 @@ return [
     'connectionCenter' => Imi::checkAppType('swoole') ? [
         'redis'            => [
             'manager' => \Imi\ConnectionCenter\Handler\Pool\PoolConnectionManager::class,
-            'pool' => [
+            'pool'    => [
                 'maxResources'    => 10,
                 'minResources'    => 0,
             ],
@@ -74,8 +74,8 @@ return [
                         'port'      => env('REDIS_SERVER_PORT', 6379),
                         'password'  => env('REDIS_SERVER_PASSWORD'),
 
-                        'client' => 'phpredis',
-                        'mode'   => \Imi\Redis\Enum\RedisMode::Standalone,
+                        'client'   => 'phpredis',
+                        'mode'     => \Imi\Redis\Enum\RedisMode::Standalone,
                         'database' => 0,
                     ],
                 ],

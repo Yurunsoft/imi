@@ -12,6 +12,7 @@ use PHPUnit\Framework\Assert;
 
 /**
  * @testdox RedisManager
+ *
  * @deprecated
  */
 class RedisManagerTest extends BaseTest
@@ -96,7 +97,7 @@ class RedisManagerTest extends BaseTest
     private function assertRedisHandler(IRedisHandler $redisHandler): void
     {
         Assert::assertInstanceOf(IRedisHandler::class, $redisHandler);
-        $str = \bin2hex(random_bytes(8));
+        $str = bin2hex(random_bytes(8));
         $redisHandler->set('imi:test:a', $str);
         Assert::assertEquals($str, $redisHandler->get('imi:test:a'));
     }

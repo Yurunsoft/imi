@@ -7,8 +7,6 @@ namespace Imi\Redis\Test;
 use Imi\App;
 use Imi\Cli\CliApp;
 use Imi\Core\CoreEvents;
-use Imi\Db\Db;
-use Imi\Db\Interfaces\IDb;
 use Imi\Event\Contract\IEvent;
 use Imi\Event\Event;
 use PHPUnit\Runner\Extension\Extension;

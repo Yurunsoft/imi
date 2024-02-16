@@ -77,7 +77,7 @@ return [
     'connectionCenter' => [
         'redis_test'            => [
             'manager' => \Imi\ConnectionCenter\Handler\Pool\PoolConnectionManager::class,
-            'pool' => [
+            'pool'    => [
                 'maxResources'    => 10,
                 'minResources'    => 0,
             ],
@@ -98,7 +98,7 @@ return [
         ],
         'redis_cache'            => [
             'manager' => \Imi\ConnectionCenter\Handler\Pool\PoolConnectionManager::class,
-            'pool' => [
+            'pool'    => [
                 'maxResources'    => 10,
                 'minResources'    => 0,
             ],

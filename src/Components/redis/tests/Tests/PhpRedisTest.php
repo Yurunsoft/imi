@@ -176,10 +176,10 @@ class PhpRedisTest extends TestCase
         $oriOption = $redis->getOption(\Redis::OPT_SERIALIZER);
 
         self::assertTrue($redis->setOption(\Redis::OPT_SERIALIZER, \Redis::SERIALIZER_PHP));
-        self::assertEquals(1, $redis->geoAdd('imi:geo', 120.31858, 31.49881, 'value_' . \bin2hex(\random_bytes(4))));
+        self::assertEquals(1, $redis->geoAdd('imi:geo', 120.31858, 31.49881, 'value_' . bin2hex(random_bytes(4))));
 
         self::assertTrue($redis->setOption(\Redis::OPT_SERIALIZER, \Redis::SERIALIZER_NONE));
-        self::assertEquals(1, $redis->geoAdd('imi:geo', 120.31858, 31.49881, 'value_' . \bin2hex(\random_bytes(4))));
+        self::assertEquals(1, $redis->geoAdd('imi:geo', 120.31858, 31.49881, 'value_' . bin2hex(random_bytes(4))));
 
         $redis->setOption(\Redis::OPT_SERIALIZER, $oriOption);
     }

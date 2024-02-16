@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Imi\Redis\Connector;
@@ -10,9 +11,9 @@ use Imi\Redis\Handler\IRedisHandler;
 
 class RedisConnectionDriver extends AbstractConnectionDriver
 {
-
     /**
      * @param RedisDriverConfig $config
+     *
      * @return object|\Imi\Redis\Handler\IRedisClusterHandler|\Imi\Redis\Handler\IRedisHandler
      */
     protected function createInstanceByConfig(IConnectionConfig $config): object
@@ -28,7 +29,7 @@ class RedisConnectionDriver extends AbstractConnectionDriver
         {
             RedisMode::Standalone => $connector::connect($config),
             RedisMode::Cluster    => $connector::connectCluster($config),
-            RedisMode::Sentinel => throw new \RuntimeException('To be implemented'),
+            RedisMode::Sentinel   => throw new \RuntimeException('To be implemented'),
         };
     }
 

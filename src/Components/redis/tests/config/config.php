@@ -59,7 +59,7 @@ return [
     'connectionCenter' => [
         'test_phpredis_standalone'            => [
             'manager' => \Imi\ConnectionCenter\Handler\Singleton\SingletonConnectionManager::class,
-            'pool' => [
+            'pool'    => [
                 'maxResources'    => 10,
                 'minResources'    => 0,
             ],
@@ -79,7 +79,7 @@ return [
         ],
         'test_phpredis_cluster'            => [
             'manager' => \Imi\ConnectionCenter\Handler\Singleton\SingletonConnectionManager::class,
-            'pool' => [
+            'pool'    => [
                 'maxResources'    => 10,
                 'minResources'    => 0,
             ],
@@ -106,7 +106,7 @@ return [
         ],
         'test_predis_standalone'            => [
             'manager' => \Imi\ConnectionCenter\Handler\Singleton\SingletonConnectionManager::class,
-            'pool' => [
+            'pool'    => [
                 'maxResources'    => 10,
                 'minResources'    => 0,
             ],
@@ -126,7 +126,7 @@ return [
         ],
         'test_predis_cluster'            => [
             'manager' => \Imi\ConnectionCenter\Handler\Singleton\SingletonConnectionManager::class,
-            'pool' => [
+            'pool'    => [
                 'maxResources'    => 10,
                 'minResources'    => 0,
             ],
@@ -156,7 +156,7 @@ return [
     // redis 配置
     'redis'             => [
         // 默认连接池名
-        'defaultPool'   => 'test_phpredis_standalone',
+        'defaultPool'             => 'test_phpredis_standalone',
         'quickFromRequestContext' => true,
     ],
     // 缓存配置

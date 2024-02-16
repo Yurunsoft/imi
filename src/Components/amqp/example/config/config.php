@@ -90,7 +90,7 @@ return [
     'connectionCenter' => Imi::checkAppType('swoole') ? [
         'redis'            => [
             'manager' => \Imi\ConnectionCenter\Handler\Pool\PoolConnectionManager::class,
-            'pool' => [
+            'pool'    => [
                 'maxResources'    => 10,
                 'minResources'    => 0,
             ],

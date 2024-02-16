@@ -4,20 +4,11 @@ declare(strict_types=1);
 
 namespace Imi\Redis;
 
-use Imi\App;
 use Imi\Config;
 use Imi\ConnectionCenter\Contract\IConnection;
-use Imi\ConnectionCenter\Contract\IConnectionManager;
 use Imi\ConnectionCenter\Enum\ConnectionStatus;
 use Imi\ConnectionCenter\Facade\ConnectionCenter;
-use Imi\Pool\PoolManager;
-use Imi\Redis\Connector\IRedisConnector;
-use Imi\Redis\Connector\PhpRedisConnector;
-use Imi\Redis\Connector\PredisConnector;
-use Imi\Redis\Enum\RedisMode;
 use Imi\Redis\Handler\IRedisHandler;
-use Imi\RequestContext;
-use Imi\Timer\Timer;
 
 class RedisManager
 {
@@ -37,6 +28,7 @@ class RedisManager
         /** @var IRedisHandler $instance */
         $instance = $connection->getInstance();
         self::recordInstanceLinkPool($instance, $connection);
+
         return $instance;
     }
 
@@ -52,6 +44,7 @@ class RedisManager
         /** @var IRedisHandler $instance */
         $instance = $connection->getInstance();
         self::recordInstanceLinkPool($instance, $connection);
+
         return $instance;
     }
 
@@ -66,6 +59,7 @@ class RedisManager
         try
         {
             $connection = self::getConnectionByInstance($resource);
+
             return $callback($connection, $resource);
         }
         finally
@@ -76,7 +70,8 @@ class RedisManager
 
     protected static function recordInstanceLinkPool(IRedisHandler $handler, IConnection $connection): void
     {
-        if (!isset(self::$instanceLinkConnectionMap)) {
+        if (!isset(self::$instanceLinkConnectionMap))
+        {
             self::$instanceLinkConnectionMap = new \WeakMap();
         }
 
@@ -99,10 +94,12 @@ class RedisManager
     public static function release(IRedisHandler $redis): void
     {
         $connection = self::getConnectionByInstance($redis);
-        if (null === $connection) {
+        if (null === $connection)
+        {
             throw new \RuntimeException('RedisHandler is not a valid connection center connection instance');
         }
-        if ($connection->getStatus() === ConnectionStatus::WaitRelease) {
+        if (ConnectionStatus::WaitRelease === $connection->getStatus())
+        {
             $connection->getManager()->releaseConnection($connection);
         }
         self::unsetConnectionInstance($redis);
@@ -130,7 +127,7 @@ class RedisManager
     }
 
     /**
-     * 从当前上下文中获取公用连接
+     * 从当前上下文中获取公用连接.
      */
     public static function isQuickFromRequestContext(): bool
     {

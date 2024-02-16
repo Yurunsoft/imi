@@ -40,12 +40,18 @@ trait TPredisMethod
         $sha1 = sha1($script);
         $client = $this->client;
 
-        try {
+        try
+        {
             return $client->evalSha($sha1, $numKeys, ...$args);
-        } catch (PredisException $exception) {
-            if ('NOSCRIPT No matching script. Please use EVAL.' === $exception->getMessage()) {
+        }
+        catch (PredisException $exception)
+        {
+            if ('NOSCRIPT No matching script. Please use EVAL.' === $exception->getMessage())
+            {
                 return $client->eval($script, $numKeys, ...$args);
-            } else {
+            }
+            else
+            {
                 throw $exception;
             }
         }

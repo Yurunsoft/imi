@@ -83,7 +83,11 @@ return [
             'b' => 'bbb',
         ],
         'ErrorLog'          => [
-            'exceptionLevel' => \E_ALL,
+            'catchLevel'         => \E_ALL,
+            'exceptionLevel'     => \E_ALL,
+            'errorEventHandlers' => [
+                \Imi\Test\Component\ErrorEventHandler::class,
+            ],
         ],
         'DbQueryLog'        => [
             'enable' => true,
@@ -103,52 +107,6 @@ return [
 
     // 连接池配置
     'pools'             => [
-        'redis_test'            => [
-            'pool'        => [
-                'class'        => \Imi\Redis\SyncRedisPool::class,
-                'config'       => [
-                    'maxResources'    => 10,
-                    'minResources'    => 1,
-                ],
-            ],
-            'resource'    => [
-                'host'      => env('REDIS_SERVER_HOST', '127.0.0.1'),
-                'port'      => env('REDIS_SERVER_PORT', 6379),
-                'password'  => env('REDIS_SERVER_PASSWORD'),
-            ],
-        ],
-        'redis_cache'           => [
-            'pool'        => [
-                'class'        => \Imi\Redis\SyncRedisPool::class,
-                'config'       => [
-                    'maxResources'    => 10,
-                    'minResources'    => 1,
-                ],
-            ],
-            'resource'    => [
-                'host'        => env('REDIS_SERVER_HOST', '127.0.0.1'),
-                'port'        => env('REDIS_SERVER_PORT', 6379),
-                'password'    => env('REDIS_SERVER_PASSWORD'),
-                'serialize'   => false,
-                'db'          => 1,
-            ],
-        ],
-        'redis_manager_test'    => [
-            'pool'        => [
-                'class'        => \Imi\Redis\SyncRedisPool::class,
-                'config'       => [
-                    'maxResources'    => 10,
-                    'minResources'    => 1,
-                ],
-            ],
-            'resource'    => [
-                'host'        => env('REDIS_SERVER_HOST', '127.0.0.1'),
-                'port'        => env('REDIS_SERVER_PORT', 6379),
-                'password'    => env('REDIS_SERVER_PASSWORD'),
-                'serialize'   => false,
-                'db'          => 1,
-            ],
-        ],
     ],
     // db 配置
     'db'                => [
@@ -174,14 +132,33 @@ return [
         // 默认连接池名
         'defaultPool'   => 'redis_test',
         'connections'   => [
-            'tradition' => [
-                'host'        => env('REDIS_SERVER_HOST', '127.0.0.1'),
-                'port'        => env('REDIS_SERVER_PORT', 6379),
-                'password'    => env('REDIS_SERVER_PASSWORD'),
-                'serialize'   => false,
+        ],
+    ],
+
+    // 连接中心配置
+    'connectionCenter' => [
+        'redis_test'            => [
+            'manager' => \Imi\ConnectionCenter\Handler\Singleton\SingletonConnectionManager::class,
+            'pool'    => [
+                'maxResources'    => 10,
+                'minResources'    => 0,
+            ],
+            'config'  => [
+                'driver'    => \Imi\Redis\Connector\RedisConnectionDriver::class,
+                'resources' => [
+                    [
+                        'host'      => env('REDIS_SERVER_HOST', '127.0.0.1'),
+                        'port'      => env('REDIS_SERVER_PORT', 6379),
+                        'password'  => env('REDIS_SERVER_PASSWORD'),
+
+                        'client' => 'phpredis',
+                        'mode'   => \Imi\Redis\Enum\RedisMode::Standalone,
+                    ],
+                ],
             ],
         ],
     ],
+
     // 缓存配置
     'cache'             => [
         'default'   => 'file1',
@@ -215,14 +192,14 @@ return [
         'redis'          => [
             'handlerClass'  => \Imi\Cache\Handler\Redis::class,
             'option'        => [
-                'poolName'              => 'redis_cache',
+                'poolName'              => 'redis_test',
                 'formatHandlerClass'    => \Imi\Util\Format\Json::class,
             ],
         ],
         'redisHash'      => [
             'handlerClass'  => \Imi\Cache\Handler\RedisHash::class,
             'option'        => [
-                'poolName'              => 'redis_cache',
+                'poolName'              => 'redis_test',
                 'separator'             => '->',
                 'formatHandlerClass'    => \Imi\Util\Format\Json::class,
             ],

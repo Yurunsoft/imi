@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Imi\Redis\Traits;
 
-use Imi\Redis\Enum\RedisMode;
 use Imi\Redis\RedisManager;
 use Imi\Redis\RedisResource;
 

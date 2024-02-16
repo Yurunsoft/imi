@@ -65,33 +65,27 @@ return [
 
     // 连接池配置
     'pools'             => [
-        'redis'    => [
-            'sync'     => [
-                'pool'        => [
-                    'class'        => \Imi\Redis\SyncRedisPool::class,
-                    'config'       => [
-                        'maxResources'    => 10,
-                        'minResources'    => 0,
-                    ],
-                ],
-                'resource'    => [
-                    'host'      => env('REDIS_SERVER_HOST', '127.0.0.1'),
-                    'port'      => 6379,
-                    'password'  => null,
-                ],
+    ],
+
+    // 连接中心配置
+    'connectionCenter' => [
+        'redis_test'            => [
+            'manager' => \Imi\ConnectionCenter\Handler\Pool\PoolConnectionManager::class,
+            'pool' => [
+                'maxResources'    => 10,
+                'minResources'    => 0,
             ],
-            'async'    => [
-                'pool'        => [
-                    'class'        => \Imi\Swoole\Redis\Pool\CoroutineRedisPool::class,
-                    'config'       => [
-                        'maxResources'    => 10,
-                        'minResources'    => 0,
+            'config'  => [
+                'driver'    => \Imi\Redis\Connector\RedisConnectionDriver::class,
+                'resources' => [
+                    [
+                        'host'      => env('REDIS_SERVER_HOST', '127.0.0.1'),
+                        'port'      => env('REDIS_SERVER_PORT', 6379),
+                        'password'  => env('REDIS_SERVER_PASSWORD'),
+
+                        'client' => 'phpredis',
+                        'mode'   => \Imi\Redis\Enum\RedisMode::Standalone,
                     ],
-                ],
-                'resource'    => [
-                    'host'      => env('REDIS_SERVER_HOST', '127.0.0.1'),
-                    'port'      => 6379,
-                    'password'  => null,
                 ],
             ],
         ],
@@ -106,7 +100,7 @@ return [
     // redis 配置
     'redis'             => [
         // 数默认连接池名
-        'defaultPool'   => 'redis',
+        'defaultPool'   => 'redis_test',
     ],
 
     // 内存表配置
@@ -126,7 +120,7 @@ return [
             'redis' => [
                 'class'     => 'RedisLock',
                 'options'   => [
-                    'poolName'  => 'redis',
+                    'poolName'  => 'redis_test',
                 ],
             ],
         ],

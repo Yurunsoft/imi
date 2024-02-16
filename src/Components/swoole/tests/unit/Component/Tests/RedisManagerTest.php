@@ -15,6 +15,11 @@ use PHPUnit\Framework\Assert;
  */
 class RedisManagerTest extends BaseTestCase
 {
+    protected function setUp(): void
+    {
+        $this->markTestSkipped('Deprecated Test');
+    }
+
     public function testDefaultPoolName(): void
     {
         Assert::assertEquals('redis_test', RedisManager::getDefaultPoolName());

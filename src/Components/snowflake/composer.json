@@ -18,7 +18,8 @@
         },
         "files": [
             "../../../vendor/autoload.php",
-            "../database/vendor/autoload.php"
+            "../database/vendor/autoload.php",
+            "../redis/vendor/autoload.php"
         ]
     },
     "scripts": {},

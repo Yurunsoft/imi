@@ -22,7 +22,8 @@
         },
         "files": [
             "../../../vendor/autoload.php",
-            "../../../dev/try-include-swoole.php"
+            "../../../dev/try-include-swoole.php",
+            "../redis/vendor/autoload.php"
         ]
     },
     "scripts": {

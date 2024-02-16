@@ -1,0 +1,38 @@
+{
+    "name": "imiphp/imi-redis",
+    "type": "library",
+    "license": "MulanPSL-2.0",
+    "description": "imi model",
+    "require": {
+        "imiphp/imi-connection-center": "~3.0.0"
+    },
+    "require-dev": {
+        "predis/predis": "^2.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "Imi\\Redis\\": "src/"
+        },
+        "files": [
+            "./helper.php"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Imi\\Redis\\Test\\": "tests/",
+            "Imi\\Redis\\Dev\\": "dev/"
+        },
+        "files": [
+            "../../../vendor/autoload.php",
+            "../connection-center/vendor/autoload.php"
+        ]
+    },
+    "scripts": {
+        "pre-install-cmd": "Imi\\Redis\\Dev\\Dev::preUpdate",
+        "pre-update-cmd": "Imi\\Redis\\Dev\\Dev::preUpdate",
+        "post-install-cmd": "Imi\\Redis\\Dev\\Dev::postUpdate",
+        "post-update-cmd": "Imi\\Redis\\Dev\\Dev::postUpdate"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}

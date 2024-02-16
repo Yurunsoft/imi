@@ -2,20 +2,26 @@
 
 declare(strict_types=1);
 
-namespace Imi\Test\Component\Tests;
+namespace Imi\Redis\Test\Tests;
 
 use Imi\Pool\PoolManager;
-use Imi\Redis\RedisHandler;
+use Imi\Redis\Handler\IRedisHandler;
 use Imi\Redis\RedisManager;
 use Imi\Test\BaseTest;
 use PHPUnit\Framework\Assert;
 
 /**
  * @testdox RedisManager
+ * @deprecated
  */
 class RedisManagerTest extends BaseTest
 {
     public const CONNECTION_NAME = 'tradition';
+
+    protected function setUp(): void
+    {
+        $this->markTestSkipped('Deprecated Test');
+    }
 
     public function testDefaultPoolName(): void
     {
@@ -27,8 +33,9 @@ class RedisManagerTest extends BaseTest
         $a = RedisManager::getInstance(self::CONNECTION_NAME);
         $b = RedisManager::getInstance(self::CONNECTION_NAME);
         $this->assertEquals(spl_object_id($a), spl_object_id($b));
-        $this->assertTrue($a->set('test', 'imi'));
-        $this->assertEquals('imi', $a->get('test'));
+        $value = 'imi' . bin2hex(random_bytes(4));
+        $a->set('test', $value);
+        $this->assertEquals($value, $a->get('test'));
     }
 
     public function testGetNewInstance(): void
@@ -36,8 +43,9 @@ class RedisManagerTest extends BaseTest
         $a = RedisManager::getInstance(self::CONNECTION_NAME);
         $b = RedisManager::getNewInstance(self::CONNECTION_NAME);
         $this->assertNotEquals(spl_object_id($a), spl_object_id($b));
-        $this->assertTrue($b->set('test', 'imi'));
-        $this->assertEquals('imi', $b->get('test'));
+        $value = 'imi' . bin2hex(random_bytes(4));
+        $b->set('test', $value);
+        $this->assertEquals($value, $b->get('test'));
     }
 
     public function testNewInstance(): void
@@ -85,11 +93,11 @@ class RedisManagerTest extends BaseTest
         Assert::assertEquals(0, $pool->getFree());
     }
 
-    private function assertRedisHandler(RedisHandler $redisHandler): void
+    private function assertRedisHandler(IRedisHandler $redisHandler): void
     {
-        Assert::assertInstanceOf(RedisHandler::class, $redisHandler);
-        $time = time();
-        $redisHandler->set('imi:test:a', $time);
-        Assert::assertEquals($time, $redisHandler->get('imi:test:a'));
+        Assert::assertInstanceOf(IRedisHandler::class, $redisHandler);
+        $str = \bin2hex(random_bytes(8));
+        $redisHandler->set('imi:test:a', $str);
+        Assert::assertEquals($str, $redisHandler->get('imi:test:a'));
     }
 }

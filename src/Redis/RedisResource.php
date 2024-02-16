@@ -4,9 +4,16 @@ declare(strict_types=1);
 
 namespace Imi\Redis;
 
-use Imi\Log\Log;
 use Imi\Pool\BasePoolResource;
+use Imi\Redis\Handler\IRedisHandler;
+use Imi\Redis\Handler\PhpRedisClusterHandler;
+use Imi\Redis\Handler\PhpRedisHandler;
+use Imi\Redis\Handler\PredisClusterHandler;
+use Imi\Redis\Handler\PredisHandler;
 
+/**
+ * @deprecated
+ */
 class RedisResource extends BasePoolResource
 {
     /**
@@ -14,12 +21,16 @@ class RedisResource extends BasePoolResource
      */
     private array $config = [];
 
-    public function __construct(\Imi\Pool\Interfaces\IPool $pool,
+    public function __construct(
+        \Imi\Pool\Interfaces\IPool $pool,
         /**
          * Redis 对象
+         *
+         * @var IRedisHandler|PhpRedisHandler|PhpRedisClusterHandler|PredisHandler|PredisClusterHandler|null
          */
-        private ?RedisHandler $redis, array $config)
-    {
+        private ?IRedisHandler $redis,
+        array $config
+    ) {
         parent::__construct($pool);
 
         if (isset($config['timeout']))
@@ -66,14 +77,9 @@ class RedisResource extends BasePoolResource
     {
         $config = $this->config;
         $redis = $this->redis;
-        if (!$redis->isCluster() && $redis->isConnected() && ($db = $config['db'] ?? 0) !== $redis->getDBNum() && !$redis->select($db))
+        if (!$redis->isCluster() && $redis->isConnected() && ($db = $config['db'] ?? 0) !== $redis->getDBNum())
         {
-            throw new \RedisException($redis->getLastError());
-        }
-        $optScan = $config['options'][\Redis::OPT_SCAN] ?? \Redis::SCAN_RETRY;
-        if (!$redis->setOption(\Redis::OPT_SCAN, $optScan))
-        {
-            throw new \RuntimeException(sprintf('Redis setOption %s=%s failed', \Redis::OPT_SCAN, $optScan));
+            $redis->select($db);
         }
     }
 
@@ -82,27 +88,7 @@ class RedisResource extends BasePoolResource
      */
     public function checkState(): bool
     {
-        $redis = $this->redis;
-        if ($redis->isCluster())
-        {
-            return true;
-        }
-        else
-        {
-            try
-            {
-                $result = $redis->ping();
-
-                // PHPRedis 扩展，5.0.0 版本开始，ping() 返回为 true，旧版本为 +PONG
-                return true === $result || '+PONG' === $result;
-            }
-            catch (\Throwable $th)
-            {
-                Log::error($th);
-
-                return false;
-            }
-        }
+        return $this->redis->isConnected();
     }
 
     /**
@@ -112,6 +98,6 @@ class RedisResource extends BasePoolResource
     {
         $redis = $this->redis;
 
-        return $redis->isCluster() || $redis->isConnected();
+        return $redis->isConnected();
     }
 }

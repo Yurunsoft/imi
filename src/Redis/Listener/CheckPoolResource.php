@@ -12,6 +12,9 @@ use Imi\Pool\Event\CheckPoolResourceEvent;
 use Imi\Pool\PoolManager;
 use Imi\Redis\RedisManager;
 
+/**
+ * @deprecated
+ */
 #[Listener(eventName: 'IMI.CHECK_POOL_RESOURCE')]
 class CheckPoolResource implements IEventListener
 {

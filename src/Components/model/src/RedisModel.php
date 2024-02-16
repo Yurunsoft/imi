@@ -17,6 +17,8 @@ use Imi\Model\Key\KeyRule;
 use Imi\Redis\RedisHandler;
 use Imi\Redis\RedisManager;
 use Imi\Util\Format\IFormat;
+use Imi\Util\Imi;
+use function Imi\dump;
 
 /**
  * Redis 模型.
@@ -53,6 +55,14 @@ abstract class RedisModel extends BaseModel
      */
     protected ?int $__ttl = null;
 
+    /**
+     * 动态模型集合.
+     */
+    protected static array $__forks = [];
+
+    /**
+     * @param class-string<RedisModel>|RedisModel|null $object
+     */
     public static function __getRedisEntity(string|self|null $object = null): ?RedisEntity
     {
         if (null === $object)
@@ -468,7 +478,9 @@ abstract class RedisModel extends BaseModel
                     $data = $formatter->encode($data);
                 }
                 $redis = static::__getRedis($this);
-                $data = $redis->_serialize($data);
+                if ($redis->isSupportSerialize()) {
+                    $data = $redis->_serialize($data);
+                }
 
                 return (bool) $redis->evalEx(<<<'LUA'
                 if (ARGV[1] == redis.call('get', KEYS[1])) then
@@ -485,7 +497,9 @@ abstract class RedisModel extends BaseModel
                     $data = $formatter->encode($data);
                 }
                 $redis = static::__getRedis($this);
-                $data = $redis->_serialize($data);
+                if ($redis->isSupportSerialize()) {
+                    $data = $redis->_serialize($data);
+                }
 
                 return (bool) $redis->evalEx(<<<'LUA'
                 if (ARGV[2] == redis.call('hget', KEYS[1], ARGV[1])) then
@@ -500,7 +514,9 @@ abstract class RedisModel extends BaseModel
                 foreach ($data as $key => $value)
                 {
                     $argv[] = $key;
-                    $argv[] = $redis->_serialize($value);
+                    if ($redis->isSupportSerialize()) {
+                        $argv[] = $redis->_serialize($value);
+                    }
                 }
 
                 return (bool) $redis->evalEx(<<<'LUA'
@@ -656,7 +672,7 @@ abstract class RedisModel extends BaseModel
      */
     public static function __getRedis(?self $redisModel = null): RedisHandler
     {
-        $annotation = static::__getRedisEntity($redisModel ?? static::class);
+        $annotation = static::__getRedisEntity($redisModel ?? static::class, false);
         $redis = RedisManager::getInstance($annotation->poolName);
         if (null !== $annotation->db)
         {
@@ -718,8 +734,7 @@ abstract class RedisModel extends BaseModel
         }
         else
         {
-            /** @var RedisEntity|null $redisEntity */
-            $redisEntity = AnnotationManager::getClassAnnotations($class, RedisEntity::class, true, true);
+            $redisEntity = static::__getRedisEntity($class);
             $key = $redisEntity ? $redisEntity->key : '';
             preg_match_all('/{([^}]+)}/', $key, $matches);
 
@@ -747,8 +762,7 @@ abstract class RedisModel extends BaseModel
         }
         else
         {
-            /** @var RedisEntity|null $redisEntity */
-            $redisEntity = AnnotationManager::getClassAnnotations($class, RedisEntity::class, true, true);
+            $redisEntity = static::__getRedisEntity($object);
             $key = $redisEntity ? $redisEntity->member : '';
             preg_match_all('/{([^}]+)}/', $key, $matches);
 
@@ -827,4 +841,63 @@ abstract class RedisModel extends BaseModel
             }
         }
     }
+
+    /**
+     * Fork 模型.
+     *
+     * @param class-string<IFormat>|null $formatter
+     * @return class-string<static>
+     */
+    public static function fork(?int $db = null, ?string $poolName = null, ?string $formatter = null): string
+    {
+        // todo 觉得 model 的 meta 设置不统一， 建议 BaseModel 能提供更多底层支持扩展支持
+        // 建议能传入 RedisEntity 对象的全部参数，能适用于更多场景
+        $forks = &self::$__forks;
+        if (isset($forks[static::class][$db][$poolName]))
+        {
+            return $forks[static::class][$db][$poolName];
+        }
+        $namespace = Imi::getClassNamespace(static::class);
+        $entity = static::__getRedisEntity();
+        if (null !== $db)
+        {
+            $entity->db = $db;
+        }
+        if (null !== $poolName)
+        {
+            $entity->poolName = $poolName;
+        }
+        if (null !== $formatter) {
+            $entity->formatter = $formatter;
+        }
+        $entityData = \var_export(\serialize($entity), true);
+        $class = str_replace('\\', '__', static::class . '\\' . md5($db . '\\' . $poolName . '\\' . $formatter));
+        $extendsClass = static::class;
+
+        Imi::eval(<<<PHP
+        namespace {$namespace} {
+            use Imi\Bean\Annotation\AnnotationManager;
+            use Imi\Bean\BeanFactory;
+            use Imi\Model\Annotation\RedisEntity;
+            use Imi\Model\RedisModel;
+
+            class {$class} extends \\{$extendsClass}
+            {
+                private static ?RedisEntity \$forkEntity = null;
+
+                public static function __getRedisEntity(string|RedisModel|null \$object = null): ?RedisEntity
+                {
+                    if (null === self::\$forkEntity) {
+                        self::\$forkEntity = unserialize($entityData);
+                    }
+
+                    return self::\$forkEntity;
+                }
+            }
+        }
+        PHP);
+
+        return $forks[static::class][$db][$poolName] = $namespace . '\\' . $class;
+    }
 }
+

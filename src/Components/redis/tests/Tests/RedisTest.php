@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Imi\Test\Component\Tests;
+namespace Imi\Redis\Test\Tests;
 
 use Imi\App;
 use Imi\Pool\Interfaces\IPoolResource;
@@ -14,9 +14,15 @@ use PHPUnit\Framework\Assert;
 
 /**
  * @testdox Redis
+ * @deprecated
  */
 class RedisTest extends BaseTest
 {
+    protected function setUp(): void
+    {
+        $this->markTestSkipped('Deprecated Test');
+    }
+
     public function testInject(): void
     {
         /** @var \Imi\Test\Component\Redis\Classes\TestInjectRedis $test */
@@ -24,14 +30,11 @@ class RedisTest extends BaseTest
         $test->test();
     }
 
-    public function testSet(): void
+    public function testGetAndSet(): void
     {
-        Assert::assertTrue(Redis::set('imi:test:a', 'imi niubi!'));
-    }
-
-    public function testGet(): void
-    {
-        Assert::assertEquals('imi niubi!', Redis::get('imi:test:a'));
+        $str = 'imi niubi!' . bin2hex(random_bytes(4));
+        Redis::set('imi:test:a', $str);
+        Assert::assertEquals($str, Redis::get('imi:test:a'));
     }
 
     public function testEvalEx(): void

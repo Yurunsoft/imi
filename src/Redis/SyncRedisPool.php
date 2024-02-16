@@ -8,6 +8,9 @@ use Imi\Pool\BaseSyncPool;
 use Imi\Pool\TUriResourceConfig;
 use Imi\Redis\Traits\TRedisPool;
 
+/**
+ * @deprecated
+ */
 class SyncRedisPool extends BaseSyncPool
 {
     use TRedisPool;

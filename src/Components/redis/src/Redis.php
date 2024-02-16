@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace Imi\Redis;
 
-use Imi\Config;
+use Imi\ConnectionCenter\Contract\IConnection;
+use Imi\ConnectionCenter\Facade\ConnectionCenter;
 use Imi\Pool\Interfaces\IPoolResource;
-use Imi\Pool\PoolManager;
+use Imi\Redis\Handler\IRedisHandler;
 
 /**
  * Redis 快捷操作类.
@@ -84,7 +85,6 @@ use Imi\Pool\PoolManager;
  * @method static mixed hSetNx($key, $member, $value)
  * @method static mixed hStrLen($key, $member)
  * @method static mixed hVals($key)
- * @method static mixed hscan($str_key, &$i_iterator, $str_pattern = null, $i_count = null)
  * @method static mixed incr($key)
  * @method static mixed incrBy($key, $value)
  * @method static mixed incrByFloat($key, $value)
@@ -147,7 +147,6 @@ use Imi\Pool\PoolManager;
  * @method static mixed sUnion($key, ...$other_keys)
  * @method static mixed sUnionStore($dst, $key, ...$other_keys)
  * @method static mixed save()
- * @method static mixed scan(&$i_iterator, $str_pattern = null, $i_count = null)
  * @method static mixed scard($key)
  * @method static mixed script($cmd, ...$args)
  * @method static mixed select($dbindex)
@@ -166,7 +165,6 @@ use Imi\Pool\PoolManager;
  * @method static mixed sortDesc($key, $pattern = null, $get = null, $start = null, $end = null, $getList = null)
  * @method static mixed sortDescAlpha($key, $pattern = null, $get = null, $start = null, $end = null, $getList = null)
  * @method static mixed srem($key, $member, ...$other_members)
- * @method static mixed sscan($str_key, &$i_iterator, $str_pattern = null, $i_count = null)
  * @method static mixed strlen($key)
  * @method static mixed subscribe(array $channels, $callback)
  * @method static mixed swapdb($srcdb, $dstdb)
@@ -212,7 +210,6 @@ use Imi\Pool\PoolManager;
  * @method static mixed zRevRank($key, $member)
  * @method static mixed zScore($key, $member)
  * @method static mixed zinterstore($key, array $keys, ?array $weights = null, $aggregate = null)
- * @method static mixed zscan($str_key, &$i_iterator, $str_pattern = null, $i_count = null)
  * @method static mixed zunionstore($key, array $keys, ?array $weights = null, $aggregate = null)
  * @method static mixed delete($key, ...$other_keys)
  * @method static mixed evaluate($script, $args = null, $num_keys = null)
@@ -256,31 +253,34 @@ class Redis
 
     public static function __callStatic(string $name, array $arguments): mixed
     {
-        if (Config::get('@currentServer.redis.quickFromRequestContext', true))
+        if (RedisManager::isQuickFromRequestContext())
         {
             return RedisManager::getInstance()->{$name}(...$arguments);
         }
         else
         {
-            return PoolManager::use(RedisManager::getDefaultPoolName(), static fn (IPoolResource $resource, RedisHandler $redis) => $redis->{$name}(...$arguments));
+            return RedisManager::use(
+                RedisManager::getDefaultPoolName(),
+                static fn (IConnection $resource, IRedisHandler $redis) => $redis->{$name}(...$arguments),
+            );
         }
     }
 
     /**
      * 使用回调来使用池子中的资源，无需手动释放
-     * 回调有 1 个参数：$instance(操作实例对象，\Imi\Redis\RedisHandler 类型)
+     * 回调有 1 个参数：$instance(操作实例对象，Imi\Redis\Handler\IRedisHandler 类型)
      * 本方法返回值为回调的返回值
      */
     public static function use(callable $callable, ?string $poolName = null, bool $forceUse = false): mixed
     {
         $poolName = RedisManager::parsePoolName($poolName);
-        if (!$forceUse && Config::get('@currentServer.redis.quickFromRequestContext', true) || !PoolManager::exists($poolName))
+        if (!$forceUse && RedisManager::isQuickFromRequestContext() || !ConnectionCenter::hasConnectionManager($poolName))
         {
             return $callable(RedisManager::getInstance($poolName));
         }
         else
         {
-            return PoolManager::use($poolName, static fn (IPoolResource $resource, RedisHandler $redis) => $callable($redis));
+            return RedisManager::use($poolName, static fn (IConnection $resource, IRedisHandler $redis) => $callable($redis));
         }
     }
 
@@ -289,13 +289,13 @@ class Redis
      */
     public static function scan(?int &$iterator, ?string $pattern = null, int $count = 0): mixed
     {
-        if (Config::get('@currentServer.redis.quickFromRequestContext', true))
+        if (RedisManager::isQuickFromRequestContext())
         {
             return RedisManager::getInstance()->scan($iterator, $pattern, $count);
         }
         else
         {
-            return PoolManager::use(RedisManager::getDefaultPoolName(), static function (IPoolResource $resource, RedisHandler $redis) use (&$iterator, $pattern, $count) {
+            return RedisManager::use(RedisManager::getDefaultPoolName(), static function (IPoolResource $resource, IRedisHandler $redis) use (&$iterator, $pattern, $count) {
                 return $redis->scan($iterator, $pattern, $count);
             });
         }
@@ -306,13 +306,13 @@ class Redis
      */
     public static function hscan(string $key, ?int &$iterator, ?string $pattern = null, int $count = 0): mixed
     {
-        if (Config::get('@currentServer.redis.quickFromRequestContext', true))
+        if (RedisManager::isQuickFromRequestContext())
         {
             return RedisManager::getInstance()->hscan($key, $iterator, $pattern, $count);
         }
         else
         {
-            return PoolManager::use(RedisManager::getDefaultPoolName(), static function (IPoolResource $resource, RedisHandler $redis) use ($key, &$iterator, $pattern, $count) {
+            return RedisManager::use(RedisManager::getDefaultPoolName(), static function (IPoolResource $resource, IRedisHandler $redis) use ($key, &$iterator, $pattern, $count) {
                 return $redis->hscan($key, $iterator, $pattern, $count);
             });
         }
@@ -323,13 +323,13 @@ class Redis
      */
     public static function sscan(string $key, ?int &$iterator, ?string $pattern = null, int $count = 0): mixed
     {
-        if (Config::get('@currentServer.redis.quickFromRequestContext', true))
+        if (RedisManager::isQuickFromRequestContext())
         {
             return RedisManager::getInstance()->sscan($key, $iterator, $pattern, $count);
         }
         else
         {
-            return PoolManager::use(RedisManager::getDefaultPoolName(), static function (IPoolResource $resource, RedisHandler $redis) use ($key, &$iterator, $pattern, $count) {
+            return RedisManager::use(RedisManager::getDefaultPoolName(), static function (IPoolResource $resource, IRedisHandler $redis) use ($key, &$iterator, $pattern, $count) {
                 return $redis->sscan($key, $iterator, $pattern, $count);
             });
         }
@@ -340,13 +340,13 @@ class Redis
      */
     public static function zscan(string $key, ?int &$iterator, ?string $pattern = null, int $count = 0): mixed
     {
-        if (Config::get('@currentServer.redis.quickFromRequestContext', true))
+        if (RedisManager::isQuickFromRequestContext())
         {
             return RedisManager::getInstance()->zscan($key, $iterator, $pattern, $count);
         }
         else
         {
-            return PoolManager::use(RedisManager::getDefaultPoolName(), static function (IPoolResource $resource, RedisHandler $redis) use ($key, &$iterator, $pattern, $count) {
+            return RedisManager::use(RedisManager::getDefaultPoolName(), static function (IPoolResource $resource, IRedisHandler $redis) use ($key, &$iterator, $pattern, $count) {
                 return $redis->zscan($key, $iterator, $pattern, $count);
             });
         }

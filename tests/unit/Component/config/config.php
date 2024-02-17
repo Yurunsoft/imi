@@ -131,8 +131,6 @@ return [
     'redis'             => [
         // 默认连接池名
         'defaultPool'   => 'redis_test',
-        'connections'   => [
-        ],
     ],
 
     // 连接中心配置

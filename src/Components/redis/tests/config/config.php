@@ -92,14 +92,7 @@ return [
                         'client' => 'phpredis',
                         'mode'   => \Imi\Redis\Enum\RedisMode::Cluster,
 
-                        'seeds' => [
-                            '192.168.32.2:6379',
-                            '192.168.32.3:6379',
-                            '192.168.32.4:6379',
-                            '192.168.32.5:6379',
-                            '192.168.32.6:6379',
-                            '192.168.32.7:6379',
-                        ],
+                        'seeds' => explode(',', env('REDIS_SERVER_CLUSTER_SEEDS')),
                     ],
                 ],
             ],
@@ -139,14 +132,7 @@ return [
                         'client' => 'predis',
                         'mode'   => \Imi\Redis\Enum\RedisMode::Cluster,
 
-                        'seeds' => [
-                            '192.168.32.2:6379',
-                            '192.168.32.3:6379',
-                            '192.168.32.4:6379',
-                            '192.168.32.5:6379',
-                            '192.168.32.6:6379',
-                            '192.168.32.7:6379',
-                        ],
+                        'seeds' => explode(',', env('REDIS_SERVER_CLUSTER_SEEDS')),
                     ],
                 ],
             ],

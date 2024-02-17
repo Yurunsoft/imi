@@ -8,5 +8,7 @@ interface IRedisHandler
 {
     public function getInstance(): object;
 
+    public function isCluster(): bool;
+
     public function isSupportSerialize(): bool;
 }

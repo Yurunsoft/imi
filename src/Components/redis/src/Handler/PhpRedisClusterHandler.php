@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Imi\Redis\Handler;
 
+use Imi\Redis\Connector\RedisDriverConfig;
 use Imi\Redis\Traits\TPhpRedisMethod;
 use RedisCluster;
 
@@ -14,12 +15,10 @@ class PhpRedisClusterHandler extends AbstractRedisHandler implements IRedisClust
 {
     use TPhpRedisMethod;
 
-    protected \RedisCluster $client;
-
     public function __construct(
-        \RedisCluster $client,
+        protected \RedisCluster $client,
+        protected RedisDriverConfig $config,
     ) {
-        $this->client = $client;
     }
 
     public function getInstance(): \RedisCluster

@@ -8,7 +8,7 @@ use Predis\PredisException;
 
 trait TPredisMethod
 {
-    public function getDBNum()
+    public function getDBNum(): int
     {
         // 不建议使用，性能差
         if ($this->isCluster())

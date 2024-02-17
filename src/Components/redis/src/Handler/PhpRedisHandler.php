@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Imi\Redis\Handler;
 
+use Imi\Redis\Connector\RedisDriverConfig;
 use Imi\Redis\Traits\TPhpRedisMethod;
 use Redis;
 
@@ -16,6 +17,7 @@ class PhpRedisHandler extends AbstractRedisHandler implements IRedisHandler
 
     public function __construct(
         protected \Redis $client,
+        protected RedisDriverConfig $config,
     ) {
     }
 

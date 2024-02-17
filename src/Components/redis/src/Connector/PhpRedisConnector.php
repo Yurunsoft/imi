@@ -30,14 +30,14 @@ class PhpRedisConnector implements IRedisConnector
         {
             throw new \RedisException($redis->getLastError());
         }
-        if (null !== $config->database && !$redis->select($config->database) && null !== $redis->getLastError())
+        if (!$redis->select($config->database) && null !== $redis->getLastError())
         {
             throw new \RedisException($redis->getLastError());
         }
 
         self::applyOptions($redis, $config);
 
-        return new PhpRedisHandler($redis);
+        return new PhpRedisHandler($redis, $config);
     }
 
     public static function connectCluster(RedisDriverConfig $config): PhpRedisClusterHandler
@@ -51,7 +51,7 @@ class PhpRedisConnector implements IRedisConnector
 
         self::applyOptions($redis, $config);
 
-        return new PhpRedisClusterHandler($redis);
+        return new PhpRedisClusterHandler($redis, $config);
     }
 
     protected static function applyOptions(\Redis|\RedisCluster $redis, RedisDriverConfig $config): void

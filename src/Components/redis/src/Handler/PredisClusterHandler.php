@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Imi\Redis\Handler;
 
+use Imi\Redis\Connector\RedisDriverConfig;
 use Imi\Redis\Traits\TPredisMethod;
 use Predis\Client;
 use Predis\Connection\Cluster\RedisCluster;
@@ -16,7 +17,8 @@ class PredisClusterHandler extends AbstractRedisHandler implements IRedisCluster
     use TPredisMethod;
 
     public function __construct(
-        private Client $client,
+        protected Client $client,
+        protected RedisDriverConfig $config,
     ) {
     }
 

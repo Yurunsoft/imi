@@ -6,7 +6,6 @@ namespace Imi\Redis;
 
 use Imi\Config;
 use Imi\ConnectionCenter\Contract\IConnection;
-use Imi\ConnectionCenter\Enum\ConnectionStatus;
 use Imi\ConnectionCenter\Facade\ConnectionCenter;
 use Imi\Redis\Handler\IRedisHandler;
 

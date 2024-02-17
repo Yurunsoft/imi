@@ -15,17 +15,14 @@ class PredisConnector implements IRedisConnector
     public static function connect(RedisDriverConfig $config): PredisHandler
     {
         $params = [
-            'scheme' => 'tcp',
-            'host'   => $config->host,
-            'port'   => $config->port,
+            'scheme'   => 'tcp',
+            'host'     => $config->host,
+            'port'     => $config->port,
+            'database' => $config->database,
         ];
         if ($config->password)
         {
             $params['password'] = $config->password;
-        }
-        if (null !== $config->database)
-        {
-            $params['database'] = $config->database;
         }
         if ($config->prefix)
         {
@@ -34,7 +31,7 @@ class PredisConnector implements IRedisConnector
         $client = new \Predis\Client($params);
         $client->connect();
 
-        return new PredisHandler($client);
+        return new PredisHandler($client, $config);
     }
 
     public static function connectCluster(RedisDriverConfig $config): PredisClusterHandler
@@ -58,6 +55,6 @@ class PredisConnector implements IRedisConnector
         $client = new \Predis\Client($seeds, $options);
         $client->connect();
 
-        return new PredisClusterHandler($client);
+        return new PredisClusterHandler($client, $config);
     }
 }

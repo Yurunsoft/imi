@@ -58,6 +58,13 @@ class RedisConnectionDriver extends AbstractConnectionDriver
      */
     public function reset(object $instance): void
     {
+        if (
+            !$instance->isCluster()
+            && $instance->isConnected()
+            && ($db = $instance->getConnectionConfig()->database) !== $instance->getDBNum()
+        ) {
+            $instance->select($db);
+        }
     }
 
     /**

@@ -17,6 +17,14 @@ class PhpRedisClusterTest extends PhpRedisTest
 {
     public string $driveName = 'test_phpredis_cluster';
 
+    public static function setUpBeforeClass(): void
+    {
+        if (\PHP_OS_FAMILY === 'Windows')
+        {
+            self::markTestSkipped('not support redis cluster');
+        }
+    }
+
     public function testGetDrive(): IRedisHandler
     {
         $redisClient = RedisManager::getInstance($this->driveName);

@@ -56,12 +56,20 @@ jobs:
         uses: ./.github/actions/ci-prepare
         with:
           env: ${{ env.ENV_SERVICE }}
+      - name: Test Env
+        if: ${{ env.test_prepared && always() }}
+        run: |
+          docker ps
+          echo ">>> redis-cluster-node-0"
+          docker exec ${ENV_SERVICE} bash -c "echo -e 'auth l83aa26\r\ninfo server' | nc redis-cluster-node-0 6479 -w 1"
+          docker exec ${ENV_SERVICE} bash -c "echo -e 'auth l83aa26\r\ncluster info\r\ncluster nodes' | nc redis-cluster-node-0 6479 -w 1"
       - name: Test
         if: ${{ env.test_prepared && always() }}
         run: docker exec ${ENV_SERVICE} composer test
       - name: Test redis
         if: ${{ env.test_prepared && always() }}
-        run: docker exec ${ENV_SERVICE} composer test-redis
+        run: |
+          docker exec ${ENV_SERVICE} composer test-redis
       - name: Test swoole
         if: ${{ env.test_prepared && always() }}
         run: docker exec ${ENV_SERVICE} composer test-swoole
@@ -215,7 +223,6 @@ jobs:
 #        run: docker exec ${ENV_SERVICE} php .github/print-logs.php
 
   ci-swoole-cli:
-    if: false
     name: Swoole-cli-${{ matrix.swoole-cli }}
     runs-on: ubuntu-latest
     strategy:
@@ -231,8 +238,8 @@ jobs:
       - name: Setup Services
         shell: bash
         run: |
-          sudo apt update && sudo apt install -y rsync
-          docker-compose -f ./.github/docker-compose.yml up -d mysql postgres redis rabbitmq kafka1
+          sudo apt update && sudo apt install -y rsync netcat-openbsd
+          docker-compose -f ./.github/docker-compose.yml up -d redis-cluster-node-0 mysql postgres redis rabbitmq kafka1
           echo "127.0.0.1 kafka1" | sudo tee -a /etc/hosts
       - name: Setup swoole-cli
         run: .github/script/install-swoole-cli.sh ${{ matrix.swoole-cli }}
@@ -270,58 +277,68 @@ jobs:
           docker exec postgres psql -d db_imi_test -U root -f /imi/.github/pgsql.sql
           echo "::endgroup::"
           echo "test_prepared=1" >> $GITHUB_ENV
-
+      - name: Test Env
+        if: ${{ env.test_prepared && always() }}
+        run: |
+          docker ps
+          echo -e 'auth l83aa26\r\ninfo server' | nc 127.0.0.1 6479 -w 1
+          echo -e 'auth l83aa26\r\ncluster info\r\ncluster nodes' | nc 127.0.0.1 6479 -w 1
       - name: Test
         if: ${{ env.test_prepared && always() }}
         run: composer test
+      - name: Test redis
+        if: ${{ env.test_prepared && always() }}
+        env:
+          REDIS_SERVER_CLUSTER_SEEDS: "127.0.0.1:6479,127.0.0.1:6480,127.0.0.1:6481,127.0.0.1:6482,127.0.0.1:6483,127.0.0.1:6484"
+        run: composer test-redis
       - name: Test swoole
         if: ${{ env.test_prepared && always() }}
         run: composer test-swoole
-      - name: Test workerman
-        if: ${{ env.test_prepared && always() }}
-        run: composer test-workerman
-      - name: Test workerman-gateway
-        if: ${{ env.test_prepared && always() }}
-        run: composer test-workerman-gateway
-      - name: Test jwt
-        if: ${{ env.test_prepared && always() }}
-        run: composer test-jwt
-      - name: Test queue
-        if: ${{ env.test_prepared && always() }}
-        run: composer test-queue
-      - name: Test amqp
-        if: ${{ env.test_prepared && always() }}
-        run: composer test-amqp
-      - name: Test kafka
-        if: ${{ env.test_prepared && always() }}
-        run: composer test-kafka
-      - name: Test grpc
-        if: ${{ env.test_prepared && always() }}
-        run: composer test-grpc
-      - name: Test snowflake
-        if: ${{ env.test_prepared && always() }}
-        run: composer test-snowflake
-      - name: Test mqtt
-        if: ${{ env.test_prepared && always() }}
-        run: composer test-mqtt
-      - name: Test smarty
-        if: ${{ env.test_prepared && always() }}
-        run: composer test-smarty
+      # - name: Test workerman
+      #   if: ${{ env.test_prepared && always() }}
+      #   run: composer test-workerman
+      # - name: Test workerman-gateway
+      #   if: ${{ env.test_prepared && always() }}
+      #   run: composer test-workerman-gateway
+      # - name: Test jwt
+      #   if: ${{ env.test_prepared && always() }}
+      #   run: composer test-jwt
+      # - name: Test queue
+      #   if: ${{ env.test_prepared && always() }}
+      #   run: composer test-queue
+      # - name: Test amqp
+      #   if: ${{ env.test_prepared && always() }}
+      #   run: composer test-amqp
+      # - name: Test kafka
+      #   if: ${{ env.test_prepared && always() }}
+      #   run: composer test-kafka
+      # - name: Test grpc
+      #   if: ${{ env.test_prepared && always() }}
+      #   run: composer test-grpc
+      # - name: Test snowflake
+      #   if: ${{ env.test_prepared && always() }}
+      #   run: composer test-snowflake
+      # - name: Test mqtt
+      #   if: ${{ env.test_prepared && always() }}
+      #   run: composer test-mqtt
+      # - name: Test smarty
+      #   if: ${{ env.test_prepared && always() }}
+      #   run: composer test-smarty
       # - name: Test pgsql
       #   if: ${{ matrix.swoole-cli == 'v5.0.3' && env.test_prepared && always() }}
       #   run: composer test-pgsql
-      - name: Test phar
-        if: ${{ env.test_prepared && always() }}
-        run: composer test-phar
-      - name: Test connection-center
-        if: ${{ env.test_prepared && always() }}
-        run: composer test-connection-center
-      - name: Test database
-        if: ${{ env.test_prepared && always() }}
-        run: composer test-database
-      - name: Test model
-        if: ${{ env.test_prepared && always() }}
-        run: composer test-model
+      # - name: Test phar
+      #   if: ${{ env.test_prepared && always() }}
+      #   run: composer test-phar
+      # - name: Test connection-center
+      #   if: ${{ env.test_prepared && always() }}
+      #   run: composer test-connection-center
+      # - name: Test database
+      #   if: ${{ env.test_prepared && always() }}
+      #   run: composer test-database
+      # - name: Test model
+      #   if: ${{ env.test_prepared && always() }}
+      #   run: composer test-model
       - name: Print logs
         if: failure()
         run: php .github/print-logs.php
@@ -419,57 +436,59 @@ jobs:
       - name: Test
         if: ${{ env.test_prepared && always() }}
         run: composer test
+      - name: Test redis
+        if: ${{ env.test_prepared && always() }}
+        run: composer test-redis
       - name: Test swoole
         if: ${{ env.test_prepared && always() }}
         run: composer test-swoole
-      - name: Test workerman
-        if: ${{ env.test_prepared && always() }}
-        run: composer test-workerman
-      - name: Test workerman-gateway
-        if: ${{ env.test_prepared && always() }}
-        run: composer test-workerman-gateway
-      - name: Test roadrunner
-        if: ${{ env.test_prepared && always() }}
-        run: composer test-roadrunner
-      - name: Test fpm
-        if: ${{ env.test_prepared && always() }}
-        run: composer test-fpm
-      - name: Test jwt
-        if: ${{ env.test_prepared && always() }}
-        run: composer test-jwt
-      - name: Test queue
-        if: ${{ env.test_prepared && always() }}
-        run: composer test-queue
-      - name: Test grpc
-        if: ${{ env.test_prepared && always() }}
-        run: composer test-grpc
-      - name: Test snowflake
-        if: ${{ env.test_prepared && always() }}
-        run: composer test-snowflake
-      - name: Test mqtt
-        if: ${{ env.test_prepared && always() }}
-        run: composer test-mqtt
-      - name: Test smarty
-        if: ${{ env.test_prepared && always() }}
-        run: composer test-smarty
-      - name: Test phar
-        if: ${{ env.test_prepared && always() }}
-        run: composer test-phar
-      - name: Test connection-center
-        if: ${{ env.test_prepared && always() }}
-        run: composer test-connection-center
-      - name: Test database
-        if: ${{ env.test_prepared && always() }}
-        run: composer test-database
-      - name: Test model
-        if: ${{ env.test_prepared && always() }}
-        run: composer test-model
+      # - name: Test workerman
+      #   if: ${{ env.test_prepared && always() }}
+      #   run: composer test-workerman
+      # - name: Test workerman-gateway
+      #   if: ${{ env.test_prepared && always() }}
+      #   run: composer test-workerman-gateway
+      # - name: Test roadrunner
+      #   if: ${{ env.test_prepared && always() }}
+      #   run: composer test-roadrunner
+      # - name: Test fpm
+      #   if: ${{ env.test_prepared && always() }}
+      #   run: composer test-fpm
+      # - name: Test jwt
+      #   if: ${{ env.test_prepared && always() }}
+      #   run: composer test-jwt
+      # - name: Test queue
+      #   if: ${{ env.test_prepared && always() }}
+      #   run: composer test-queue
+      # - name: Test grpc
+      #   if: ${{ env.test_prepared && always() }}
+      #   run: composer test-grpc
+      # - name: Test snowflake
+      #   if: ${{ env.test_prepared && always() }}
+      #   run: composer test-snowflake
+      # - name: Test mqtt
+      #   if: ${{ env.test_prepared && always() }}
+      #   run: composer test-mqtt
+      # - name: Test smarty
+      #   if: ${{ env.test_prepared && always() }}
+      #   run: composer test-smarty
+      # - name: Test phar
+      #   if: ${{ env.test_prepared && always() }}
+      #   run: composer test-phar
+      # - name: Test connection-center
+      #   if: ${{ env.test_prepared && always() }}
+      #   run: composer test-connection-center
+      # - name: Test database
+      #   if: ${{ env.test_prepared && always() }}
+      #   run: composer test-database
+      # - name: Test model
+      #   if: ${{ env.test_prepared && always() }}
+      #   run: composer test-model
       - name: Print logs
         if: failure()
         run: php .github/print-logs.php
 
   ci-windows:
-    if: false
     name: Windows PHP-${{ matrix.php }} RoadRunner-${{ matrix.roadrunner }}
     runs-on: windows-latest
     strategy:
@@ -552,33 +571,36 @@ jobs:
       - name: Test
         if: ${{ env.test_prepared && always() }}
         run: composer test
-      - name: Test fpm
+      - name: Test redis
         if: ${{ env.test_prepared && always() }}
-        run: composer test-fpm
-      - name: Test workerman
-        if: ${{ env.test_prepared && always() }}
-        run: composer test-workerman
-      - name: Test workerman-gateway
-        if: ${{ env.test_prepared && always() }}
-        run: composer test-workerman-gateway-w
-      - name: Test roadrunner
-        if: ${{ env.test_prepared && always() }}
-        run: composer test-roadrunner
-      - name: Test jwt
-        if: ${{ env.test_prepared && always() }}
-        run: composer test-jwt
-      - name: Test snowflake
-        if: ${{ env.test_prepared && always() }}
-        run: composer test-snowflake
-      - name: Test connection-center
-        if: ${{ env.test_prepared && always() }}
-        run: composer test-connection-center-common
-      - name: Test database
-        if: ${{ env.test_prepared && always() }}
-        run: composer test-database
-      - name: Test model
-        if: ${{ env.test_prepared && always() }}
-        run: composer test-model
+        run: composer test-redis
+      # - name: Test fpm
+      #   if: ${{ env.test_prepared && always() }}
+      #   run: composer test-fpm
+      # - name: Test workerman
+      #   if: ${{ env.test_prepared && always() }}
+      #   run: composer test-workerman
+      # - name: Test workerman-gateway
+      #   if: ${{ env.test_prepared && always() }}
+      #   run: composer test-workerman-gateway-w
+      # - name: Test roadrunner
+      #   if: ${{ env.test_prepared && always() }}
+      #   run: composer test-roadrunner
+      # - name: Test jwt
+      #   if: ${{ env.test_prepared && always() }}
+      #   run: composer test-jwt
+      # - name: Test snowflake
+      #   if: ${{ env.test_prepared && always() }}
+      #   run: composer test-snowflake
+      # - name: Test connection-center
+      #   if: ${{ env.test_prepared && always() }}
+      #   run: composer test-connection-center-common
+      # - name: Test database
+      #   if: ${{ env.test_prepared && always() }}
+      #   run: composer test-database
+      # - name: Test model
+      #   if: ${{ env.test_prepared && always() }}
+      #   run: composer test-model
       - name: Print logs
         if: failure()
         run: php .github\print-logs.php

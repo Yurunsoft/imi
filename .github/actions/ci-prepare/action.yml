@@ -12,6 +12,7 @@ runs:
     - name: Setup Services
       shell: bash
       run: |
+        docker-compose -f ./.github/docker-compose.yml up -d redis-cluster-node-0
         docker-compose -f ./.github/docker-compose.yml up -d ${{ inputs.env }}
         docker exec ${{ inputs.env }} php -v
         docker exec ${{ inputs.env }} php -m
@@ -21,7 +22,7 @@ runs:
     - name: Prepare
       shell: bash
       run: |
-        docker exec ${{ inputs.env }} apt install -y rsync
+        docker exec ${{ inputs.env }} apt install -y rsync netcat-openbsd
         docker exec ${{ inputs.env }} composer config --global cache-files-dir /tmp/base_cache/composer
         docker exec ${{ inputs.env }} composer config -g process-timeout 600
         docker exec ${{ inputs.env }} composer update --no-interaction --prefer-dist --no-progress ${COMPOSER_ENV}

@@ -2,12 +2,6 @@ version: "3.4"
 volumes:
   shared-volume:
     driver: local
-  redis-cluster_data-0:
-    driver: local
-  redis-cluster_data-1:
-    driver: local
-  redis-cluster_data-2:
-    driver: local
 services:
   shared-tmp:
     image: busybox
@@ -95,29 +89,79 @@ services:
     ports:
       - "9092:9092"
 
-  redis-node-0:
+  redis-cluster-node-1:
+    container_name: redis-cluster-node-1
     image: bitnami/redis-cluster:7.2
-    volumes:
-      - redis-cluster_data-0:/bitnami/redis/data
     environment:
-      - 'REDIS_PASSWORD=l83aa26'
-      - 'REDIS_NODES=redis-node-0 redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5'
+      REDIS_PORT_NUMBER: 6480
+      REDIS_PASSWORD: "l83aa26"
+      REDIS_NODES: "redis-cluster-node-1:6480 redis-cluster-node-2:6481 redis-cluster-node-3:6482 redis-cluster-node-4:6483 redis-cluster-node-5:6484 redis-cluster-node-0:6479"
+    ports:
+      - "6480:6480"
 
-  redis-node-1:
+  redis-cluster-node-2:
+    container_name: redis-cluster-node-2
     image: bitnami/redis-cluster:7.2
-    volumes:
-      - redis-cluster_data-1:/bitnami/redis/data
     environment:
-      - 'REDIS_PASSWORD=l83aa26'
-      - 'REDIS_NODES=redis-node-0 redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5'
+      REDIS_PORT_NUMBER: 6481
+      REDIS_PASSWORD: "l83aa26"
+      REDIS_NODES: "redis-cluster-node-1:6480 redis-cluster-node-2:6481 redis-cluster-node-3:6482 redis-cluster-node-4:6483 redis-cluster-node-5:6484 redis-cluster-node-0:6479"
+    ports:
+      - "6481:6481"
 
-  redis-node-2:
+  redis-cluster-node-3:
+    container_name: redis-cluster-node-3
     image: bitnami/redis-cluster:7.2
-    volumes:
-      - redis-cluster_data-2:/bitnami/redis/data
     environment:
-      - 'REDIS_PASSWORD=l83aa26'
-      - 'REDIS_NODES=redis-node-0 redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5'
+      REDIS_PORT_NUMBER: 6482
+      REDIS_PASSWORD: "l83aa26"
+      REDIS_NODES: "redis-cluster-node-1:6480 redis-cluster-node-2:6481 redis-cluster-node-3:6482 redis-cluster-node-4:6483 redis-cluster-node-5:6484 redis-cluster-node-0:6479"
+    ports:
+      - "6482:6482"
+
+  redis-cluster-node-4:
+    container_name: redis-cluster-node-4
+    image: bitnami/redis-cluster:7.2
+    environment:
+      REDIS_PORT_NUMBER: 6483
+      REDIS_PASSWORD: "l83aa26"
+      REDIS_NODES: "redis-cluster-node-1:6480 redis-cluster-node-2:6481 redis-cluster-node-3:6482 redis-cluster-node-4:6483 redis-cluster-node-5:6484 redis-cluster-node-0:6479"
+    ports:
+      - "6483:6483"
+
+  redis-cluster-node-5:
+    container_name: redis-cluster-node-5
+    image: bitnami/redis-cluster:7.2
+    environment:
+      REDIS_PORT_NUMBER: 6484
+      REDIS_PASSWORD: "l83aa26"
+      REDIS_NODES: "redis-cluster-node-1:6480 redis-cluster-node-2:6481 redis-cluster-node-3:6482 redis-cluster-node-4:6483 redis-cluster-node-5:6484 redis-cluster-node-0:6479"
+    ports:
+      - "6484:6484"
+
+  redis-cluster-node-0:
+    container_name: redis-cluster-node-0
+    image: bitnami/redis-cluster:7.2
+    depends_on:
+      - redis-cluster-node-1
+      - redis-cluster-node-2
+      - redis-cluster-node-3
+      - redis-cluster-node-4
+      - redis-cluster-node-5
+    environment:
+      REDIS_PORT_NUMBER: 6479
+      REDIS_PASSWORD: "l83aa26"
+      REDIS_NODES: "redis-cluster-node-1:6480 redis-cluster-node-2:6481 redis-cluster-node-3:6482 redis-cluster-node-4:6483 redis-cluster-node-5:6484 redis-cluster-node-0:6479"
+      REDISCLI_AUTH: "l83aa26"
+      REDIS_CLUSTER_REPLICAS: "1"
+      REDIS_CLUSTER_CREATOR: "yes"
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -h 127.0.0.1 -p 6479 -a l83aa26 CLUSTER INFO | grep 'cluster_state:ok'"]
+      interval: 3s
+      timeout: 60s
+      retries: 30
+    ports:
+      - "6479:6479"
 
   swoole:
     container_name: "swoole"
@@ -129,6 +173,7 @@ services:
       - rabbitmq
       - kafka1
       - postgres
+      - redis-cluster-node-0
     environment:
       MYSQL_SERVER_HOST: mysql
       REDIS_SERVER_HOST: ${REDIS_SERVER_HOST}
@@ -153,6 +198,7 @@ services:
       - rabbitmq
       - kafka1
       - postgres
+      - redis-cluster-node-0
     environment:
       MYSQL_SERVER_HOST: mysql
       REDIS_SERVER_HOST: ${REDIS_SERVER_HOST}

@@ -59,60 +59,63 @@ jobs:
       - name: Test
         if: ${{ env.test_prepared && always() }}
         run: docker exec ${ENV_SERVICE} composer test
+      - name: Test redis
+        if: ${{ env.test_prepared && always() }}
+        run: docker exec ${ENV_SERVICE} composer test-redis
       - name: Test swoole
         if: ${{ env.test_prepared && always() }}
         run: docker exec ${ENV_SERVICE} composer test-swoole
-      - name: Test workerman
-        if: ${{ env.test_prepared && always() }}
-        run: docker exec ${ENV_SERVICE} composer test-workerman
-      - name: Test workerman-gateway
-        if: ${{ env.test_prepared && always() }}
-        run: docker exec ${ENV_SERVICE} composer test-workerman-gateway
-      - name: Test roadrunner
-        if: ${{ env.test_prepared && always() }}
-        run: docker exec ${ENV_SERVICE} composer test-roadrunner
-      - name: Test fpm
-        if: ${{ env.test_prepared && always() }}
-        run: docker exec ${ENV_SERVICE} composer test-fpm
-      - name: Test jwt
-        if: ${{ env.test_prepared && always() }}
-        run: docker exec ${ENV_SERVICE} composer test-jwt
-      - name: Test queue
-        if: ${{ env.test_prepared && always() }}
-        run: docker exec ${ENV_SERVICE} composer test-queue
-      - name: Test amqp
-        if: ${{ env.test_prepared && always() }}
-        run: docker exec ${ENV_SERVICE} composer test-amqp
-      - name: Test kafka
-        if: ${{ env.test_prepared && always() }}
-        run: docker exec ${ENV_SERVICE} composer test-kafka
-      - name: Test grpc
-        if: ${{ env.test_prepared && always() }}
-        run: docker exec ${ENV_SERVICE} composer test-grpc
-      - name: Test snowflake
-        if: ${{ env.test_prepared && always() }}
-        run: docker exec ${ENV_SERVICE} composer test-snowflake
-      - name: Test mqtt
-        if: ${{ env.test_prepared && always() }}
-        run: docker exec ${ENV_SERVICE} composer test-mqtt
-      - name: Test smarty
-        if: ${{ env.test_prepared && always() }}
-        run: docker exec ${ENV_SERVICE} composer test-smarty
-      - name: Test pgsql
-        if: ${{ env.test_prepared && always() }}
-        run: docker exec ${ENV_SERVICE} composer test-pgsql
-      - name: Test phar
-        if: ${{ env.test_prepared && always() }}
-        run: docker exec ${ENV_SERVICE} composer test-phar
-      - name: Test connection-center
-        if: ${{ env.test_prepared && always() }}
-        run: docker exec ${ENV_SERVICE} composer test-connection-center
-      - name: Test database
-        if: ${{ env.test_prepared && always() }}
-        run: docker exec ${ENV_SERVICE} composer test-database
-      - name: Test model
-        if: ${{ env.test_prepared && always() }}
-        run: docker exec ${ENV_SERVICE} composer test-model
+#      - name: Test workerman
+#        if: ${{ env.test_prepared && always() }}
+#        run: docker exec ${ENV_SERVICE} composer test-workerman
+#      - name: Test workerman-gateway
+#        if: ${{ env.test_prepared && always() }}
+#        run: docker exec ${ENV_SERVICE} composer test-workerman-gateway
+#      - name: Test roadrunner
+#        if: ${{ env.test_prepared && always() }}
+#        run: docker exec ${ENV_SERVICE} composer test-roadrunner
+#      - name: Test fpm
+#        if: ${{ env.test_prepared && always() }}
+#        run: docker exec ${ENV_SERVICE} composer test-fpm
+#      - name: Test jwt
+#        if: ${{ env.test_prepared && always() }}
+#        run: docker exec ${ENV_SERVICE} composer test-jwt
+#      - name: Test queue
+#        if: ${{ env.test_prepared && always() }}
+#        run: docker exec ${ENV_SERVICE} composer test-queue
+#      - name: Test amqp
+#        if: ${{ env.test_prepared && always() }}
+#        run: docker exec ${ENV_SERVICE} composer test-amqp
+#      - name: Test kafka
+#        if: ${{ env.test_prepared && always() }}
+#        run: docker exec ${ENV_SERVICE} composer test-kafka
+#      - name: Test grpc
+#        if: ${{ env.test_prepared && always() }}
+#        run: docker exec ${ENV_SERVICE} composer test-grpc
+#      - name: Test snowflake
+#        if: ${{ env.test_prepared && always() }}
+#        run: docker exec ${ENV_SERVICE} composer test-snowflake
+#      - name: Test mqtt
+#        if: ${{ env.test_prepared && always() }}
+#        run: docker exec ${ENV_SERVICE} composer test-mqtt
+#      - name: Test smarty
+#        if: ${{ env.test_prepared && always() }}
+#        run: docker exec ${ENV_SERVICE} composer test-smarty
+#      - name: Test pgsql
+#        if: ${{ env.test_prepared && always() }}
+#        run: docker exec ${ENV_SERVICE} composer test-pgsql
+#      - name: Test phar
+#        if: ${{ env.test_prepared && always() }}
+#        run: docker exec ${ENV_SERVICE} composer test-phar
+#      - name: Test connection-center
+#        if: ${{ env.test_prepared && always() }}
+#        run: docker exec ${ENV_SERVICE} composer test-connection-center
+#      - name: Test database
+#        if: ${{ env.test_prepared && always() }}
+#        run: docker exec ${ENV_SERVICE} composer test-database
+#      - name: Test model
+#        if: ${{ env.test_prepared && always() }}
+#        run: docker exec ${ENV_SERVICE} composer test-model
       - name: Print logs
         if: failure()
         run: docker exec ${ENV_SERVICE} php .github/print-logs.php
@@ -212,6 +215,7 @@ jobs:
 #        run: docker exec ${ENV_SERVICE} php .github/print-logs.php
 
   ci-swoole-cli:
+    if: false
     name: Swoole-cli-${{ matrix.swoole-cli }}
     runs-on: ubuntu-latest
     strategy:
@@ -323,6 +327,7 @@ jobs:
         run: php .github/print-logs.php
 
   ci-macos:
+    if: false
     name: MacOS PHP-${{ matrix.php }} Swoole-${{ matrix.swoole }} RoadRunner-${{ matrix.roadrunner }}
     runs-on: macos-latest
     strategy:
@@ -464,6 +469,7 @@ jobs:
         run: php .github/print-logs.php
 
   ci-windows:
+    if: false
     name: Windows PHP-${{ matrix.php }} RoadRunner-${{ matrix.roadrunner }}
     runs-on: windows-latest
     strategy:

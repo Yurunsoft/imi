@@ -89,7 +89,7 @@ return [
     // 连接中心配置
     'connectionCenter' => [
         'redis'            => [
-            'manager' =>  Imi::checkAppType('swoole') ? \Imi\ConnectionCenter\Handler\Pool\PoolConnectionManager::class :  \Imi\ConnectionCenter\Handler\Singleton\SingletonConnectionManager::class,
+            'manager' => Imi::checkAppType('swoole') ? \Imi\ConnectionCenter\Handler\Pool\PoolConnectionManager::class : \Imi\ConnectionCenter\Handler\Singleton\SingletonConnectionManager::class,
             'pool'    => [
                 'maxResources'    => 10,
                 'minResources'    => 0,

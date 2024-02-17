@@ -89,16 +89,22 @@ class RedisManager
 
     protected static function unsetConnectionInstance(IRedisHandler $handler): bool
     {
-        /** @var null|object $ref */
+        /** @var object|null $ref */
         $ref = self::$instanceLinkConnectionMap[$handler] ?? null;
-        if (null !== $ref) {
+        if (null !== $ref)
+        {
             return true;
         }
-        if ($ref->count > 1) {
-            $ref->count--;
+        if ($ref->count > 1)
+        {
+            --$ref->count;
+
             return false;
-        } else {
+        }
+        else
+        {
             unset(self::$instanceLinkConnectionMap[$handler]);
+
             return true;
         }
     }
@@ -113,7 +119,8 @@ class RedisManager
         {
             throw new \RuntimeException('RedisHandler is not a valid connection center connection instance');
         }
-        if (self::unsetConnectionInstance($redis)) {
+        if (self::unsetConnectionInstance($redis))
+        {
             ConnectionStatus::Available === $connection->getStatus() && $connection->release();
         }
     }

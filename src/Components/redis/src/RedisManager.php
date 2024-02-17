@@ -6,6 +6,7 @@ namespace Imi\Redis;
 
 use Imi\Config;
 use Imi\ConnectionCenter\Contract\IConnection;
+use Imi\ConnectionCenter\Enum\ConnectionStatus;
 use Imi\ConnectionCenter\Facade\ConnectionCenter;
 use Imi\Redis\Handler\IRedisHandler;
 
@@ -74,17 +75,32 @@ class RedisManager
             self::$instanceLinkConnectionMap = new \WeakMap();
         }
 
-        self::$instanceLinkConnectionMap[$handler] = $connection;
+        $ref = self::$instanceLinkConnectionMap[$handler] ?? new \stdClass();
+        $ref->connection = $connection;
+        $ref->count = ($ref->count ?? 0) + 1;
+
+        self::$instanceLinkConnectionMap[$handler] = $ref;
     }
 
     protected static function getConnectionByInstance(IRedisHandler $handler): ?IConnection
     {
-        return self::$instanceLinkConnectionMap[$handler] ?? null;
+        return (self::$instanceLinkConnectionMap[$handler] ?? null)?->connection;
     }
 
-    protected static function unsetConnectionInstance(IRedisHandler $handler): void
+    protected static function unsetConnectionInstance(IRedisHandler $handler): bool
     {
-        unset(self::$instanceLinkConnectionMap[$handler]);
+        /** @var null|object $ref */
+        $ref = self::$instanceLinkConnectionMap[$handler] ?? null;
+        if (null !== $ref) {
+            return true;
+        }
+        if ($ref->count > 1) {
+            $ref->count--;
+            return false;
+        } else {
+            unset(self::$instanceLinkConnectionMap[$handler]);
+            return true;
+        }
     }
 
     /**
@@ -97,8 +113,9 @@ class RedisManager
         {
             throw new \RuntimeException('RedisHandler is not a valid connection center connection instance');
         }
-        $connection->release();
-        self::unsetConnectionInstance($redis);
+        if (self::unsetConnectionInstance($redis)) {
+            ConnectionStatus::Available === $connection->getStatus() && $connection->release();
+        }
     }
 
     /**

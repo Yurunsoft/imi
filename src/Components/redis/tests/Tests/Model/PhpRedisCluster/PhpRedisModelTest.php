@@ -11,4 +11,12 @@ use PHPUnit\Framework\Attributes\TestDox;
 class PhpRedisModelTest extends AbstractRedisModel
 {
     protected string $poolName = 'test_phpredis_cluster';
+
+    public static function setUpBeforeClass(): void
+    {
+        if (\PHP_OS_FAMILY !== 'Linux')
+        {
+            self::markTestSkipped('not support redis cluster');
+        }
+    }
 }

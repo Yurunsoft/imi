@@ -21,7 +21,7 @@ class PredisClusterTest extends PhpRedisTest
 
     public static function setUpBeforeClass(): void
     {
-        if (\PHP_OS_FAMILY === 'Windows')
+        if (\PHP_OS_FAMILY !== 'Linux')
         {
             self::markTestSkipped('not support redis cluster');
         }

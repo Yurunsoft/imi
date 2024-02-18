@@ -344,7 +344,6 @@ jobs:
         run: php .github/print-logs.php
 
   ci-macos:
-    if: false
     name: MacOS PHP-${{ matrix.php }} Swoole-${{ matrix.swoole }} RoadRunner-${{ matrix.roadrunner }}
     runs-on: macos-latest
     strategy:

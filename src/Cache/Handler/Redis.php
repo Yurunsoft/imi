@@ -31,7 +31,7 @@ class Redis extends Base
      */
     public function get(string $key, mixed $default = null): mixed
     {
-        $result = ImiRedis::use(fn (\Imi\Redis\RedisHandler $redis) => $redis->get($this->parseKey($key)), $this->poolName, true);
+        $result = ImiRedis::use(fn (\Imi\Redis\RedisHandler $redis) => $redis->get($this->parseKey($key)), $this->poolName);
         if (false === $result)
         {
             return $default;
@@ -53,7 +53,7 @@ class Redis extends Base
             $ttl = DateTime::getSecondsByInterval($ttl);
         }
 
-        return (bool) ImiRedis::use(fn (\Imi\Redis\RedisHandler $redis) => $redis->set($this->parseKey($key), $this->encode($value), $ttl), $this->poolName, true);
+        return (bool) ImiRedis::use(fn (\Imi\Redis\RedisHandler $redis) => $redis->set($this->parseKey($key), $this->encode($value), $ttl), $this->poolName);
     }
 
     /**
@@ -61,7 +61,7 @@ class Redis extends Base
      */
     public function delete(string $key): bool
     {
-        return (bool) ImiRedis::use(fn (\Imi\Redis\RedisHandler $redis) => $redis->del($this->parseKey($key)) > 0, $this->poolName, true);
+        return (bool) ImiRedis::use(fn (\Imi\Redis\RedisHandler $redis) => $redis->del($this->parseKey($key)) > 0, $this->poolName);
     }
 
     /**
@@ -69,7 +69,7 @@ class Redis extends Base
      */
     public function clear(): bool
     {
-        return (bool) ImiRedis::use(static fn (\Imi\Redis\RedisHandler $redis) => $redis->flushDB(), $this->poolName, true);
+        return (bool) ImiRedis::use(static fn (\Imi\Redis\RedisHandler $redis) => $redis->flushDB(), $this->poolName);
     }
 
     /**
@@ -81,7 +81,7 @@ class Redis extends Base
         {
             $key = $this->parseKey($key);
         }
-        $mgetResult = ImiRedis::use(static fn (\Imi\Redis\RedisHandler $redis) => $redis->mget($keys), $this->poolName, true);
+        $mgetResult = ImiRedis::use(static fn (\Imi\Redis\RedisHandler $redis) => $redis->mget($keys), $this->poolName);
         $result = [];
         if ($mgetResult)
         {
@@ -142,7 +142,7 @@ class Redis extends Base
             }
 
             return true;
-        }, $this->poolName, true);
+        }, $this->poolName);
 
         return (bool) $result;
     }
@@ -157,7 +157,7 @@ class Redis extends Base
             $key = $this->parseKey($key);
         }
 
-        return (bool) ImiRedis::use(static fn (\Imi\Redis\RedisHandler $redis) => $redis->del($keys), $this->poolName, true);
+        return (bool) ImiRedis::use(static fn (\Imi\Redis\RedisHandler $redis) => $redis->del($keys), $this->poolName);
     }
 
     /**
@@ -165,7 +165,7 @@ class Redis extends Base
      */
     public function has(string $key): bool
     {
-        return (bool) ImiRedis::use(fn (\Imi\Redis\RedisHandler $redis) => $redis->exists($this->parseKey($key)), $this->poolName, true);
+        return (bool) ImiRedis::use(fn (\Imi\Redis\RedisHandler $redis) => $redis->exists($this->parseKey($key)), $this->poolName);
     }
 
     /**

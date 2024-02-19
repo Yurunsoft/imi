@@ -37,7 +37,7 @@ class Redis extends Base
     {
         ImiRedis::use(function (\Imi\Redis\RedisHandler $redis) use ($sessionId): void {
             $redis->del($this->getKey($sessionId));
-        }, $this->poolName, true);
+        }, $this->poolName);
     }
 
     /**
@@ -53,7 +53,7 @@ class Redis extends Base
      */
     public function read(string $sessionId): string
     {
-        return ImiRedis::use(fn (\Imi\Redis\RedisHandler $redis) => $redis->get($this->getKey($sessionId)), $this->poolName, true) ?: '';
+        return ImiRedis::use(fn (\Imi\Redis\RedisHandler $redis) => $redis->get($this->getKey($sessionId)), $this->poolName) ?: '';
     }
 
     /**
@@ -63,7 +63,7 @@ class Redis extends Base
     {
         ImiRedis::use(function (\Imi\Redis\RedisHandler $redis) use ($sessionId, $sessionData, $maxLifeTime): void {
             $redis->set($this->getKey($sessionId), $sessionData, $maxLifeTime);
-        }, $this->poolName, true);
+        }, $this->poolName);
     }
 
     /**

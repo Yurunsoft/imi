@@ -58,7 +58,7 @@ class RedisHash extends Base
     public function get(string $key, mixed $default = null): mixed
     {
         $this->parseKey($key, $member);
-        $result = Redis::use(static fn (\Imi\Redis\RedisHandler $redis) => $redis->hGet($key, $member), $this->poolName, true);
+        $result = Redis::use(static fn (\Imi\Redis\RedisHandler $redis) => $redis->hGet($key, $member), $this->poolName);
         if (false === $result)
         {
             return $default;
@@ -76,7 +76,7 @@ class RedisHash extends Base
     {
         $this->parseKey($key, $member);
 
-        return false !== Redis::use(fn (\Imi\Redis\RedisHandler $redis) => $redis->hSet($key, $member, $this->encode($value)), $this->poolName, true);
+        return false !== Redis::use(fn (\Imi\Redis\RedisHandler $redis) => $redis->hSet($key, $member, $this->encode($value)), $this->poolName);
     }
 
     /**
@@ -103,7 +103,7 @@ class RedisHash extends Base
      */
     public function clear(): bool
     {
-        return (bool) Redis::use(static fn (\Imi\Redis\RedisHandler $redis) => $redis->flushDB(), $this->poolName, true);
+        return (bool) Redis::use(static fn (\Imi\Redis\RedisHandler $redis) => $redis->flushDB(), $this->poolName);
     }
 
     /**
@@ -142,7 +142,7 @@ class RedisHash extends Base
             }
 
             return $result;
-        }, $this->poolName, true);
+        }, $this->poolName);
     }
 
     /**
@@ -179,7 +179,7 @@ class RedisHash extends Base
             }
 
             return true;
-        }, $this->poolName, true);
+        }, $this->poolName);
 
         return (bool) $result;
     }
@@ -210,7 +210,7 @@ class RedisHash extends Base
             }
 
             return true;
-        }, $this->poolName, true);
+        }, $this->poolName);
     }
 
     /**
@@ -220,7 +220,7 @@ class RedisHash extends Base
     {
         $this->parseKey($key, $member);
 
-        return (bool) Redis::use(static fn (\Imi\Redis\RedisHandler $redis) => $redis->hExists($key, $member), $this->poolName, true);
+        return (bool) Redis::use(static fn (\Imi\Redis\RedisHandler $redis) => $redis->hExists($key, $member), $this->poolName);
     }
 
     /**

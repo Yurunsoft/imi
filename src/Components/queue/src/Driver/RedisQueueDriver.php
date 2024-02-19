@@ -61,7 +61,7 @@ class RedisQueueDriver implements IQueueDriver
             {
                 $this->keyName = $this->name;
             }
-        }, $this->poolName, true);
+        }, $this->poolName);
     }
 
     /**
@@ -167,7 +167,7 @@ class RedisQueueDriver implements IQueueDriver
             }
 
             return $result;
-        }, $this->poolName, true);
+        }, $this->poolName);
     }
 
     /**
@@ -234,7 +234,7 @@ class RedisQueueDriver implements IQueueDriver
                 }
 
                 return $result;
-            }, $this->poolName, true);
+            }, $this->poolName);
             if ($result && \is_array($result))
             {
                 $data = [];
@@ -295,7 +295,7 @@ class RedisQueueDriver implements IQueueDriver
             }
 
             return 1 == $result;
-        }, $this->poolName, true);
+        }, $this->poolName);
     }
 
     /**
@@ -319,7 +319,7 @@ class RedisQueueDriver implements IQueueDriver
 
         Redis::use(static function (\Imi\Redis\RedisHandler $redis) use ($keys): void {
             $redis->del(...$keys);
-        }, $this->poolName, true);
+        }, $this->poolName);
     }
 
     /**
@@ -356,7 +356,7 @@ class RedisQueueDriver implements IQueueDriver
             }
 
             return $result;
-        }, $this->poolName, true);
+        }, $this->poolName);
     }
 
     /**
@@ -389,7 +389,7 @@ class RedisQueueDriver implements IQueueDriver
             }
 
             return $result;
-        }, $this->poolName, true);
+        }, $this->poolName);
     }
 
     /**
@@ -411,7 +411,7 @@ class RedisQueueDriver implements IQueueDriver
             }
 
             return new QueueStatus($status);
-        }, $this->poolName, true);
+        }, $this->poolName);
     }
 
     /**
@@ -445,7 +445,7 @@ class RedisQueueDriver implements IQueueDriver
             }
 
             return $result;
-        }, $this->poolName, true);
+        }, $this->poolName);
     }
 
     /**
@@ -479,7 +479,7 @@ class RedisQueueDriver implements IQueueDriver
             }
 
             return $result;
-        }, $this->poolName, true);
+        }, $this->poolName);
     }
 
     /**

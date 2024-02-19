@@ -285,7 +285,7 @@ class Redis implements IHandler
             }
 
             return $callback($redis);
-        }, $this->redisPool, true);
+        }, $this->redisPool);
     }
 
     /**

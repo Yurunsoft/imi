@@ -328,6 +328,6 @@ class Redis implements IGroupHandler
             }
 
             return $callback($redis);
-        }, $this->redisPool, true);
+        }, $this->redisPool);
     }
 }

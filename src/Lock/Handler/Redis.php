@@ -111,7 +111,7 @@ class Redis extends BaseLock
             $this->guid,
             $this->db,
             $this->lockExpire,
-        ], 1), $this->poolName, true);
+        ], 1), $this->poolName);
     }
 
     /**
@@ -139,6 +139,6 @@ class Redis extends BaseLock
             ], 1);
 
             return $result > 0;
-        }, $this->poolName, true);
+        }, $this->poolName);
     }
 }

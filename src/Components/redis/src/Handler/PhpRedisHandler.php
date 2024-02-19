@@ -48,4 +48,14 @@ class PhpRedisHandler extends AbstractRedisHandler implements IRedisHandler
     {
         return true;
     }
+
+    public function _serialize(mixed $value)
+    {
+        return $this->client->_serialize($value);
+    }
+
+    public function _unserialize($value): mixed
+    {
+        return $this->client->_unserialize($value);
+    }
 }

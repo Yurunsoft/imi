@@ -14,6 +14,10 @@ use Imi\Model\Enum\RedisStorageMode;
 use Imi\Model\Event\ModelEvents;
 use Imi\Model\Event\Param\InitEventParam;
 use Imi\Model\Key\KeyRule;
+use Imi\Redis\Handler\IRedisHandler;
+use Imi\Redis\Handler\PhpRedisHandler;
+use Imi\Redis\Handler\PredisClusterHandler;
+use Imi\Redis\Handler\PredisHandler;
 use Imi\Redis\RedisHandler;
 use Imi\Redis\RedisManager;
 use Imi\Util\Format\IFormat;
@@ -236,29 +240,37 @@ abstract class RedisModel extends BaseModel
         /** @var \Imi\Model\Annotation\RedisEntity $redisEntity */
         $redisEntity = static::__getRedisEntity(static::__getRealClassName());
         $key = static::generateKey($condition);
+
+        /** @var IFormat|null $formatter */
+        $formatter = null !== $redisEntity->formatter ? App::getBean($redisEntity->formatter) : null;
+
         switch ($redisEntity->storage)
         {
             case RedisStorageMode::STRING:
                 $data = static::__getRedis()->get($key);
-                if ($data && null !== $redisEntity->formatter)
+                if ($data && null !== $formatter)
                 {
-                    /** @var IFormat $formatter */
-                    $formatter = App::getBean($redisEntity->formatter);
                     $data = $formatter->decode($data);
                 }
                 break;
             case RedisStorageMode::HASH:
                 $member = static::generateMember($condition);
                 $data = static::__getRedis()->hGet($key, $member);
-                if ($data && null !== $redisEntity->formatter)
+                if ($data && null !== $formatter)
                 {
-                    /** @var IFormat $formatter */
-                    $formatter = App::getBean($redisEntity->formatter);
                     $data = $formatter->decode($data);
                 }
                 break;
             case RedisStorageMode::HASH_OBJECT:
                 $data = static::__getRedis()->hGetAll($key);
+                if ($data && null !== $formatter)
+                {
+                    foreach ($data as &$val)
+                    {
+                        $val = $formatter->decode($val);
+                    }
+                    unset($val);
+                }
                 break;
             default:
                 throw new \InvalidArgumentException(sprintf('Invalid RedisEntity->storage %s', $redisEntity->storage));
@@ -286,11 +298,8 @@ abstract class RedisModel extends BaseModel
     {
         /** @var \Imi\Model\Annotation\RedisEntity $redisEntity */
         $redisEntity = static::__getRedisEntity(static::__getRealClassName());
-        if (null !== $redisEntity->formatter)
-        {
-            /** @var IFormat $formatter */
-            $formatter = App::getBean($redisEntity->formatter);
-        }
+        /** @var IFormat|null $formatter */
+        $formatter = null !== $redisEntity->formatter ? App::getBean($redisEntity->formatter) : null;
         $keys = [];
         if ($conditions)
         {
@@ -302,7 +311,15 @@ abstract class RedisModel extends BaseModel
         switch ($redisEntity->storage)
         {
             case RedisStorageMode::STRING:
-                $datas = static::__getRedis()->mget($keys);
+                $redis = static::__getRedis();
+                if ($redis instanceof PredisClusterHandler) {
+                    $datas = [];
+                    foreach ($redis->getSlotGroupByKeys($keys) as $slotGroupByKey) {
+                        \array_push($datas, ...$redis->mget($slotGroupByKey));
+                    }
+                } else {
+                    $datas = $redis->mget($keys);
+                }
                 if ($datas)
                 {
                     $list = [];
@@ -310,7 +327,7 @@ abstract class RedisModel extends BaseModel
                     {
                         if (null !== $data && false !== $data)
                         {
-                            if (isset($formatter))
+                            if (null !== $formatter)
                             {
                                 $data = $formatter->decode($data);
                             }
@@ -346,7 +363,7 @@ abstract class RedisModel extends BaseModel
                             {
                                 if (null !== $data)
                                 {
-                                    if (isset($formatter))
+                                    if (null !== $formatter)
                                     {
                                         $data = $formatter->decode($data);
                                     }
@@ -374,6 +391,14 @@ abstract class RedisModel extends BaseModel
                     foreach ($keys as $key)
                     {
                         $data = $redis->hGetAll($key);
+                        if (null !== $formatter)
+                        {
+                            foreach ($data as &$val)
+                            {
+                                $val = $formatter->decode($val);
+                            }
+                            unset($val);
+                        }
                         $record = static::createFromRecord($data);
                         $record->key = $key;
                         $list[] = $record;
@@ -398,13 +423,15 @@ abstract class RedisModel extends BaseModel
         $redis = static::__getRedis($this);
         $data = iterator_to_array($this);
         $this->parseSaveData($data);
+
+        /** @var IFormat|null $formatter */
+        $formatter = null !== $redisEntity->formatter ? App::getBean($redisEntity->formatter) : null;
+
         switch ($redisEntity->storage)
         {
             case RedisStorageMode::STRING:
-                if (null !== $redisEntity->formatter)
+                if (null !== $formatter)
                 {
-                    /** @var IFormat $formatter */
-                    $formatter = App::getBean($redisEntity->formatter);
                     $data = $formatter->encode($data);
                 }
                 if (null === $this->__ttl)
@@ -417,16 +444,22 @@ abstract class RedisModel extends BaseModel
                 }
                 // no break
             case RedisStorageMode::HASH:
-                if (null !== $redisEntity->formatter)
+                if (null !== $formatter)
                 {
-                    /** @var IFormat $formatter */
-                    $formatter = App::getBean($redisEntity->formatter);
                     $data = $formatter->encode($data);
                 }
 
                 return false !== $redis->hSet($this->__getKey(), $this->__getMember(), $data);
             case RedisStorageMode::HASH_OBJECT:
                 $key = $this->__getKey();
+                if (null !== $formatter)
+                {
+                    foreach ($data as &$val)
+                    {
+                        $val = $formatter->encode($val);
+                    }
+                    unset($val);
+                }
                 $result = $redis->hMset($key, $data);
                 if ($result && null !== $this->__ttl)
                 {
@@ -467,20 +500,19 @@ abstract class RedisModel extends BaseModel
         $redisEntity = static::__getRedisEntity(static::__getRealClassName());
         $data = iterator_to_array($this);
         $this->parseSaveData($data);
+
+        /** @var IFormat|null $formatter */
+        $formatter = null !== $redisEntity->formatter ? App::getBean($redisEntity->formatter) : null;
+
         switch ($redisEntity->storage)
         {
             case RedisStorageMode::STRING:
-                if (null !== $redisEntity->formatter)
+                if (null !== $formatter)
                 {
-                    /** @var IFormat $formatter */
-                    $formatter = App::getBean($redisEntity->formatter);
                     $data = $formatter->encode($data);
                 }
                 $redis = static::__getRedis($this);
-                if ($redis->isSupportSerialize())
-                {
-                    $data = $redis->_serialize($data);
-                }
+                $data = $redis->_serialize($data);
 
                 return (bool) $redis->evalEx(<<<'LUA'
                 if (ARGV[1] == redis.call('get', KEYS[1])) then
@@ -490,17 +522,12 @@ abstract class RedisModel extends BaseModel
                 end
                 LUA, [$this->__getKey(), $data], 1);
             case RedisStorageMode::HASH:
-                if (null !== $redisEntity->formatter)
+                if (null !== $formatter)
                 {
-                    /** @var IFormat $formatter */
-                    $formatter = App::getBean($redisEntity->formatter);
                     $data = $formatter->encode($data);
                 }
                 $redis = static::__getRedis($this);
-                if ($redis->isSupportSerialize())
-                {
-                    $data = $redis->_serialize($data);
-                }
+                $data = $redis->_serialize($data);
 
                 return (bool) $redis->evalEx(<<<'LUA'
                 if (ARGV[2] == redis.call('hget', KEYS[1], ARGV[1])) then
@@ -515,10 +542,9 @@ abstract class RedisModel extends BaseModel
                 foreach ($data as $key => $value)
                 {
                     $argv[] = $key;
-                    if ($redis->isSupportSerialize())
-                    {
-                        $argv[] = $redis->_serialize($value);
-                    }
+
+                    $value = null === $formatter ? $value : $formatter->encode($value);
+                    $argv[] = $redis->_serialize($value);
                 }
 
                 return (bool) $redis->evalEx(<<<'LUA'
@@ -554,8 +580,16 @@ abstract class RedisModel extends BaseModel
                 {
                     $keys[] = static::generateKey($condition);
                 }
-
-                return static::__getRedis()->del(...$keys) ?: 0;
+                $redis = static::__getRedis();
+                if ($redis instanceof PredisClusterHandler) {
+                    $result = 0;
+                    foreach ($redis->getSlotGroupByKeys($keys) as $slotGroupByKey) {
+                        $result += $redis->del(...$slotGroupByKey) ?: 0;
+                    }
+                    return $result;
+                } else {
+                    return $redis->del(...$keys) ?: 0;
+                }
             case RedisStorageMode::HASH:
                 $result = 0;
                 foreach ($conditions as $condition)
@@ -573,7 +607,16 @@ abstract class RedisModel extends BaseModel
                     $keys[] = static::generateKey($condition);
                 }
 
-                return static::__getRedis()->del(...$keys) ?: 0;
+                $redis = static::__getRedis();
+                if ($redis instanceof PredisClusterHandler) {
+                    $result = 0;
+                    foreach ($redis->getSlotGroupByKeys($keys) as $slotGroupByKey) {
+                        $result += $redis->del(...$slotGroupByKey) ?: 0;
+                    }
+                    return $result;
+                } else {
+                    return $redis->del(...$keys) ?: 0;
+                }
             default:
                 throw new \InvalidArgumentException(sprintf('Invalid RedisEntity->storage %s', $redisEntity->storage));
         }
@@ -671,8 +714,10 @@ abstract class RedisModel extends BaseModel
 
     /**
      * 获取Redis操作对象
+     *
+     * @return PhpRedisHandler|PredisHandler
      */
-    public static function __getRedis(?self $redisModel = null): RedisHandler
+    public static function __getRedis(?self $redisModel = null): IRedisHandler
     {
         $annotation = static::__getRedisEntity($redisModel ?? static::class);
         $redis = RedisManager::getInstance($annotation->poolName);

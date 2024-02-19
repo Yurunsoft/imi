@@ -52,4 +52,14 @@ class PredisHandler extends AbstractRedisHandler implements IRedisHandler
     {
         return false;
     }
+
+    public function _serialize(mixed $value)
+    {
+        return $value;
+    }
+
+    public function _unserialize($value): mixed
+    {
+        return $value;
+    }
 }

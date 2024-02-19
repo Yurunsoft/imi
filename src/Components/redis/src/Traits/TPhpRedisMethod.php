@@ -4,8 +4,20 @@ declare(strict_types=1);
 
 namespace Imi\Redis\Traits;
 
+use Imi\Redis\Handler\IRedisClusterHandler;
+
 trait TPhpRedisMethod
 {
+    public function _serialize(mixed $value): ?string
+    {
+        return $this->client->_serialize($value);
+    }
+
+    public function _unserialize(?string $value): mixed
+    {
+        return $this->client->_unserialize($value);
+    }
+
     /**
      * eval扩展方法，结合了 eval、evalSha.
      *
@@ -43,15 +55,16 @@ trait TPhpRedisMethod
     /**
      * scan 方法的扩展简易遍历方法.
      */
-    public function scanEach(?string $pattern = null, int $count = 0): mixed
+    public function scanEach(?string $pattern = null, int $count = 0): \Generator
     {
-        if ($this->isCluster())
+        if ($this instanceof IRedisClusterHandler)
         {
             foreach ($this->getNodes() as $node)
             {
                 $it = null;
                 do
                 {
+                    // @phpstan-ignore-next-line
                     $keys = $this->client->scan($it, $node, $pattern, $count);
 
                     if ($keys)
@@ -91,7 +104,7 @@ trait TPhpRedisMethod
     /**
      * hscan 方法的扩展简易遍历方法.
      */
-    public function hscanEach(string $key, ?string $pattern = null, int $count = 0): mixed
+    public function hscanEach(string $key, ?string $pattern = null, int $count = 0): \Generator
     {
         $it = null;
         do
@@ -116,7 +129,7 @@ trait TPhpRedisMethod
     /**
      * sscan 方法的扩展简易遍历方法.
      */
-    public function sscanEach(string $key, ?string $pattern = null, int $count = 0): mixed
+    public function sscanEach(string $key, ?string $pattern = null, int $count = 0): \Generator
     {
         $it = null;
         do
@@ -141,7 +154,7 @@ trait TPhpRedisMethod
     /**
      * zscan 方法的扩展简易遍历方法.
      */
-    public function zscanEach(string $key, ?string $pattern = null, int $count = 0): mixed
+    public function zscanEach(string $key, ?string $pattern = null, int $count = 0): \Generator
     {
         $it = null;
         do

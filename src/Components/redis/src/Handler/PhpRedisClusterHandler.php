@@ -31,6 +31,9 @@ class PhpRedisClusterHandler extends AbstractRedisHandler implements IRedisClust
         return $this->client->{$name}(...$arguments);
     }
 
+    /**
+     * @return array<array<int, string>>
+     */
     public function getNodes(): array
     {
         return $this->client->_masters();
@@ -40,32 +43,21 @@ class PhpRedisClusterHandler extends AbstractRedisHandler implements IRedisClust
     {
         foreach ($this->getNodes() as $node)
         {
+            /** @var array $node */
             $this->client->ping($node);
         }
 
         return true;
     }
 
-    /**
-     * scan.
-     */
-    public function scan(?int &$iterator, array|string $node, ?string $pattern = null, int $count = 0): array
+    public function scan(?int &$iterator, array|string $node, ?string $pattern = null, int $count = 0): array|false
     {
+        // @phpstan-ignore-next-line
         return $this->client->scan($iterator, $node, $pattern, $count);
     }
 
     public function isSupportSerialize(): bool
     {
         return true;
-    }
-
-    public function _serialize(mixed $value)
-    {
-        return $this->client->_serialize($value);
-    }
-
-    public function _unserialize($value): mixed
-    {
-        return $this->client->_unserialize($value);
     }
 }

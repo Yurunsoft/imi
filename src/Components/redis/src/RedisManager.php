@@ -89,12 +89,12 @@ class RedisManager
 
     protected static function unsetConnectionInstance(IRedisHandler $handler): bool
     {
-        /** @var object|null $ref */
-        $ref = self::$instanceLinkConnectionMap[$handler] ?? null;
-        if (null !== $ref)
+        if (!isset(self::$instanceLinkConnectionMap[$handler]))
         {
             return true;
         }
+        /** @var object{count: int, connection: IConnection} $ref */
+        $ref = self::$instanceLinkConnectionMap[$handler];
         if ($ref->count > 1)
         {
             --$ref->count;

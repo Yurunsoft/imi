@@ -12,7 +12,7 @@ interface IRedisHandler
 
     public function isSupportSerialize(): bool;
 
-    public function _serialize(mixed $value): string;
+    public function _serialize(mixed $value): ?string;
 
-    public function _unserialize(string $value): mixed;
+    public function _unserialize(?string $value): mixed;
 }

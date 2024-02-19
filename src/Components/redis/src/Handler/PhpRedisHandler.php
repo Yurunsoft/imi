@@ -39,23 +39,14 @@ class PhpRedisHandler extends AbstractRedisHandler implements IRedisHandler
         return true === $result || '+PONG' === $result;
     }
 
-    public function scan(?int &$iterator, ?string $pattern = null, int $count = 0, ?string $type = null)
+    public function scan(?int &$iterator, ?string $pattern = null, int $count = 0, ?string $type = null): mixed
     {
+        // @phpstan-ignore-next-line
         return $this->client->scan($iterator, $pattern, $count, $type);
     }
 
     public function isSupportSerialize(): bool
     {
         return true;
-    }
-
-    public function _serialize(mixed $value)
-    {
-        return $this->client->_serialize($value);
-    }
-
-    public function _unserialize($value): mixed
-    {
-        return $this->client->_unserialize($value);
     }
 }

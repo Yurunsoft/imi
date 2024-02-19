@@ -72,10 +72,7 @@ class PredisClusterHandler extends AbstractRedisHandler implements IRedisCluster
         return $result;
     }
 
-    /**
-     * scan.
-     */
-    public function scan(string $node, $cursor, $options): array
+    public function scan(string $node, null|string|int $cursor, ?array $options): array
     {
         return $this->client->getClientBy('id', $node)->scan($cursor, $options);
     }
@@ -89,8 +86,9 @@ class PredisClusterHandler extends AbstractRedisHandler implements IRedisCluster
     {
         // https://gist.github.com/nrk/e07311af2316ea7e51719735274ded94
 
-        /** @var \Predis\Cluster\StrategyInterface $strategy */
-        $strategy = $this->client->getConnection()->getClusterStrategy();
+        /** @var \Predis\Connection\Cluster\RedisCluster $connection */
+        $connection = $this->client->getConnection();
+        $strategy = $connection->getClusterStrategy();
         $keysBySlot = [];
         foreach ($keys as $key)
         {
@@ -112,15 +110,5 @@ class PredisClusterHandler extends AbstractRedisHandler implements IRedisCluster
     public function isSupportSerialize(): bool
     {
         return false;
-    }
-
-    public function _serialize(mixed $value)
-    {
-        return $value;
-    }
-
-    public function _unserialize($value): mixed
-    {
-        return $value;
     }
 }

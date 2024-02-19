@@ -6,7 +6,7 @@ namespace Imi\Redis\Handler;
 
 use Imi\Redis\Connector\RedisDriverConfig;
 
-abstract class AbstractRedisHandler implements IRedisScanExMethod
+abstract class AbstractRedisHandler implements IRedisScanMethod, IRedisHandler
 {
     protected RedisDriverConfig $config;
 

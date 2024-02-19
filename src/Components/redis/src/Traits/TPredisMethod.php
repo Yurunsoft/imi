@@ -4,14 +4,25 @@ declare(strict_types=1);
 
 namespace Imi\Redis\Traits;
 
+use Imi\Redis\Handler\IRedisClusterHandler;
 use Predis\PredisException;
 
 trait TPredisMethod
 {
+    public function _serialize(mixed $value): ?string
+    {
+        return $value;
+    }
+
+    public function _unserialize(?string $value): mixed
+    {
+        return $value;
+    }
+
     public function getDBNum(): int
     {
         // 不建议使用，性能差
-        if ($this->isCluster())
+        if ($this instanceof IRedisClusterHandler)
         {
             return 0;
         }
@@ -57,9 +68,9 @@ trait TPredisMethod
         }
     }
 
-    public function scanEach(?string $pattern = null, int $count = 0)
+    public function scanEach(?string $pattern = null, int $count = 0): \Generator
     {
-        if ($this->isCluster())
+        if ($this instanceof IRedisClusterHandler)
         {
             foreach ($this->getNodes() as $node)
             {
@@ -92,7 +103,7 @@ trait TPredisMethod
         }
     }
 
-    public function hscanEach(string $key, ?string $pattern = null, int $count = 0)
+    public function hscanEach(string $key, ?string $pattern = null, int $count = 0): \Generator
     {
         $cursor = null;
         do
@@ -107,7 +118,7 @@ trait TPredisMethod
         while ($cursor > 0);
     }
 
-    public function sscanEach(string $key, ?string $pattern = null, int $count = 0)
+    public function sscanEach(string $key, ?string $pattern = null, int $count = 0): \Generator
     {
         $cursor = null;
         do
@@ -122,7 +133,7 @@ trait TPredisMethod
         while ($cursor > 0);
     }
 
-    public function zscanEach(string $key, ?string $pattern = null, int $count = 0)
+    public function zscanEach(string $key, ?string $pattern = null, int $count = 0): \Generator
     {
         $cursor = null;
         do

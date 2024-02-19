@@ -7,14 +7,17 @@ namespace Imi\Redis\Connector;
 use Imi\ConnectionCenter\Contract\AbstractConnectionDriver;
 use Imi\ConnectionCenter\Contract\IConnectionConfig;
 use Imi\Redis\Enum\RedisMode;
-use Imi\Redis\Handler\IRedisHandler;
+use Imi\Redis\Handler\PhpRedisClusterHandler;
+use Imi\Redis\Handler\PhpRedisHandler;
+use Imi\Redis\Handler\PredisClusterHandler;
+use Imi\Redis\Handler\PredisHandler;
 
 class RedisConnectionDriver extends AbstractConnectionDriver
 {
     /**
      * @param RedisDriverConfig $config
      *
-     * @return object|\Imi\Redis\Handler\IRedisClusterHandler|\Imi\Redis\Handler\IRedisHandler
+     * @return object|PhpRedisHandler|PhpRedisClusterHandler|PredisHandler|PredisClusterHandler
      */
     protected function createInstanceByConfig(IConnectionConfig $config): object
     {
@@ -23,6 +26,7 @@ class RedisConnectionDriver extends AbstractConnectionDriver
         {
             'phpredis' => PhpRedisConnector::class,
             'predis'   => PredisConnector::class,
+            default    => throw new \RuntimeException(sprintf('Unsupported redis client: %s', $config->client)),
         };
 
         return match ($config->mode)
@@ -39,7 +43,7 @@ class RedisConnectionDriver extends AbstractConnectionDriver
     }
 
     /**
-     * @param IRedisHandler $instance
+     * @param PhpRedisHandler|PhpRedisClusterHandler|PredisHandler|PredisClusterHandler $instance
      */
     public function connect(object $instance): object
     {
@@ -47,14 +51,14 @@ class RedisConnectionDriver extends AbstractConnectionDriver
     }
 
     /**
-     * @param IRedisHandler $instance
+     * @param PhpRedisHandler|PhpRedisClusterHandler|PredisHandler|PredisClusterHandler $instance
      */
     public function close(object $instance): void
     {
     }
 
     /**
-     * @param IRedisHandler $instance
+     * @param PhpRedisHandler|PhpRedisClusterHandler|PredisHandler|PredisClusterHandler $instance
      */
     public function reset(object $instance): void
     {
@@ -68,7 +72,7 @@ class RedisConnectionDriver extends AbstractConnectionDriver
     }
 
     /**
-     * @param IRedisHandler $instance
+     * @param PhpRedisHandler|PhpRedisClusterHandler|PredisHandler|PredisClusterHandler $instance
      */
     public function checkAvailable(object $instance): bool
     {
@@ -76,7 +80,7 @@ class RedisConnectionDriver extends AbstractConnectionDriver
     }
 
     /**
-     * @param IRedisHandler $instance
+     * @param PhpRedisHandler|PhpRedisClusterHandler|PredisHandler|PredisClusterHandler $instance
      */
     public function ping(object $instance): bool
     {

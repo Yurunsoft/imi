@@ -77,6 +77,7 @@ trait TPredisMethod
                 $cursor = null;
                 do
                 {
+                    // @phpstan-ignore-next-line
                     $result = $this->scan("{$node[0]}:{$node[1]}", $cursor, ['match' => $pattern, 'count' => $count]);
                     [$cursor, $keys] = $result;
                     if ($keys)

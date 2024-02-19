@@ -253,17 +253,7 @@ class Redis
 
     public static function __callStatic(string $name, array $arguments): mixed
     {
-        if (RedisManager::isQuickFromRequestContext())
-        {
-            return RedisManager::getInstance()->{$name}(...$arguments);
-        }
-        else
-        {
-            return RedisManager::use(
-                RedisManager::getDefaultPoolName(),
-                static fn (IConnection $resource, IRedisHandler $redis) => $redis->{$name}(...$arguments),
-            );
-        }
+        return RedisManager::getInstance()->{$name}(...$arguments);
     }
 
     /**
@@ -271,17 +261,9 @@ class Redis
      * 回调有 1 个参数：$instance(操作实例对象，Imi\Redis\Handler\IRedisHandler 类型)
      * 本方法返回值为回调的返回值
      */
-    public static function use(callable $callable, ?string $poolName = null, bool $forceUse = false): mixed
+    public static function use(callable $callable, ?string $poolName = null): mixed
     {
-        $poolName = RedisManager::parsePoolName($poolName);
-        if (!$forceUse && RedisManager::isQuickFromRequestContext() || !ConnectionCenter::hasConnectionManager($poolName))
-        {
-            return $callable(RedisManager::getInstance($poolName));
-        }
-        else
-        {
-            return RedisManager::use($poolName, static fn (IConnection $resource, IRedisHandler $redis) => $callable($redis));
-        }
+        return RedisManager::use($poolName, static fn (IConnection $resource, IRedisHandler $redis) => $callable($redis));
     }
 
     /**
@@ -289,16 +271,8 @@ class Redis
      */
     public static function scan(?int &$iterator, ?string $pattern = null, int $count = 0): mixed
     {
-        if (RedisManager::isQuickFromRequestContext())
-        {
-            return RedisManager::getInstance()->scan($iterator, $pattern, $count);
-        }
-        else
-        {
-            return RedisManager::use(RedisManager::getDefaultPoolName(), static function (IPoolResource $resource, IRedisHandler $redis) use (&$iterator, $pattern, $count) {
-                return $redis->scan($iterator, $pattern, $count);
-            });
-        }
+        // todo 只适用于 phpredis
+        return RedisManager::getInstance()->scan($iterator, $pattern, $count);
     }
 
     /**
@@ -306,16 +280,8 @@ class Redis
      */
     public static function hscan(string $key, ?int &$iterator, ?string $pattern = null, int $count = 0): mixed
     {
-        if (RedisManager::isQuickFromRequestContext())
-        {
-            return RedisManager::getInstance()->hscan($key, $iterator, $pattern, $count);
-        }
-        else
-        {
-            return RedisManager::use(RedisManager::getDefaultPoolName(), static function (IPoolResource $resource, IRedisHandler $redis) use ($key, &$iterator, $pattern, $count) {
-                return $redis->hscan($key, $iterator, $pattern, $count);
-            });
-        }
+        // todo 只适用于 phpredis
+        return RedisManager::getInstance()->hscan($key, $iterator, $pattern, $count);
     }
 
     /**
@@ -323,16 +289,8 @@ class Redis
      */
     public static function sscan(string $key, ?int &$iterator, ?string $pattern = null, int $count = 0): mixed
     {
-        if (RedisManager::isQuickFromRequestContext())
-        {
-            return RedisManager::getInstance()->sscan($key, $iterator, $pattern, $count);
-        }
-        else
-        {
-            return RedisManager::use(RedisManager::getDefaultPoolName(), static function (IPoolResource $resource, IRedisHandler $redis) use ($key, &$iterator, $pattern, $count) {
-                return $redis->sscan($key, $iterator, $pattern, $count);
-            });
-        }
+        // todo 只适用于 phpredis
+        return RedisManager::getInstance()->sscan($key, $iterator, $pattern, $count);
     }
 
     /**
@@ -340,15 +298,7 @@ class Redis
      */
     public static function zscan(string $key, ?int &$iterator, ?string $pattern = null, int $count = 0): mixed
     {
-        if (RedisManager::isQuickFromRequestContext())
-        {
-            return RedisManager::getInstance()->zscan($key, $iterator, $pattern, $count);
-        }
-        else
-        {
-            return RedisManager::use(RedisManager::getDefaultPoolName(), static function (IPoolResource $resource, IRedisHandler $redis) use ($key, &$iterator, $pattern, $count) {
-                return $redis->zscan($key, $iterator, $pattern, $count);
-            });
-        }
+        // todo 只适用于 phpredis
+        return RedisManager::getInstance()->zscan($key, $iterator, $pattern, $count);
     }
 }

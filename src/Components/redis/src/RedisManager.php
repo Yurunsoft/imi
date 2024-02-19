@@ -9,25 +9,35 @@ use Imi\ConnectionCenter\Contract\IConnection;
 use Imi\ConnectionCenter\Enum\ConnectionStatus;
 use Imi\ConnectionCenter\Facade\ConnectionCenter;
 use Imi\Redis\Handler\IRedisHandler;
+use Imi\Redis\Handler\PhpRedisClusterHandler;
+use Imi\Redis\Handler\PhpRedisHandler;
+use Imi\Redis\Handler\PredisClusterHandler;
+use Imi\Redis\Handler\PredisHandler;
 
+/**
+ * @template InstanceLink of object{count: int, connection: IConnection}
+ */
 class RedisManager
 {
     use \Imi\Util\Traits\TStaticClass;
 
+    /**
+     * @var \WeakMap<IRedisHandler, InstanceLink>
+     */
     private static \WeakMap $instanceLinkConnectionMap;
 
     /**
      * 获取新的 Redis 连接实例.
      *
      * @param string|null $poolName 连接池名称
+     * @return PhpRedisHandler|PhpRedisClusterHandler|PredisHandler|PredisClusterHandler
      */
     public static function getNewInstance(?string $poolName = null): IRedisHandler
     {
         $poolName = self::parsePoolName($poolName);
-        $connection = ConnectionCenter::getConnection($poolName);
+        $manager = ConnectionCenter::getConnectionManager($poolName);
         /** @var IRedisHandler $instance */
-        $instance = $connection->getInstance();
-        self::recordInstanceLinkPool($instance, $connection);
+        $instance = $manager->getDriver()->createInstance();
 
         return $instance;
     }
@@ -36,6 +46,7 @@ class RedisManager
      * 获取 Redis 连接实例，每个RequestContext中共用一个.
      *
      * @param string $poolName 连接池名称
+     * @return PhpRedisHandler|PhpRedisClusterHandler|PredisHandler|PredisClusterHandler
      */
     public static function getInstance(?string $poolName = null): IRedisHandler
     {
@@ -43,7 +54,6 @@ class RedisManager
         $connection = ConnectionCenter::getRequestContextConnection($poolName);
         /** @var IRedisHandler $instance */
         $instance = $connection->getInstance();
-        self::recordInstanceLinkPool($instance, $connection);
 
         return $instance;
     }
@@ -53,18 +63,19 @@ class RedisManager
      * 回调有两个参数：$connection(连接对象), $instance(操作实例对象，Redis实例)
      * 本方法返回值为回调的返回值
      */
-    public static function use(string $name, callable $callback): mixed
+    public static function use(?string $poolName, callable $callable): mixed
     {
-        $resource = static::getNewInstance($name);
-        try
-        {
-            $connection = self::getConnectionByInstance($resource);
+        $poolName = self::parsePoolName($poolName);
 
-            return $callback($connection, $resource);
-        }
-        finally
+        if (ConnectionCenter::hasConnectionManager($poolName))
         {
-            static::release($resource);
+            $connection = ConnectionCenter::getConnection($poolName);
+
+            return $callable($connection->getInstance());
+        }
+        else
+        {
+            return $callable(static::getInstance($poolName));
         }
     }
 
@@ -93,7 +104,7 @@ class RedisManager
         {
             return true;
         }
-        /** @var object{count: int, connection: IConnection} $ref */
+        /** @var InstanceLink $ref */
         $ref = self::$instanceLinkConnectionMap[$handler];
         if ($ref->count > 1)
         {
@@ -111,6 +122,7 @@ class RedisManager
 
     /**
      * 释放 Redis 连接实例.
+     * @deprecated
      */
     public static function release(IRedisHandler $redis): void
     {
@@ -148,6 +160,7 @@ class RedisManager
 
     /**
      * 从当前上下文中获取公用连接.
+     * @deprecated
      */
     public static function isQuickFromRequestContext(): bool
     {

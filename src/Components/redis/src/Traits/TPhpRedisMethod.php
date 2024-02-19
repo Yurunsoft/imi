@@ -77,6 +77,7 @@ trait TPhpRedisMethod
         }
         else
         {
+            /** @var int|null $it */
             $it = null;
             do
             {

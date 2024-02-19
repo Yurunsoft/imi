@@ -34,7 +34,8 @@ class PredisClusterHandler extends AbstractRedisHandler implements IRedisCluster
         $cluster = $this->client->getConnection();
 
         $nodes = [];
-        foreach ($cluster as $node) {
+        foreach ($cluster as $node)
+        {
             /** @var \Predis\Connection\StreamConnection $node */
             $arr = explode(':', (string) $node);
             $arr[1] = (int) $arr[1];
@@ -91,12 +92,16 @@ class PredisClusterHandler extends AbstractRedisHandler implements IRedisCluster
         /** @var \Predis\Cluster\StrategyInterface $strategy */
         $strategy = $this->client->getConnection()->getClusterStrategy();
         $keysBySlot = [];
-        foreach ($keys as $key) {
+        foreach ($keys as $key)
+        {
             $slot = $strategy->getSlotByKey($key);
 
-            if (isset($keysBySlot[$slot])) {
+            if (isset($keysBySlot[$slot]))
+            {
                 $keysBySlot[$slot][] = $key;
-            } else {
+            }
+            else
+            {
                 $keysBySlot[$slot] = [$key];
             }
         }

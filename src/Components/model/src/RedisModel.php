@@ -18,7 +18,6 @@ use Imi\Redis\Handler\IRedisHandler;
 use Imi\Redis\Handler\PhpRedisHandler;
 use Imi\Redis\Handler\PredisClusterHandler;
 use Imi\Redis\Handler\PredisHandler;
-use Imi\Redis\RedisHandler;
 use Imi\Redis\RedisManager;
 use Imi\Util\Format\IFormat;
 use Imi\Util\Imi;
@@ -312,12 +311,16 @@ abstract class RedisModel extends BaseModel
         {
             case RedisStorageMode::STRING:
                 $redis = static::__getRedis();
-                if ($redis instanceof PredisClusterHandler) {
+                if ($redis instanceof PredisClusterHandler)
+                {
                     $datas = [];
-                    foreach ($redis->getSlotGroupByKeys($keys) as $slotGroupByKey) {
-                        \array_push($datas, ...$redis->mget($slotGroupByKey));
+                    foreach ($redis->getSlotGroupByKeys($keys) as $slotGroupByKey)
+                    {
+                        array_push($datas, ...$redis->mget($slotGroupByKey));
                     }
-                } else {
+                }
+                else
+                {
                     $datas = $redis->mget($keys);
                 }
                 if ($datas)
@@ -581,15 +584,21 @@ abstract class RedisModel extends BaseModel
                     $keys[] = static::generateKey($condition);
                 }
                 $redis = static::__getRedis();
-                if ($redis instanceof PredisClusterHandler) {
+                if ($redis instanceof PredisClusterHandler)
+                {
                     $result = 0;
-                    foreach ($redis->getSlotGroupByKeys($keys) as $slotGroupByKey) {
+                    foreach ($redis->getSlotGroupByKeys($keys) as $slotGroupByKey)
+                    {
                         $result += $redis->del(...$slotGroupByKey) ?: 0;
                     }
+
                     return $result;
-                } else {
+                }
+                else
+                {
                     return $redis->del(...$keys) ?: 0;
                 }
+                // no break
             case RedisStorageMode::HASH:
                 $result = 0;
                 foreach ($conditions as $condition)
@@ -608,15 +617,21 @@ abstract class RedisModel extends BaseModel
                 }
 
                 $redis = static::__getRedis();
-                if ($redis instanceof PredisClusterHandler) {
+                if ($redis instanceof PredisClusterHandler)
+                {
                     $result = 0;
-                    foreach ($redis->getSlotGroupByKeys($keys) as $slotGroupByKey) {
+                    foreach ($redis->getSlotGroupByKeys($keys) as $slotGroupByKey)
+                    {
                         $result += $redis->del(...$slotGroupByKey) ?: 0;
                     }
+
                     return $result;
-                } else {
+                }
+                else
+                {
                     return $redis->del(...$keys) ?: 0;
                 }
+                // no break
             default:
                 throw new \InvalidArgumentException(sprintf('Invalid RedisEntity->storage %s', $redisEntity->storage));
         }

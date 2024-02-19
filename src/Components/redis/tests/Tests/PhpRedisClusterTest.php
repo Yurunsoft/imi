@@ -6,7 +6,6 @@ namespace Imi\Redis\Test\Tests;
 
 use Imi\Redis\Handler\IRedisHandler;
 use Imi\Redis\Handler\PhpRedisClusterHandler;
-use Imi\Redis\Handler\PredisClusterHandler;
 use Imi\Redis\RedisManager;
 use PHPUnit\Framework\Attributes\Depends;
 use PHPUnit\Framework\Attributes\TestDox;
@@ -55,30 +54,35 @@ class PhpRedisClusterTest extends PhpRedisTest
         $prefix = 'imi:hash-test:k';
 
         $groupItems = [];
-        for ($i = 0; $i < 100; $i++) {
-            $key = $prefix . \dechex($i);
+        for ($i = 0; $i < 100; ++$i)
+        {
+            $key = $prefix . dechex($i);
             $groupItems[$key] = [];
-            for ($ii = 0; $ii < 100; $ii++) {
-                $groupItems[$key]["hk_{$ii}"] = 'hv_' . \dechex($ii);
+            for ($ii = 0; $ii < 100; ++$ii)
+            {
+                $groupItems[$key]["hk_{$ii}"] = 'hv_' . dechex($ii);
             }
         }
-        foreach ($groupItems as $k => $items) {
+        foreach ($groupItems as $k => $items)
+        {
             self::assertTrue($redis->hmset($k, $items), "hmset {$k} failed");
         }
 
-        foreach ($groupItems as $k => $items) {
+        foreach ($groupItems as $k => $items)
+        {
             $result = $redis->hgetall($k);
             self::assertEquals($items, $result, "hgetall {$k} failed");
         }
 
         $hasKeys = [];
-        foreach ($redis->scanEach($prefix . '*', 20) as $key) {
+        foreach ($redis->scanEach($prefix . '*', 20) as $key)
+        {
             $hasKeys[] = $key;
         }
 
-        $keys = \array_keys($groupItems);
-        self::assertEquals($keys, \array_intersect($keys, $hasKeys), "scanEach failed");
+        $keys = array_keys($groupItems);
+        self::assertEquals($keys, array_intersect($keys, $hasKeys), 'scanEach failed');
 
-        self::assertEquals(count($keys), $redis->del($keys), 'del failed');
+        self::assertEquals(\count($keys), $redis->del($keys), 'del failed');
     }
 }

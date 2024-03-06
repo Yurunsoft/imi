@@ -95,7 +95,7 @@ class RedisHash extends Base
             {
                 return $redis->hDel($key, $member) > 0;
             }
-        }, $this->poolName, true);
+        }, $this->poolName);
     }
 
     /**

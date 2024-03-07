@@ -5,8 +5,12 @@ declare(strict_types=1);
 namespace Imi\Redis;
 
 use Imi\ConnectionCenter\Contract\IConnection;
-use Imi\Pool\Interfaces\IPoolResource;
+use Imi\Redis\Handler\IRedisClusterHandler;
 use Imi\Redis\Handler\IRedisHandler;
+use Imi\Redis\Handler\PhpRedisClusterHandler;
+use Imi\Redis\Handler\PhpRedisHandler;
+use Imi\Redis\Handler\PredisClusterHandler;
+use Imi\Redis\Handler\PredisHandler;
 
 /**
  * Redis 快捷操作类.
@@ -265,7 +269,7 @@ class Redis
      */
     public static function use(callable $callable, ?string $poolName = null): mixed
     {
-        return RedisManager::use($poolName, static fn (IConnection $resource, IRedisHandler $redis) => $callable($redis));
+        return RedisManager::use($poolName, static fn (IConnection $connection, IRedisHandler $redis) => $callable($redis));
     }
 
     /**
@@ -273,9 +277,18 @@ class Redis
      */
     public static function scan(?int &$iterator, ?string $pattern = null, int $count = 0): mixed
     {
-        // todo 只适用于 phpredis
-        return RedisManager::use(null, static function (IPoolResource $resource, IRedisHandler $redis) use (&$iterator, $pattern, $count) {
-            return $redis->scan($iterator, $pattern, $count);
+        return RedisManager::use(null, static function (IConnection $connection, IRedisHandler $redis) use (&$iterator, $pattern, $count) {
+            if ($redis instanceof PhpRedisHandler) {
+                return $redis->scan($iterator, $pattern, $count);
+            } elseif ($redis instanceof PredisHandler) {
+                [$cursor, $keys] = $redis->scan($iterator, ['match' => $pattern, 'count' => $count]);
+                $iterator = (int) $cursor;
+                return $keys;
+            } elseif ($redis instanceof IRedisClusterHandler) {
+                throw new \RuntimeException('redis cluster handler not support scan proxy, please use scanEach method');
+            } else {
+                throw new \RuntimeException('unknown redis handler');
+            }
         });
     }
 
@@ -284,9 +297,16 @@ class Redis
      */
     public static function hscan(string $key, ?int &$iterator, ?string $pattern = null, int $count = 0): mixed
     {
-        // todo 只适用于 phpredis
-        return RedisManager::use(null, static function (IPoolResource $resource, IRedisHandler $redis) use ($key, &$iterator, $pattern, $count) {
-            return $redis->hscan($key, $iterator, $pattern, $count);
+        return RedisManager::use(null, static function (IConnection $connection, IRedisHandler $redis) use ($key, &$iterator, $pattern, $count) {
+            if ($redis instanceof PhpRedisHandler || $redis instanceof PhpRedisClusterHandler) {
+                return $redis->hscan($key, $iterator, $pattern, $count);
+            } else if ($redis instanceof PredisHandler || $redis instanceof PredisClusterHandler) {
+                [$cursor, $keys] = $redis->hscan($key, $iterator, ['match' => $pattern, 'count' => $count]);
+                $iterator = (int) $cursor;
+                return $keys;
+            } else {
+                throw new \RuntimeException('redis handler not support');
+            }
         });
     }
 
@@ -295,9 +315,16 @@ class Redis
      */
     public static function sscan(string $key, ?int &$iterator, ?string $pattern = null, int $count = 0): mixed
     {
-        // todo 只适用于 phpredis
-        return RedisManager::use(null, static function (IPoolResource $resource, IRedisHandler $redis) use ($key, &$iterator, $pattern, $count) {
-            return $redis->sscan($key, $iterator, $pattern, $count);
+        return RedisManager::use(null, static function (IConnection $connection, IRedisHandler $redis) use ($key, &$iterator, $pattern, $count) {
+            if ($redis instanceof PhpRedisHandler || $redis instanceof PhpRedisClusterHandler) {
+                return $redis->sscan($key, $iterator, $pattern, $count);
+            } else if ($redis instanceof PredisHandler || $redis instanceof PredisClusterHandler) {
+                [$cursor, $keys] = $redis->sscan($key, $iterator, ['match' => $pattern, 'count' => $count]);
+                $iterator = (int) $cursor;
+                return $keys;
+            } else {
+                throw new \RuntimeException('redis handler not support');
+            }
         });
     }
 
@@ -306,9 +333,16 @@ class Redis
      */
     public static function zscan(string $key, ?int &$iterator, ?string $pattern = null, int $count = 0): mixed
     {
-        // todo 只适用于 phpredis
-        return RedisManager::use(null, static function (IPoolResource $resource, IRedisHandler $redis) use ($key, &$iterator, $pattern, $count) {
-            return $redis->zscan($key, $iterator, $pattern, $count);
+        return RedisManager::use(null, static function (IConnection $connection, IRedisHandler $redis) use ($key, &$iterator, $pattern, $count) {
+            if ($redis instanceof PhpRedisHandler || $redis instanceof PhpRedisClusterHandler) {
+                return $redis->zscan($key, $iterator, $pattern, $count);
+            } else if ($redis instanceof PredisHandler || $redis instanceof PredisClusterHandler) {
+                [$cursor, $keys] = $redis->zscan($key, $iterator, ['match' => $pattern, 'count' => $count]);
+                $iterator = (int) $cursor;
+                return $keys;
+            } else {
+                throw new \RuntimeException('redis handler not support');
+            }
         });
     }
 }

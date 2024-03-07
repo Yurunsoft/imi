@@ -10,11 +10,9 @@ use Imi\Redis\Handler\IRedisHandler;
 use Imi\Redis\Handler\PhpRedisHandler;
 use Imi\Redis\Redis;
 use Imi\Redis\RedisManager;
-use Imi\RequestContext;
 use PHPUnit\Framework\Attributes\Depends;
 use PHPUnit\Framework\Attributes\TestDox;
 use PHPUnit\Framework\TestCase;
-use Predis\Collection\Iterator\Keyspace;
 
 /**
  * @template T of PhpRedisHandler
@@ -195,9 +193,12 @@ class PhpRedisTest extends TestCase
         //        Config::get()
         self::assertTrue(Config::set('@app.redis.defaultPool', $this->driveName));
         self::assertEquals($this->driveName, RedisManager::getDefaultPoolName());
-        try {
+        try
+        {
             $fn();
-        } finally {
+        }
+        finally
+        {
             Config::set('@app.redis.defaultPool', $defaultName);
         }
     }
@@ -206,7 +207,7 @@ class PhpRedisTest extends TestCase
     public function testStaticCall(): void
     {
         $prefix = __FUNCTION__ . bin2hex(random_bytes(4));
-        $this->staticContextWarp(function () use ($prefix) {
+        $this->staticContextWarp(static function () use ($prefix): void {
             Redis::set($prefix, '123456');
             self::assertEquals('123456', Redis::get($prefix));
             self::assertTrue(Redis::del($prefix) > 0);
@@ -219,12 +220,13 @@ class PhpRedisTest extends TestCase
     #[Depends('testGetDrive')]
     public function testStaticCallScan(IRedisHandler $redis): void
     {
-        if ($redis instanceof IRedisClusterHandler) {
+        if ($redis instanceof IRedisClusterHandler)
+        {
             self::markTestSkipped('RedisClusterHandler does not support hscan');
         }
 
         $prefix = __FUNCTION__ . bin2hex(random_bytes(4));
-        $this->staticContextWarp(function () use ($redis, $prefix) {
+        $this->staticContextWarp(static function () use ($redis, $prefix): void {
             $excepted = $map = [];
             for ($i = 0; $i < 100; ++$i)
             {
@@ -235,14 +237,17 @@ class PhpRedisTest extends TestCase
             }
 
             $map = [];
-            do {
+            do
+            {
                 $keys = Redis::scan($it, $prefix . ':scanEach:*', 10);
-                foreach ($keys as $key) {
+                foreach ($keys as $key)
+                {
                     $map[$key] = 1;
                 }
-            } while ($it != 0);
+            }
+            while (0 != $it);
             self::assertEquals($excepted, $map);
-            self::assertTrue(Redis::del(\array_keys($excepted)) > 0);
+            self::assertTrue(Redis::del(array_keys($excepted)) > 0);
         });
     }
 
@@ -252,12 +257,13 @@ class PhpRedisTest extends TestCase
     #[Depends('testGetDrive')]
     public function testStaticCallHScan(IRedisHandler $redis): void
     {
-        if ($redis instanceof IRedisClusterHandler) {
+        if ($redis instanceof IRedisClusterHandler)
+        {
             self::markTestSkipped('RedisClusterHandler does not support hscan');
         }
 
         $prefix = __FUNCTION__ . bin2hex(random_bytes(4));
-        $this->staticContextWarp(function () use ($redis, $prefix) {
+        $this->staticContextWarp(static function () use ($redis, $prefix): void {
             $excepted = $map = $values = $exceptedValues = [];
             $key = $prefix . ':hscanEach';
             $redis->del($key);
@@ -270,13 +276,16 @@ class PhpRedisTest extends TestCase
                 $exceptedValues[$member] = $i;
                 $redis->hSet($key, $member, $i);
             }
-            do {
+            do
+            {
                 $items = Redis::hscan($key, $it, 'value:*', 10);
-                foreach ($items as $k => $value) {
+                foreach ($items as $k => $value)
+                {
                     $map[$k] = 1;
                     $values[$k] = $value;
                 }
-            } while ($it > 0);
+            }
+            while ($it > 0);
             self::assertEquals($excepted, $map);
             self::assertEquals($exceptedValues, $values);
             self::assertTrue(Redis::del($key) > 0);
@@ -289,12 +298,13 @@ class PhpRedisTest extends TestCase
     #[Depends('testGetDrive')]
     public function testStaticCallSScan(IRedisHandler $redis): void
     {
-        if ($redis instanceof IRedisClusterHandler) {
+        if ($redis instanceof IRedisClusterHandler)
+        {
             self::markTestSkipped('RedisClusterHandler does not support sscan');
         }
 
         $prefix = __FUNCTION__ . bin2hex(random_bytes(4));
-        $this->staticContextWarp(function () use ($redis, $prefix) {
+        $this->staticContextWarp(static function () use ($redis, $prefix): void {
             $excepted = $map = [];
             $key = $prefix . ':sscanEach';
             $redis->del($key);
@@ -305,12 +315,15 @@ class PhpRedisTest extends TestCase
                 $map[$value] = 0;
                 $redis->sAdd($key, $value);
             }
-            do {
+            do
+            {
                 $items = Redis::sscan($key, $it, '*', 10);
-                foreach ($items as $value) {
+                foreach ($items as $value)
+                {
                     $map[$value] = 1;
                 }
-            } while ($it > 0);
+            }
+            while ($it > 0);
             self::assertEquals($excepted, $map);
             self::assertTrue(Redis::del($key) > 0);
         });
@@ -322,12 +335,13 @@ class PhpRedisTest extends TestCase
     #[Depends('testGetDrive')]
     public function testStaticCallZScan(IRedisHandler $redis): void
     {
-        if ($redis instanceof IRedisClusterHandler) {
+        if ($redis instanceof IRedisClusterHandler)
+        {
             self::markTestSkipped('RedisClusterHandler does not support zscan');
         }
 
         $prefix = __FUNCTION__ . bin2hex(random_bytes(4));
-        $this->staticContextWarp(function () use ($redis, $prefix) {
+        $this->staticContextWarp(static function () use ($redis, $prefix): void {
             $excepted = $map = [];
             $key = $prefix . ':zscanEach';
             $redis->del($key);
@@ -338,12 +352,15 @@ class PhpRedisTest extends TestCase
                 $map[$i] = 0;
                 $redis->zAdd($key, $i, $value);
             }
-            do {
+            do
+            {
                 $items = Redis::zscan($key, $it, '*', 10);
-                foreach ($items as $score) {
+                foreach ($items as $score)
+                {
                     $map[$score] = 1;
                 }
-            } while ($it > 0);
+            }
+            while ($it > 0);
             self::assertEquals($excepted, $map);
             self::assertTrue(Redis::del($key) > 0);
         });

@@ -46,6 +46,7 @@ class PhpRedisHandler extends AbstractRedisHandler implements IRedisHandler
         {
             $args[] = $type;
         }
+
         // @phpstan-ignore-next-line
         return $this->client->scan($iterator, $pattern, $count, ...$args);
     }

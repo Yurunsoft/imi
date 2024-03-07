@@ -278,15 +278,23 @@ class Redis
     public static function scan(?int &$iterator, ?string $pattern = null, int $count = 0): mixed
     {
         return RedisManager::use(null, static function (IConnection $connection, IRedisHandler $redis) use (&$iterator, $pattern, $count) {
-            if ($redis instanceof PhpRedisHandler) {
+            if ($redis instanceof PhpRedisHandler)
+            {
                 return $redis->scan($iterator, $pattern, $count);
-            } elseif ($redis instanceof PredisHandler) {
+            }
+            elseif ($redis instanceof PredisHandler)
+            {
                 [$cursor, $keys] = $redis->scan($iterator, ['match' => $pattern, 'count' => $count]);
                 $iterator = (int) $cursor;
+
                 return $keys;
-            } elseif ($redis instanceof IRedisClusterHandler) {
+            }
+            elseif ($redis instanceof IRedisClusterHandler)
+            {
                 throw new \RuntimeException('redis cluster handler not support scan proxy, please use scanEach method');
-            } else {
+            }
+            else
+            {
                 throw new \RuntimeException('unknown redis handler');
             }
         });
@@ -298,13 +306,19 @@ class Redis
     public static function hscan(string $key, ?int &$iterator, ?string $pattern = null, int $count = 0): mixed
     {
         return RedisManager::use(null, static function (IConnection $connection, IRedisHandler $redis) use ($key, &$iterator, $pattern, $count) {
-            if ($redis instanceof PhpRedisHandler || $redis instanceof PhpRedisClusterHandler) {
+            if ($redis instanceof PhpRedisHandler || $redis instanceof PhpRedisClusterHandler)
+            {
                 return $redis->hscan($key, $iterator, $pattern, $count);
-            } else if ($redis instanceof PredisHandler || $redis instanceof PredisClusterHandler) {
+            }
+            elseif ($redis instanceof PredisHandler || $redis instanceof PredisClusterHandler)
+            {
                 [$cursor, $keys] = $redis->hscan($key, $iterator, ['match' => $pattern, 'count' => $count]);
                 $iterator = (int) $cursor;
+
                 return $keys;
-            } else {
+            }
+            else
+            {
                 throw new \RuntimeException('redis handler not support');
             }
         });
@@ -316,13 +330,19 @@ class Redis
     public static function sscan(string $key, ?int &$iterator, ?string $pattern = null, int $count = 0): mixed
     {
         return RedisManager::use(null, static function (IConnection $connection, IRedisHandler $redis) use ($key, &$iterator, $pattern, $count) {
-            if ($redis instanceof PhpRedisHandler || $redis instanceof PhpRedisClusterHandler) {
+            if ($redis instanceof PhpRedisHandler || $redis instanceof PhpRedisClusterHandler)
+            {
                 return $redis->sscan($key, $iterator, $pattern, $count);
-            } else if ($redis instanceof PredisHandler || $redis instanceof PredisClusterHandler) {
+            }
+            elseif ($redis instanceof PredisHandler || $redis instanceof PredisClusterHandler)
+            {
                 [$cursor, $keys] = $redis->sscan($key, $iterator, ['match' => $pattern, 'count' => $count]);
                 $iterator = (int) $cursor;
+
                 return $keys;
-            } else {
+            }
+            else
+            {
                 throw new \RuntimeException('redis handler not support');
             }
         });
@@ -334,13 +354,19 @@ class Redis
     public static function zscan(string $key, ?int &$iterator, ?string $pattern = null, int $count = 0): mixed
     {
         return RedisManager::use(null, static function (IConnection $connection, IRedisHandler $redis) use ($key, &$iterator, $pattern, $count) {
-            if ($redis instanceof PhpRedisHandler || $redis instanceof PhpRedisClusterHandler) {
+            if ($redis instanceof PhpRedisHandler || $redis instanceof PhpRedisClusterHandler)
+            {
                 return $redis->zscan($key, $iterator, $pattern, $count);
-            } else if ($redis instanceof PredisHandler || $redis instanceof PredisClusterHandler) {
+            }
+            elseif ($redis instanceof PredisHandler || $redis instanceof PredisClusterHandler)
+            {
                 [$cursor, $keys] = $redis->zscan($key, $iterator, ['match' => $pattern, 'count' => $count]);
                 $iterator = (int) $cursor;
+
                 return $keys;
-            } else {
+            }
+            else
+            {
                 throw new \RuntimeException('redis handler not support');
             }
         });

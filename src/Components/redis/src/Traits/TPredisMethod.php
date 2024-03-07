@@ -53,7 +53,7 @@ trait TPredisMethod
 
         try
         {
-            return $client->evalSha($sha1, $numKeys, ...$args);
+            return $client->evalsha($sha1, $numKeys, ...$args);
         }
         catch (PredisException $exception)
         {

@@ -20,6 +20,6 @@
 <!--        <env name="XDEBUG_MODE" value="off" force="true"/>-->
         <env name="REDIS_SERVER_PASSWORD" value="" force="false"/>
         <env name="REDIS_SERVER_CLUSTER_PASSWORD" value="l83aa26" force="false"/>
-        <env name="REDIS_SERVER_CLUSTER_SEEDS" value="172.21.0.7:6379,172.21.0.6:6379,172.21.0.5:6379,172.21.0.4:6379,172.21.0.3:6379,172.21.0.2:6379" force="false"/>
+        <env name="REDIS_SERVER_CLUSTER_SEEDS" value="redis-cluster-node-0:6479,redis-cluster-node-1:6480,redis-cluster-node-2:6481,redis-cluster-node-3:6482,redis-cluster-node-4:6483,redis-cluster-node-5:6484" force="false"/>
     </php>
 </phpunit>

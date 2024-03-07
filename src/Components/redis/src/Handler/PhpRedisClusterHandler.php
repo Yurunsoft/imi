@@ -31,9 +31,6 @@ class PhpRedisClusterHandler extends AbstractRedisHandler implements IRedisClust
         return $this->client->{$name}(...$arguments);
     }
 
-    /**
-     * @return array<array<int, string>>
-     */
     public function getNodes(): array
     {
         return $this->client->_masters();
@@ -43,7 +40,7 @@ class PhpRedisClusterHandler extends AbstractRedisHandler implements IRedisClust
     {
         foreach ($this->getNodes() as $node)
         {
-            /** @var array $node */
+            // @phpstan-ignore-next-line
             $this->client->ping($node);
         }
 

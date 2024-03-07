@@ -41,8 +41,13 @@ class PhpRedisHandler extends AbstractRedisHandler implements IRedisHandler
 
     public function scan(?int &$iterator, ?string $pattern = null, int $count = 0, ?string $type = null): mixed
     {
+        $args = [];
+        if (null !== $type)
+        {
+            $args[] = $type;
+        }
         // @phpstan-ignore-next-line
-        return $this->client->scan($iterator, $pattern, $count, $type);
+        return $this->client->scan($iterator, $pattern, $count, ...$args);
     }
 
     public function isSupportSerialize(): bool

@@ -32,9 +32,21 @@ class PredisConnector implements IRedisConnector
         {
             $params['password'] = $config->password;
         }
+        if ($config->timeout > 0.0)
+        {
+            $params['timeout'] = $config->timeout;
+        }
+        if ($config->readTimeout > 0.0)
+        {
+            $params['read_write_timeout'] = $config->readTimeout;
+        }
         if ($config->prefix)
         {
             $params['prefix'] = $config->prefix;
+        }
+        if ($config->tls) {
+            $params['scheme'] = 'tls';
+            $params['ssl'] = $config->tls;
         }
         $client = new \Predis\Client($params);
         $client->connect();

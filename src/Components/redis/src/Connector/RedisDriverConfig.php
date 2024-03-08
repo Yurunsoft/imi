@@ -23,6 +23,7 @@ class RedisDriverConfig extends AbstractConnectionConfig
         public readonly float $readTimeout,
         public readonly bool $serialize,
         public readonly array $options,
+        public readonly ?array $tls,
         float $weight = 0
     ) {
         parent::__construct(weight: $weight);
@@ -44,6 +45,7 @@ class RedisDriverConfig extends AbstractConnectionConfig
             readTimeout: (float) ($config['readTimeout'] ?? 3.0),
             serialize: $config['serialize'] ?? true,
             options: $config['options'] ?? [],
+            tls: $config['tls'] ?? null,
             weight: (int) ($config['weight'] ?? 0),
         );
     }

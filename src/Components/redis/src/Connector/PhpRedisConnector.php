@@ -17,15 +17,34 @@ class PhpRedisConnector implements IRedisConnector
         $redis = new \Redis();
 
         $host = $config->host;
+        $arguments = [
+            $config->host, // host
+        ];
         if (str_contains($host, '/'))
         {
             // unix socket
-            $redis->connect($host);
+            $arguments[] = 0;
         }
         else
         {
-            $redis->connect($host, $config->port, $config->timeout);
+            $arguments[] = $config->port;
         }
+        $arguments[] = $config->timeout;
+        $arguments[] = null; // reserved
+        $arguments[] = 0; // retry_interval
+        $arguments[] = $config->readTimeout;
+
+        // others: array, with PhpRedis >= 5.3.0, it allows setting auth and stream configuration.
+        $extra = [];
+        if ($config->tls) {
+            $extra['stream'] = $config->tls;
+        }
+        if ($extra) {
+            $arguments[] = $extra;
+        }
+
+
+        $redis->connect(...$arguments);
         if (('' !== $config->password) && !$redis->auth($config->password) && null !== $redis->getLastError())
         {
             throw new \RedisException($redis->getLastError());

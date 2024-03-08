@@ -14,6 +14,11 @@ class RedisHandlerTest extends TestCase
 {
     public function testPhpRedisUnixSockConnection()
     {
+        if (\PHP_OS_FAMILY !== 'Linux')
+        {
+            self::markTestSkipped('unixsock test only support linux');
+        }
+
         $config = new RedisDriverConfig(
             client: 'phpredis',
             mode: RedisMode::Standalone,
@@ -41,6 +46,11 @@ class RedisHandlerTest extends TestCase
 
     public function testPredisUnixSockConnection()
     {
+        if (\PHP_OS_FAMILY !== 'Linux')
+        {
+            self::markTestSkipped('unixsock test only support linux');
+        }
+
         $config = new RedisDriverConfig(
             client: 'predis',
             mode: RedisMode::Standalone,

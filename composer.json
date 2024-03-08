@@ -122,7 +122,7 @@
         ],
         "test-database": "@php vendor/bin/phpunit -c src/Components/database/tests/phpunit.xml",
         "test-model": "@php vendor/bin/phpunit -c src/Components/model/tests/phpunit.xml",
-        "test-redis": "@php vendor/bin/phpunit -c src/Components/redis/tests/phpunit.xml --testdox",
+        "test-redis": "@php vendor/bin/phpunit -c src/Components/redis/tests/phpunit.xml",
         "test-components": [
             "@composer test-swoole",
             "@composer test-workerman",

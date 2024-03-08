@@ -1,15 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.4/phpunit.xsd"
-    bootstrap="./bootstrap.php"
-    colors="true">
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.4/phpunit.xsd"
+         bootstrap="./bootstrap.php"
+         colors="true"
+         testdox="true"
+>
     <testsuites>
         <testsuite name="test">
             <directory>./</directory>
         </testsuite>
     </testsuites>
     <extensions>
-        <bootstrap class="Imi\Redis\Test\PHPUnitHook" />
+        <bootstrap class="Imi\Redis\Test\PHPUnitHook"/>
     </extensions>
     <source>
         <include>

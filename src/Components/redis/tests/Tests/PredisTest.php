@@ -12,13 +12,16 @@ use PHPUnit\Framework\Attributes\TestDox;
 use Predis\Client;
 
 /**
- * @implements PhpRedisTest<PredisHandler>
+ * @template T of PredisHandler
  */
 #[TestDox('Redis/Predis/Standalone')]
 class PredisTest extends PhpRedisTest
 {
     public string $driveName = 'test_predis_standalone';
 
+    /**
+     * @phpstan-return T
+     */
     public function testGetDrive(): IRedisHandler
     {
         $redisClient = RedisManager::getInstance($this->driveName);
@@ -28,6 +31,10 @@ class PredisTest extends PhpRedisTest
         return $redisClient;
     }
 
+
+    /**
+     * @phpstan-param T $redis
+     */
     #[Depends('testGetDrive')]
     public function testGeoAdd(IRedisHandler $redis): void
     {
@@ -36,6 +43,6 @@ class PredisTest extends PhpRedisTest
             self::markTestSkipped('Windows redis not support geo.');
         }
 
-        self::assertEquals(1, $redis->geoAdd('imi:geo', 120.31858, 31.49881, 'value_' . bin2hex(random_bytes(4))));
+        self::assertEquals(1, $redis->geoadd('imi:geo', 120.31858, 31.49881, 'value_' . bin2hex(random_bytes(4))));
     }
 }

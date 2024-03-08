@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace Imi\Redis\Test\Tests;
 
 use Imi\Config;
+use Imi\Redis\Handler\AbstractRedisHandler;
 use Imi\Redis\Handler\IRedisClusterHandler;
 use Imi\Redis\Handler\IRedisHandler;
+use Imi\Redis\Handler\PhpRedisClusterHandler;
 use Imi\Redis\Handler\PhpRedisHandler;
 use Imi\Redis\Redis;
 use Imi\Redis\RedisManager;
@@ -23,7 +25,7 @@ class PhpRedisTest extends TestCase
     public string $driveName = 'test_phpredis_standalone';
 
     /**
-     * @phpstan-return PhpRedisHandler
+     * @phpstan-return T
      */
     public function testGetDrive(): IRedisHandler
     {
@@ -38,7 +40,7 @@ class PhpRedisTest extends TestCase
     }
 
     /**
-     * @phpstan-param PhpRedisHandler $redis
+     * @phpstan-param T $redis
      */
     protected function flush(IRedisHandler $redis): void
     {
@@ -46,7 +48,7 @@ class PhpRedisTest extends TestCase
     }
 
     /**
-     * @phpstan-param PhpRedisHandler $redis
+     * @phpstan-param T $redis
      */
     #[Depends('testGetDrive')]
     public function testGetAndSet(IRedisHandler $redis): void
@@ -57,23 +59,26 @@ class PhpRedisTest extends TestCase
     }
 
     /**
-     * @phpstan-param PhpRedisHandler $redis
+     * @phpstan-param T $redis
      */
     #[Depends('testGetDrive')]
     public function testEvalEx(IRedisHandler $redis): void
     {
-        $value = $redis->evalEx(<<<'SCRIPT'
-        local key = KEYS[1]
-        local value = ARGV[1]
-        redis.call('set', key, value)
-        return redis.call('get', key)
-        SCRIPT
-            , ['imi:test:a', 'imi very 6'], 1);
+        $value = $redis->evalEx(
+            <<<'SCRIPT'
+            local key = KEYS[1]
+            local value = ARGV[1]
+            redis.call('set', key, value)
+            return redis.call('get', key)
+            SCRIPT,
+            ['imi:test:a', 'imi very 6'],
+            1,
+        );
         self::assertEquals('imi very 6', $value);
     }
 
     /**
-     * @phpstan-param PhpRedisHandler $redis
+     * @phpstan-param T $redis
      */
     #[Depends('testGetDrive')]
     public function testScanEach(IRedisHandler $redis): void
@@ -94,7 +99,7 @@ class PhpRedisTest extends TestCase
     }
 
     /**
-     * @phpstan-param PhpRedisHandler $redis
+     * @phpstan-param T $redis
      */
     #[Depends('testGetDrive')]
     public function testHscanEach(IRedisHandler $redis): void
@@ -121,7 +126,7 @@ class PhpRedisTest extends TestCase
     }
 
     /**
-     * @phpstan-param PhpRedisHandler $redis
+     * @phpstan-param T $redis
      */
     #[Depends('testGetDrive')]
     public function testSscanEach(IRedisHandler $redis): void
@@ -144,7 +149,7 @@ class PhpRedisTest extends TestCase
     }
 
     /**
-     * @phpstan-param PhpRedisHandler $redis
+     * @phpstan-param T $redis
      */
     #[Depends('testGetDrive')]
     public function testZscanEach(IRedisHandler $redis): void
@@ -167,7 +172,7 @@ class PhpRedisTest extends TestCase
     }
 
     /**
-     * @phpstan-param PhpRedisHandler $redis
+     * @phpstan-param T $redis
      */
     #[Depends('testGetDrive')]
     public function testGeoAdd(IRedisHandler $redis): void
@@ -187,15 +192,14 @@ class PhpRedisTest extends TestCase
         $redis->setOption(\Redis::OPT_SERIALIZER, $oriOption);
     }
 
-    protected function staticContextWarp(callable $fn): void
+    protected function staticContextWarp(callable $fn): mixed
     {
         $defaultName = RedisManager::getDefaultPoolName();
-        //        Config::get()
         self::assertTrue(Config::set('@app.redis.defaultPool', $this->driveName));
         self::assertEquals($this->driveName, RedisManager::getDefaultPoolName());
         try
         {
-            $fn();
+            return $fn();
         }
         finally
         {
@@ -215,7 +219,7 @@ class PhpRedisTest extends TestCase
     }
 
     /**
-     * @phpstan-param PhpRedisHandler $redis
+     * @phpstan-param T $redis
      */
     #[Depends('testGetDrive')]
     public function testStaticCallScan(IRedisHandler $redis): void
@@ -252,7 +256,7 @@ class PhpRedisTest extends TestCase
     }
 
     /**
-     * @phpstan-param PhpRedisHandler $redis
+     * @phpstan-param T $redis
      */
     #[Depends('testGetDrive')]
     public function testStaticCallHScan(IRedisHandler $redis): void
@@ -293,7 +297,7 @@ class PhpRedisTest extends TestCase
     }
 
     /**
-     * @phpstan-param PhpRedisHandler $redis
+     * @phpstan-param T $redis
      */
     #[Depends('testGetDrive')]
     public function testStaticCallSScan(IRedisHandler $redis): void
@@ -330,7 +334,7 @@ class PhpRedisTest extends TestCase
     }
 
     /**
-     * @phpstan-param PhpRedisHandler $redis
+     * @phpstan-param T $redis
      */
     #[Depends('testGetDrive')]
     public function testStaticCallZScan(IRedisHandler $redis): void
@@ -364,5 +368,24 @@ class PhpRedisTest extends TestCase
             self::assertEquals($excepted, $map);
             self::assertTrue(Redis::del($key) > 0);
         });
+    }
+
+    #[Depends('testGetDrive')]
+    public function testStaticCallEval(): void
+    {
+        $prefix = __FUNCTION__ . bin2hex(random_bytes(4));
+        $value = $this->staticContextWarp(static function () use ($prefix): mixed {
+            return Redis::evalEx(
+                <<<'SCRIPT'
+                    local key = KEYS[1]
+                    local value = ARGV[1]
+                    redis.call('set', key, value)
+                    return redis.call('get', key)
+                    SCRIPT,
+                [$prefix . 'imi:test:a', 'imi very 6'],
+                1,
+            );
+        });
+        self::assertEquals('imi very 6', $value);
     }
 }

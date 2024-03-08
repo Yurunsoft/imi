@@ -12,9 +12,15 @@ use PHPUnit\Framework\TestCase;
  */
 abstract class AbstractRedisTestCase extends TestCase
 {
-    public string $driveName = 'test_phpredis_cluster';
+    public string $driveName = '';
 
+    /**
+     * @phpstan-return T
+     */
     abstract public function testGetDrive(): IRedisHandler;
 
-    abstract protected function flush(IRedisHandler $handler): void;
+    /**
+     * @phpstan-param T $redis
+     */
+    abstract protected function flush(IRedisHandler $redis): void;
 }

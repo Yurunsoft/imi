@@ -11,7 +11,7 @@ use PHPUnit\Framework\Attributes\Depends;
 use PHPUnit\Framework\Attributes\TestDox;
 
 /**
- * @implements PhpRedisTest<PhpRedisClusterHandler>
+ * @template T of PhpRedisClusterHandler
  */
 #[TestDox('Redis/PhpRedis/Cluster')]
 class PhpRedisClusterTest extends PhpRedisTest
@@ -26,6 +26,9 @@ class PhpRedisClusterTest extends PhpRedisTest
         }
     }
 
+    /**
+     * @phpstan-return T
+     */
     public function testGetDrive(): IRedisHandler
     {
         $redisClient = RedisManager::getInstance($this->driveName);
@@ -37,9 +40,11 @@ class PhpRedisClusterTest extends PhpRedisTest
         return $redisClient;
     }
 
+    /**
+     * @phpstan-param T $redis
+     */
     protected function flush(IRedisHandler $redis): void
     {
-        /** @var PhpRedisClusterHandler $redis */
         // 清空数据
         foreach ($redis->getNodes() as $node)
         {
@@ -47,10 +52,12 @@ class PhpRedisClusterTest extends PhpRedisTest
         }
     }
 
+    /**
+     * @phpstan-param T $redis
+     */
     #[Depends('testGetDrive')]
     public function testHashKeys(IRedisHandler $redis): void
     {
-        /** @var PhpRedisClusterHandler $redis */
         $prefix = 'imi:hash-test:k';
 
         $groupItems = [];

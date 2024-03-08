@@ -12,7 +12,7 @@ use PHPUnit\Framework\Attributes\TestDox;
 use Predis\Client;
 
 /**
- * @implements PhpRedisTest<PredisClusterHandler>
+ * @template T of PredisClusterHandler
  */
 #[TestDox('Redis/Predis/Cluster')]
 class PredisClusterTest extends PhpRedisTest
@@ -27,6 +27,9 @@ class PredisClusterTest extends PhpRedisTest
         }
     }
 
+    /**
+     * @phpstan-return T
+     */
     public function testGetDrive(): IRedisHandler
     {
         $redisClient = RedisManager::getInstance($this->driveName);
@@ -38,6 +41,9 @@ class PredisClusterTest extends PhpRedisTest
         return $redisClient;
     }
 
+    /**
+     * @phpstan-param T $redis
+     */
     protected function flush(IRedisHandler $redis): void
     {
         // 清空数据
@@ -49,6 +55,9 @@ class PredisClusterTest extends PhpRedisTest
         }
     }
 
+    /**
+     * @phpstan-param T $redis
+     */
     #[Depends('testGetDrive')]
     public function testGeoAdd(IRedisHandler $redis): void
     {
@@ -57,9 +66,12 @@ class PredisClusterTest extends PhpRedisTest
             self::markTestSkipped('Windows redis not support geo.');
         }
 
-        self::assertEquals(1, $redis->geoAdd('imi:geo', 120.31858, 31.49881, 'value_' . bin2hex(random_bytes(4))));
+        self::assertEquals(1, $redis->geoadd('imi:geo', 120.31858, 31.49881, 'value_' . bin2hex(random_bytes(4))));
     }
 
+    /**
+     * @phpstan-param T $redis
+     */
     #[Depends('testGetDrive')]
     public function testHashKeysSlot(IRedisHandler $redis): void
     {
@@ -104,6 +116,9 @@ class PredisClusterTest extends PhpRedisTest
         }
     }
 
+    /**
+     * @phpstan-param T $redis
+     */
     #[Depends('testGetDrive')]
     public function testHashKeysTags(IRedisHandler $redis): void
     {

@@ -44,7 +44,8 @@ class PredisConnector implements IRedisConnector
         {
             $params['prefix'] = $config->prefix;
         }
-        if ($config->tls) {
+        if ($config->tls)
+        {
             $params['scheme'] = 'tls';
             $params['ssl'] = $config->tls;
         }

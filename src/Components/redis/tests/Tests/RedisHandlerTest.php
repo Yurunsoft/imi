@@ -22,9 +22,11 @@ class RedisHandlerTest extends TestCase
             'REDIS_SERVER_TLS_CA_FILE',
             'REDIS_SERVER_TLS_CERT_FILE',
             'REDIS_SERVER_TLS_KEY_FILE',
-        ] as $key) {
+        ] as $key)
+        {
             $value = env($key);
-            if (empty($value)) {
+            if (empty($value))
+            {
                 self::markTestSkipped("tls options {$key} is empty, skip tls test");
             }
         }
@@ -46,9 +48,9 @@ class RedisHandlerTest extends TestCase
             tls: [
                 // https://www.php.net/context.ssl
                 'verify_peer_name' => false,
-                'cafile' => env('REDIS_SERVER_TLS_CA_FILE'),
-                'local_cert' => env('REDIS_SERVER_TLS_CERT_FILE'),
-                'local_pk' => env('REDIS_SERVER_TLS_KEY_FILE'),
+                'cafile'           => env('REDIS_SERVER_TLS_CA_FILE'),
+                'local_cert'       => env('REDIS_SERVER_TLS_CERT_FILE'),
+                'local_pk'         => env('REDIS_SERVER_TLS_KEY_FILE'),
             ],
         );
 
@@ -97,14 +99,16 @@ class RedisHandlerTest extends TestCase
     public function testPredisTlsConnection(): void
     {
         foreach ([
-                     'REDIS_SERVER_TLS_HOST',
-                     'REDIS_SERVER_TLS_PORT',
-                     'REDIS_SERVER_TLS_CA_FILE',
-                     'REDIS_SERVER_TLS_CERT_FILE',
-                     'REDIS_SERVER_TLS_KEY_FILE',
-                 ] as $key) {
+            'REDIS_SERVER_TLS_HOST',
+            'REDIS_SERVER_TLS_PORT',
+            'REDIS_SERVER_TLS_CA_FILE',
+            'REDIS_SERVER_TLS_CERT_FILE',
+            'REDIS_SERVER_TLS_KEY_FILE',
+        ] as $key)
+        {
             $value = env($key);
-            if (empty($value)) {
+            if (empty($value))
+            {
                 self::markTestSkipped("tls options {$key} is empty, skip tls test");
             }
         }
@@ -126,9 +130,9 @@ class RedisHandlerTest extends TestCase
             tls: [
                 // https://www.php.net/context.ssl
                 'verify_peer_name' => false,
-                'cafile' => env('REDIS_SERVER_TLS_CA_FILE'),
-                'local_cert' => env('REDIS_SERVER_TLS_CERT_FILE'),
-                'local_pk' => env('REDIS_SERVER_TLS_KEY_FILE'),
+                'cafile'           => env('REDIS_SERVER_TLS_CA_FILE'),
+                'local_cert'       => env('REDIS_SERVER_TLS_CERT_FILE'),
+                'local_pk'         => env('REDIS_SERVER_TLS_KEY_FILE'),
             ],
         );
 

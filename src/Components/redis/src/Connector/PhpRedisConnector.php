@@ -36,13 +36,14 @@ class PhpRedisConnector implements IRedisConnector
 
         // others: array, with PhpRedis >= 5.3.0, it allows setting auth and stream configuration.
         $extra = [];
-        if ($config->tls) {
+        if ($config->tls)
+        {
             $extra['stream'] = $config->tls;
         }
-        if ($extra) {
+        if ($extra)
+        {
             $arguments[] = $extra;
         }
-
 
         $redis->connect(...$arguments);
         if (('' !== $config->password) && !$redis->auth($config->password) && null !== $redis->getLastError())

@@ -12,6 +12,7 @@ class RedisDriverConfig extends AbstractConnectionConfig
     public function __construct(
         public readonly string $client,
         public readonly RedisMode $mode,
+        public readonly ?string $scheme,
         public readonly string $host,
         public readonly ?int $port,
         public readonly ?array $seeds,
@@ -32,6 +33,7 @@ class RedisDriverConfig extends AbstractConnectionConfig
         return new self(
             client: $config['client'] ?? 'phpredis',
             mode: $config['mode'] ?? RedisMode::Standalone,
+            scheme: $config['scheme'] ?? null,
             host: $config['host'] ?? '127.0.0.1',
             port: (int) ($config['port'] ?? 6379),
             seeds: $config['seeds'] ?? null,

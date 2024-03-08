@@ -51,6 +51,28 @@ services:
     ports:
       - 6379:6379
 
+  redis-new:
+    image: bitnami/redis:7.2
+    container_name: redis_new
+    depends_on:
+      - shared-tmp
+    volumes:
+      - ./service/redis-tls/certs:/opt/bitnami/redis/certs
+      - shared-volume:/tmp/docker
+    environment:
+      REDIS_PORT_NUMBER: 6380
+      REDIS_PASSWORD: "l83aa26"
+      REDIS_TLS_ENABLED: true
+      REDIS_TLS_PORT_NUMBER: 6443
+      REDIS_TLS_CERT_FILE: "/opt/bitnami/redis/certs/redis.crt"
+      REDIS_TLS_KEY_FILE: "/opt/bitnami/redis/certs/redis.key"
+      REDIS_TLS_DH_PARAMS_FILE: "/opt/bitnami/redis/certs/redis.dh"
+      REDIS_TLS_CA_FILE: "/opt/bitnami/redis/certs/ca.crt"
+      REDIS_TLS_AUTH_CLIENTS: "yes"
+    ports:
+      - "6380:6380"
+      - "6443:6443"
+
   rabbitmq:
     container_name: rabbitmq
     image: "rabbitmq:3.8-management"
@@ -170,6 +192,7 @@ services:
       - shared-tmp
       - mysql
       - redis
+      - redis-new
       - rabbitmq
       - kafka1
       - postgres
@@ -185,6 +208,13 @@ services:
       REDIS_SERVER_CLUSTER_PASSWORD: "l83aa26"
       REDIS_SERVER_CLUSTER_SEEDS: "redis-cluster-node-0:6479,redis-cluster-node-1:6480,redis-cluster-node-2:6481,redis-cluster-node-3:6482,redis-cluster-node-4:6483,redis-cluster-node-5:6484"
       REDIS_SERVER_UNIX_SOCK: "/tmp/docker/redis.sock"
+      REDIS_SERVER_TLS_HOST: redis_new
+      REDIS_SERVER_TLS_PORT: "6443"
+      REDIS_SERVER_TLS_PASSWORD: "l83aa26"
+      REDIS_SERVER_TLS_CA_FILE: "${GITHUB_ACTION_PATH}/.github/service/redis-tls/certs/ca.crt"
+      REDIS_SERVER_TLS_CERT_FILE: "${GITHUB_ACTION_PATH}/.github/service/redis-tls/certs/redis.crt"
+      REDIS_SERVER_TLS_KEY_FILE: "${GITHUB_ACTION_PATH}/.github/service/redis-tls/certs/redis.key"
+      REDIS_TLS_DH_PARAMS_FILE: "${GITHUB_ACTION_PATH}/.github/service/redis-tls/certs/redis.dh"
     volumes:
       - "${GITHUB_WORKSPACE}:/imi:rw"
       - shared-volume:/tmp/docker
@@ -198,6 +228,7 @@ services:
       - shared-tmp
       - mysql
       - redis
+      - redis-new
       - rabbitmq
       - kafka1
       - postgres
@@ -213,6 +244,13 @@ services:
       REDIS_SERVER_CLUSTER_PASSWORD: "l83aa26"
       REDIS_SERVER_CLUSTER_SEEDS: "redis-cluster-node-0:6479,redis-cluster-node-1:6480,redis-cluster-node-2:6481,redis-cluster-node-3:6482,redis-cluster-node-4:6483,redis-cluster-node-5:6484"
       REDIS_SERVER_UNIX_SOCK: "/tmp/docker/redis.sock"
+      REDIS_SERVER_TLS_HOST: redis_new
+      REDIS_SERVER_TLS_PORT: "6443"
+      REDIS_SERVER_TLS_PASSWORD: "l83aa26"
+      REDIS_SERVER_TLS_CA_FILE: "${GITHUB_ACTION_PATH}/.github/service/redis-tls/certs/ca.crt"
+      REDIS_SERVER_TLS_CERT_FILE: "${GITHUB_ACTION_PATH}/.github/service/redis-tls/certs/redis.crt"
+      REDIS_SERVER_TLS_KEY_FILE: "${GITHUB_ACTION_PATH}/.github/service/redis-tls/certs/redis.key"
+      REDIS_TLS_DH_PARAMS_FILE: "${GITHUB_ACTION_PATH}/.github/service/redis-tls/certs/redis.dh"
     build:
       context: .
       dockerfile: php.dockerfile

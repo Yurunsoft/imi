@@ -198,6 +198,13 @@ jobs:
           REDIS_SERVER_CLUSTER_PASSWORD: "l83aa26"
           REDIS_SERVER_CLUSTER_SEEDS: "127.0.0.1:6479,127.0.0.1:6480,127.0.0.1:6481,127.0.0.1:6482,127.0.0.1:6483,127.0.0.1:6484"
           REDIS_SERVER_UNIX_SOCK: "/tmp/docker/redis.sock"
+          REDIS_SERVER_TLS_HOST: "127.0.0.1"
+          REDIS_SERVER_TLS_PORT: "6443"
+          REDIS_SERVER_TLS_PASSWORD: "l83aa26"
+          REDIS_SERVER_TLS_CA_FILE: "${GITHUB_ACTION_PATH}/.github/service/redis-tls/certs/ca.crt"
+          REDIS_SERVER_TLS_CERT_FILE: "${GITHUB_ACTION_PATH}/.github/service/redis-tls/certs/redis.crt"
+          REDIS_SERVER_TLS_KEY_FILE: "${GITHUB_ACTION_PATH}/.github/service/redis-tls/certs/redis.key"
+          REDIS_TLS_DH_PARAMS_FILE: "${GITHUB_ACTION_PATH}/.github/service/redis-tls/certs/redis.dh"
         run: composer test-redis
       - name: Test swoole
         if: ${{ env.test_prepared && always() }}

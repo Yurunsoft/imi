@@ -19,9 +19,12 @@ class PredisConnector implements IRedisConnector
             'scheme'   => $config->scheme ?? 'tcp',
             'database' => $config->database,
         ];
-        if ('unix' === $config->scheme) {
+        if ('unix' === $config->scheme)
+        {
             $params['path'] = $config->host;
-        } else {
+        }
+        else
+        {
             $params['host'] = $config->host;
             $params['port'] = $config->port;
         }

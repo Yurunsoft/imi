@@ -5,10 +5,8 @@ declare(strict_types=1);
 namespace Imi\Redis\Test\Tests;
 
 use Imi\Config;
-use Imi\Redis\Handler\AbstractRedisHandler;
 use Imi\Redis\Handler\IRedisClusterHandler;
 use Imi\Redis\Handler\IRedisHandler;
-use Imi\Redis\Handler\PhpRedisClusterHandler;
 use Imi\Redis\Handler\PhpRedisHandler;
 use Imi\Redis\Redis;
 use Imi\Redis\RedisManager;
@@ -377,11 +375,11 @@ class PhpRedisTest extends TestCase
         $value = $this->staticContextWarp(static function () use ($prefix): mixed {
             return Redis::evalEx(
                 <<<'SCRIPT'
-                    local key = KEYS[1]
-                    local value = ARGV[1]
-                    redis.call('set', key, value)
-                    return redis.call('get', key)
-                    SCRIPT,
+                local key = KEYS[1]
+                local value = ARGV[1]
+                redis.call('set', key, value)
+                return redis.call('get', key)
+                SCRIPT,
                 [$prefix . 'imi:test:a', 'imi very 6'],
                 1,
             );

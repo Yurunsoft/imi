@@ -31,7 +31,6 @@ class PredisTest extends PhpRedisTest
         return $redisClient;
     }
 
-
     /**
      * @phpstan-param T $redis
      */

@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Imi\Components\redis\tests\Tests;
@@ -8,11 +9,12 @@ use Imi\Redis\Connector\PredisConnector;
 use Imi\Redis\Connector\RedisDriverConfig;
 use Imi\Redis\Enum\RedisMode;
 use Monolog\Test\TestCase;
+
 use function Imi\env;
 
 class RedisHandlerTest extends TestCase
 {
-    public function testPhpRedisUnixSockConnection()
+    public function testPhpRedisUnixSockConnection(): void
     {
         if (\PHP_OS_FAMILY !== 'Linux')
         {
@@ -38,13 +40,13 @@ class RedisHandlerTest extends TestCase
         $handler = PhpRedisConnector::connect($config);
 
         self::assertTrue($handler->ping());
-        $key = 'imi:test:set_' . \bin2hex(\random_bytes(8));
+        $key = 'imi:test:set_' . bin2hex(random_bytes(8));
         self::assertTrue($handler->set($key, '123456'));
         self::assertEquals('123456', $handler->get($key));
         self::assertTrue($handler->del($key) > 0);
     }
 
-    public function testPredisUnixSockConnection()
+    public function testPredisUnixSockConnection(): void
     {
         if (\PHP_OS_FAMILY !== 'Linux')
         {
@@ -70,8 +72,8 @@ class RedisHandlerTest extends TestCase
         $handler = PredisConnector::connect($config);
 
         self::assertEquals('PONG', (string) $handler->ping());
-        $key = 'imi:test:set_' . \bin2hex(\random_bytes(8));
-        self::assertEquals(true, $handler->set($key, '123456'));
+        $key = 'imi:test:set_' . bin2hex(random_bytes(8));
+        self::assertTrue($handler->set($key, '123456'));
         self::assertEquals('123456', $handler->get($key));
         self::assertTrue($handler->del($key) > 0);
     }

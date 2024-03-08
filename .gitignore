@@ -9,6 +9,7 @@ composer.lock
 /mddoc/vendor
 *.lock
 /src/Components/*/vendor
+/src/Components/*/tests/.env
 /split-repository/vendor
 /.vscode
 *.pid

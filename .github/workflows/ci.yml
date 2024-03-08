@@ -60,9 +60,14 @@ jobs:
         if: ${{ env.test_prepared && always() }}
         run: |
           docker ps
+          docker logs shared-tmp || true
+          docker logs redis-new || true
+          docker exec ${ENV_SERVICE} bash -c "ls -lha /run/shared"
           echo ">>> redis-cluster-node-0"
-          docker exec ${ENV_SERVICE} bash -c "echo -e 'auth l83aa26\r\ninfo server' | nc redis-cluster-node-0 6479 -w 1"
-          docker exec ${ENV_SERVICE} bash -c "echo -e 'auth l83aa26\r\ncluster info\r\ncluster nodes' | nc redis-cluster-node-0 6479 -w 1"
+          docker exec ${ENV_SERVICE} bash -c "echo -e 'auth l83aa26\r\ninfo server' | nc redis-cluster-node-0-1 6379 -w 1"
+          docker exec ${ENV_SERVICE} bash -c "echo -e 'auth l83aa26\r\ncluster info\r\ncluster nodes' | nc redis-cluster-node-0-1 6379 -w 1"
+          echo ">>> redis-new"
+          docker exec ${ENV_SERVICE} bash -c "echo -e 'auth l83aa26\r\ninfo server' | nc redis-new 6377 -w 1"
       - name: Test
         if: ${{ env.test_prepared && always() }}
         run: docker exec ${ENV_SERVICE} composer test
@@ -144,8 +149,10 @@ jobs:
       - name: Setup Services
         shell: bash
         run: |
-          sudo apt update && sudo apt install -y rsync netcat-openbsd
-          docker-compose -f ./.github/docker-compose.yml up -d redis-cluster-node-0 mysql postgres redis rabbitmq kafka1
+          sudo apt update && sudo apt install -y rsync netcat-openbsd tree
+          docker network create imi-ci-service-network --subnet 172.10.12.0/24
+          docker compose -f ./.github/service/redis-cluster/docker-compose.yml up -d
+          docker compose -f ./.github/docker-compose.yml up -d mysql postgres redis redis-new rabbitmq kafka1
           echo "127.0.0.1 kafka1" | sudo tee -a /etc/hosts
       - name: Setup swoole-cli
         run: .github/script/install-swoole-cli.sh ${{ matrix.swoole-cli }}
@@ -187,8 +194,21 @@ jobs:
         if: ${{ env.test_prepared && always() }}
         run: |
           docker ps
-          echo -e 'auth l83aa26\r\ninfo server' | nc 127.0.0.1 6479 -w 1
-          echo -e 'auth l83aa26\r\ncluster info\r\ncluster nodes' | nc 127.0.0.1 6479 -w 1
+          docker logs shared-tmp
+          docker logs redis
+          find /run/shared -name *.sock
+          tree -alfugh /run/shared
+          echo ">>> redis"
+          echo -e 'info server' | nc 127.0.0.1 6379 -w 1
+          echo ">>> ====="
+          echo ">>> redis-new"
+          echo -e 'auth l83aa26\r\ninfo server' | nc 127.0.0.1 6377 -w 1
+          echo ">>> ====="
+          docker compose -f ./.github/service/redis-cluster/docker-compose.yml logs
+          echo ">>> redis-cluster"
+          echo -e 'auth l83aa26\r\ninfo server' | nc 172.10.12.2 6379 -w 1
+          echo -e 'auth l83aa26\r\ncluster info\r\ncluster nodes' | nc 172.10.12.2 6379 -w 1
+          docker compose -f ./.github/service/redis-cluster/docker-compose.yml exec node-0 cat /bitnami/redis/data/nodes.conf
       - name: Test
         if: ${{ env.test_prepared && always() }}
         run: composer test
@@ -196,15 +216,15 @@ jobs:
         if: ${{ env.test_prepared && always() }}
         env:
           REDIS_SERVER_CLUSTER_PASSWORD: "l83aa26"
-          REDIS_SERVER_CLUSTER_SEEDS: "127.0.0.1:6479,127.0.0.1:6480,127.0.0.1:6481,127.0.0.1:6482,127.0.0.1:6483,127.0.0.1:6484"
-          REDIS_SERVER_UNIX_SOCK: "/tmp/docker/redis.sock"
+          REDIS_SERVER_CLUSTER_SEEDS: "172.10.12.2:6379,172.10.12.3:6379,172.10.12.4:6379,172.10.12.5:6379,172.10.12.6:6379,172.10.12.7:6379"
+          REDIS_SERVER_TLS_CLUSTER_SEEDS: "172.10.12.2:6443,172.10.12.3:6443,172.10.12.4:6443,172.10.12.5:6443,172.10.12.6:6443,172.10.12.7:6443"
+          REDIS_SERVER_UNIX_SOCK: "/run/shared/redis.sock"
           REDIS_SERVER_TLS_HOST: "127.0.0.1"
           REDIS_SERVER_TLS_PORT: "6443"
           REDIS_SERVER_TLS_PASSWORD: "l83aa26"
-          REDIS_SERVER_TLS_CA_FILE: "${GITHUB_ACTION_PATH}/.github/service/redis-tls/certs/ca.crt"
-          REDIS_SERVER_TLS_CERT_FILE: "${GITHUB_ACTION_PATH}/.github/service/redis-tls/certs/redis.crt"
-          REDIS_SERVER_TLS_KEY_FILE: "${GITHUB_ACTION_PATH}/.github/service/redis-tls/certs/redis.key"
-          REDIS_TLS_DH_PARAMS_FILE: "${GITHUB_ACTION_PATH}/.github/service/redis-tls/certs/redis.dh"
+          REDIS_SERVER_TLS_CA_FILE: ${{ github.workspace }}/.github/service/redis-tls/certs/ca.crt
+          REDIS_SERVER_TLS_CERT_FILE: ${{ github.workspace }}/.github/service/redis-tls/certs/client.crt
+          REDIS_SERVER_TLS_KEY_FILE: ${{ github.workspace }}/.github/service/redis-tls/certs/client.key
         run: composer test-redis
       - name: Test swoole
         if: ${{ env.test_prepared && always() }}
@@ -264,10 +284,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-#        php: ["8.1", "8.2"]
-#        swoole: [v5.1.0, v5.0.3]
-        php: ["8.2"]
-        swoole: [v5.1.0]
+        php: ["8.2"] # ["8.1", "8.2"]
+        swoole: [v5.1.0] # [v5.1.0, v5.0.3]
         roadrunner: [2.7.*]
     env:
       MYSQL_SERVER_PASSWORD: "root"
@@ -288,8 +306,11 @@ jobs:
             socket=/tmp/mysql.sock
       - name: Setup Redis
         uses: shogo82148/actions-setup-redis@v1
+        id: setup-redis
         with:
-          redis-version: "6.x"
+          redis-version: "7.2"
+          redis-port: "6379"
+          redis-tls-port: "6443"
       - name: Get Openssl Dir
         id: opecssl-dir
         run: echo "path=$(brew --prefix openssl@1.1)" >> $GITHUB_OUTPUT
@@ -352,6 +373,13 @@ jobs:
         run: composer test
       - name: Test redis
         if: ${{ env.test_prepared && always() }}
+        env:
+          REDIS_SERVER_UNIX_SOCK: ${{ steps.setup-redis.outputs.redis-unix-socket }}
+          REDIS_SERVER_TLS_HOST: "127.0.0.1"
+          REDIS_SERVER_TLS_PORT: "6443"
+          REDIS_SERVER_TLS_CA_FILE: ${{ steps.setup-redis.outputs.redis-tls-dir }}/ca.crt
+          REDIS_SERVER_TLS_CERT_FILE: ${{ steps.setup-redis.outputs.redis-tls-dir }}/client.crt
+          REDIS_SERVER_TLS_KEY_FILE: ${{ steps.setup-redis.outputs.redis-tls-dir }}/client.key
         run: composer test-redis
       - name: Test swoole
         if: ${{ env.test_prepared && always() }}

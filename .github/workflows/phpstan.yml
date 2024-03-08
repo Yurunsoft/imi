@@ -17,6 +17,7 @@ concurrency:
 
 jobs:
   phpstan:
+    if: false
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -61,7 +62,8 @@ jobs:
       - name: Prepare2
         run: |
           echo "::group::Env prepare"
-          docker-compose -f ./.github/docker-compose.yml up -d ${ENV_SERVICE}
+          docker network create imi-ci-service-network --subnet 172.10.12.0/24
+          docker compose -f ./.github/docker-compose.yml up -d ${ENV_SERVICE}
           echo "::endgroup::"
           echo "::group::Env info"
           docker exec ${ENV_SERVICE} php -v

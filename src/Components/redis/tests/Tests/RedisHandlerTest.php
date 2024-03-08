@@ -65,9 +65,13 @@ class RedisHandlerTest extends TestCase
 
     public function testPhpRedisUnixSockConnection(): void
     {
-        if (\PHP_OS_FAMILY !== 'Linux')
+        if (\PHP_OS_FAMILY === 'Windows')
         {
-            self::markTestSkipped('unixsock test only support linux');
+            self::markTestSkipped('unixsock test not support windows');
+        }
+
+        if (!env('REDIS_SERVER_UNIX_SOCK')) {
+            self::markTestSkipped('unixsock test not support, please set REDIS_SERVER_UNIX_SOCK');
         }
 
         $config = new RedisDriverConfig(
@@ -147,9 +151,13 @@ class RedisHandlerTest extends TestCase
 
     public function testPredisUnixSockConnection(): void
     {
-        if (\PHP_OS_FAMILY !== 'Linux')
+        if (\PHP_OS_FAMILY === 'Windows')
         {
-            self::markTestSkipped('unixsock test only support linux');
+            self::markTestSkipped('unixsock test not support windows');
+        }
+
+        if (!env('REDIS_SERVER_UNIX_SOCK')) {
+            self::markTestSkipped('unixsock test not support, please set REDIS_SERVER_UNIX_SOCK');
         }
 
         $config = new RedisDriverConfig(

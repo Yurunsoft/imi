@@ -196,6 +196,11 @@ jobs:
         run: |
           docker exec ${ENV_SERVICE} ./dev/phpstan.sh model
 
+      - name: Analyse redis
+        if: ${{ env.test_prepared && always() }}
+        run: |
+          docker exec ${ENV_SERVICE} ./dev/phpstan.sh redis
+
       - name: Save All composer.lock And autoloader-suffix
         if: ${{ env.test_prepared && always() }}
         run: |

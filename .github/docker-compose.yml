@@ -182,6 +182,9 @@ services:
       AMQP_SERVER_HOST: "rabbitmq"
       KAFKA_BOOTSTRAP_SERVERS: "kafka1:9092"
       GITHUB_TOKEN: ${GITHUB_TOKEN}
+      REDIS_SERVER_CLUSTER_PASSWORD: "l83aa26"
+      REDIS_SERVER_CLUSTER_SEEDS: "redis-cluster-node-0:6479,redis-cluster-node-1:6480,redis-cluster-node-2:6481,redis-cluster-node-3:6482,redis-cluster-node-4:6483,redis-cluster-node-5:6484"
+      REDIS_SERVER_UNIX_SOCK: "/tmp/docker/redis.sock"
     volumes:
       - "${GITHUB_WORKSPACE}:/imi:rw"
       - shared-volume:/tmp/docker
@@ -207,6 +210,9 @@ services:
       AMQP_SERVER_HOST: "rabbitmq"
       KAFKA_BOOTSTRAP_SERVERS: "kafka1:9092"
       GITHUB_TOKEN: ${GITHUB_TOKEN}
+      REDIS_SERVER_CLUSTER_PASSWORD: "l83aa26"
+      REDIS_SERVER_CLUSTER_SEEDS: "redis-cluster-node-0:6479,redis-cluster-node-1:6480,redis-cluster-node-2:6481,redis-cluster-node-3:6482,redis-cluster-node-4:6483,redis-cluster-node-5:6484"
+      REDIS_SERVER_UNIX_SOCK: "/tmp/docker/redis.sock"
     build:
       context: .
       dockerfile: php.dockerfile

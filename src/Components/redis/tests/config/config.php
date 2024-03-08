@@ -92,7 +92,7 @@ return [
                         'client' => 'phpredis',
                         'mode'   => \Imi\Redis\Enum\RedisMode::Cluster,
 
-                        'seeds' => explode(',', env('REDIS_SERVER_CLUSTER_SEEDS')),
+                        'seeds' => explode(',', env('REDIS_SERVER_CLUSTER_SEEDS', '')),
                     ],
                 ],
             ],
@@ -132,7 +132,7 @@ return [
                         'client' => 'predis',
                         'mode'   => \Imi\Redis\Enum\RedisMode::Cluster,
 
-                        'seeds' => explode(',', env('REDIS_SERVER_CLUSTER_SEEDS')),
+                        'seeds' => explode(',', env('REDIS_SERVER_CLUSTER_SEEDS', '')),
                     ],
                 ],
             ],

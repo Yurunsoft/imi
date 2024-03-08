@@ -182,3 +182,8 @@ jobs:
         if: ${{ env.test_prepared && always() }}
         run: |
           docker exec -w /imi/src/Components/model ${ENV_SERVICE} /imi/vendor/bin/rector process --dry-run
+
+      - name: Analyse redis
+        if: ${{ env.test_prepared && always() }}
+        run: |
+          docker exec -w /imi/src/Components/redis ${ENV_SERVICE} /imi/vendor/bin/rector process --dry-run

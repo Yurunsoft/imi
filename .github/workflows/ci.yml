@@ -128,100 +128,6 @@ jobs:
         if: failure()
         run: docker exec ${ENV_SERVICE} php .github/print-logs.php
 
-#  ci-unix:
-#    name: Linux Swoole-${{ matrix.swoole.version }} RoadRunner-${{ matrix.roadrunner }} With Redis UnixSocket
-#    runs-on: ubuntu-latest
-#    strategy:
-#      fail-fast: false
-#      matrix:
-#        swoole:
-#          - version: php8.2-swoole-5.1
-#        roadrunner: [2.7.*]
-#    env:
-#      ENV_SERVICE: swoole
-#      REPOSITORY_OWNER: ${{ github.repository_owner }}
-#      IMAGE_VERSION: ${{ matrix.swoole.version }}
-#      MYSQL_DOCKER_VERSION: "8.0"
-#      REDIS_SERVER_HOST: /tmp/docker/redis.sock
-#      ROADRUNNER_DOCKER_VERSION: ${{ matrix.roadrunner }}
-#      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#    steps:
-#      - name: Checkout
-#        uses: actions/checkout@v4
-#      - name: Prepare1
-#        run: |
-#          echo "REPOSITORY_OWNER=${REPOSITORY_OWNER,,}" >>${GITHUB_ENV}
-#          mkdir -p /tmp/base_cache/composer
-#      - name: Cache dependencies
-#        uses: actions/cache@v3
-#        with:
-#          path: /tmp/base_cache/composer
-#          key: ${{ runner.os }}-composer-${{ env.IMAGE_VERSION }}-${{ hashFiles('*/composer.json', 'src/Components/*/composer.json') }}
-#          restore-keys: |
-#            ${{ runner.os }}-composer-${{ env.IMAGE_VERSION }}-
-#            ${{ runner.os }}-composer-
-#      - name: Prepare2
-#        uses: ./.github/actions/ci-prepare
-#        with:
-#          env: ${{ env.ENV_SERVICE }}
-#      - name: Test
-#        if: ${{ env.test_prepared && always() }}
-#        run: docker exec ${ENV_SERVICE} composer test
-#      - name: Test swoole
-#        if: ${{ env.test_prepared && always() }}
-#        run: docker exec ${ENV_SERVICE} composer test-swoole
-#      - name: Test workerman
-#        if: ${{ env.test_prepared && always() }}
-#        run: docker exec ${ENV_SERVICE} composer test-workerman
-#      - name: Test workerman-gateway
-#        if: ${{ env.test_prepared && always() }}
-#        run: docker exec ${ENV_SERVICE} composer test-workerman-gateway
-#      - name: Test roadrunner
-#        if: ${{ env.test_prepared && always() }}
-#        run: docker exec ${ENV_SERVICE} composer test-roadrunner
-#      - name: Test fpm
-#        if: ${{ env.test_prepared && always() }}
-#        run: docker exec ${ENV_SERVICE} composer test-fpm
-#      - name: Test jwt
-#        if: ${{ env.test_prepared && always() }}
-#        run: docker exec ${ENV_SERVICE} composer test-jwt
-#      - name: Test queue
-#        if: ${{ env.test_prepared && always() }}
-#        run: docker exec ${ENV_SERVICE} composer test-queue
-#      - name: Test amqp
-#        if: ${{ env.test_prepared && always() }}
-#        run: docker exec ${ENV_SERVICE} composer test-amqp
-#      - name: Test kafka
-#        if: ${{ env.test_prepared && always() }}
-#        run: docker exec ${ENV_SERVICE} composer test-kafka
-#      - name: Test grpc
-#        if: ${{ env.test_prepared && always() }}
-#        run: docker exec ${ENV_SERVICE} composer test-grpc
-#      - name: Test snowflake
-#        if: ${{ env.test_prepared && always() }}
-#        run: docker exec ${ENV_SERVICE} composer test-snowflake
-#      - name: Test mqtt
-#        if: ${{ env.test_prepared && always() }}
-#        run: docker exec ${ENV_SERVICE} composer test-mqtt
-#      - name: Test smarty
-#        if: ${{ env.test_prepared && always() }}
-#        run: docker exec ${ENV_SERVICE} composer test-smarty
-#      - name: Test pgsql
-#        if: ${{ env.test_prepared && always() }}
-#        run: docker exec ${ENV_SERVICE} composer test-pgsql
-#      - name: Test connection-center
-#        if: ${{ env.test_prepared && always() }}
-#        run: docker exec ${ENV_SERVICE} composer test-connection-center
-#      - name: Test database
-#        if: ${{ env.test_prepared && always() }}
-#        run: docker exec ${ENV_SERVICE} composer test-database
-#      - name: Test model
-#        if: ${{ env.test_prepared && always() }}
-#        run: docker exec ${ENV_SERVICE} composer test-model
-#      - name: Print logs
-#        if: failure()
-#        run: docker exec ${ENV_SERVICE} php .github/print-logs.php
-
   ci-swoole-cli:
     name: Swoole-cli-${{ matrix.swoole-cli }}
     runs-on: ubuntu-latest
@@ -289,7 +195,9 @@ jobs:
       - name: Test redis
         if: ${{ env.test_prepared && always() }}
         env:
-          REDIS_SERVER_CLUSTER_SEEDS: "127.0.0.1:6479,127.0.0.1:6480,127.0.0.1:6481,127.0.0.1:6482,127.0.0.1:6483,127.0.0.1:6484"
+          REDIS_SERVER_CLUSTER_PASSWORD: "l83aa26"
+          REDIS_SERVER_CLUSTER_SEEDS: "redis-cluster-node-0:6479,redis-cluster-node-1:6480,redis-cluster-node-2:6481,redis-cluster-node-3:6482,redis-cluster-node-4:6483,redis-cluster-node-5:6484"
+          REDIS_SERVER_UNIX_SOCK: "/tmp/docker/redis.sock"
         run: composer test-redis
       - name: Test swoole
         if: ${{ env.test_prepared && always() }}

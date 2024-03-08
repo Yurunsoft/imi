@@ -196,7 +196,7 @@ jobs:
         if: ${{ env.test_prepared && always() }}
         env:
           REDIS_SERVER_CLUSTER_PASSWORD: "l83aa26"
-          REDIS_SERVER_CLUSTER_SEEDS: "redis-cluster-node-0:6479,redis-cluster-node-1:6480,redis-cluster-node-2:6481,redis-cluster-node-3:6482,redis-cluster-node-4:6483,redis-cluster-node-5:6484"
+          REDIS_SERVER_CLUSTER_SEEDS: "127.0.0.1:6479,127.0.0.1:6480,127.0.0.1:6481,127.0.0.1:6482,127.0.0.1:6483,127.0.0.1:6484"
           REDIS_SERVER_UNIX_SOCK: "/tmp/docker/redis.sock"
         run: composer test-redis
       - name: Test swoole

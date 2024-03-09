@@ -14,6 +14,9 @@ class PhpRedisConnector implements IRedisConnector
      */
     public static function connect(RedisDriverConfig $config): PhpRedisHandler
     {
+        // PHP Redis 5.3.2+ supports SSL/TLS.
+        // if ( version_compare( phpversion( 'redis' ), '5.3.2', '>=' ) ) {}
+
         $redis = new \Redis();
 
         $host = $config->host;
@@ -67,7 +70,24 @@ class PhpRedisConnector implements IRedisConnector
         $readTimeout = $config->readTimeout;
         $password = $config->password;
 
-        $redis = new \RedisCluster(null, $seeds, $timeout, $readTimeout, false, $password);
+        $arguments = [
+            null,
+            $seeds,
+            $timeout,
+            $readTimeout,
+            false,
+            $password,
+        ];
+
+        if ($config->tls)
+        {
+            // @link https://github.com/phpredis/phpredis/issues/1600#issuecomment-776109815
+            // @link https://github.com/phpredis/phpredis/issues/1607#issuecomment-653578201
+            // stream context
+            $arguments[] = $config->tls;
+        }
+
+        $redis = new \RedisCluster(...$arguments);
 
         self::applyOptions($redis, $config);
 

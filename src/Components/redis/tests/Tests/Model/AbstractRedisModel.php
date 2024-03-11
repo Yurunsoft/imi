@@ -20,7 +20,7 @@ abstract class AbstractRedisModel extends TestCase
 
     public function testSave(): void
     {
-        $model = TestRedisModel::fork(null, $this->poolName, $this->formatter);
+        $model = TestRedisModel::fork($this->poolName, $this->formatter);
         $record = $model::newInstance([
             'id'    => 1,
             'name'  => 'a',
@@ -31,7 +31,7 @@ abstract class AbstractRedisModel extends TestCase
 
     public function testFind(): void
     {
-        $model = TestRedisModel::fork(null, $this->poolName, $this->formatter);
+        $model = TestRedisModel::fork($this->poolName, $this->formatter);
         $expected = [
             'id'    => 1,
             'name'  => 'a',
@@ -62,7 +62,7 @@ abstract class AbstractRedisModel extends TestCase
                 'age'   => 22,
             ],
         ];
-        $model = TestRedisModel::fork(null, $this->poolName, $this->formatter);
+        $model = TestRedisModel::fork($this->poolName, $this->formatter);
         $record = $model::newInstance([
             'id'    => 2,
             'name'  => 'b',
@@ -83,7 +83,7 @@ abstract class AbstractRedisModel extends TestCase
 
     public function testDelete(): void
     {
-        $model = TestRedisModel::fork(null, $this->poolName, $this->formatter);
+        $model = TestRedisModel::fork($this->poolName, $this->formatter);
         $record = $model::find('1-a');
         $this->assertNotNull($record);
         $this->assertTrue($record->delete());
@@ -94,7 +94,7 @@ abstract class AbstractRedisModel extends TestCase
     {
         // --更新--
         // 原始记录
-        $model = TestRedisModel::fork(null, $this->poolName, $this->formatter);
+        $model = TestRedisModel::fork($this->poolName, $this->formatter);
         $record = $model::newInstance([
             'id'    => 114514,
             'name'  => __METHOD__,
@@ -158,7 +158,7 @@ abstract class AbstractRedisModel extends TestCase
 
     public function testDeleteBatch(): void
     {
-        $model = TestRedisModel::fork(null, $this->poolName, $this->formatter);
+        $model = TestRedisModel::fork($this->poolName, $this->formatter);
         $record = $model::newInstance([
             'id'    => 1,
             'name'  => 'a',
@@ -187,7 +187,7 @@ abstract class AbstractRedisModel extends TestCase
             'name'  => 'a',
             'age'   => 11,
         ];
-        $model = TestRedisModel2::fork(null, 'test_phpredis_standalone', $this->formatter);
+        $model = TestRedisModel2::fork('test_phpredis_standalone', $this->formatter);
         $record = $model::newInstance($expected);
         $this->assertTrue($record->save());
 
@@ -207,7 +207,7 @@ abstract class AbstractRedisModel extends TestCase
 
     public function testFormatter(): void
     {
-        $model = TestRedisWithFormatterModel::fork(null, 'test_phpredis_standalone', $this->formatter);
+        $model = TestRedisWithFormatterModel::fork('test_phpredis_standalone', $this->formatter);
         $record = $model::newInstance([
             'id'    => 1,
             'name'  => 'a',
@@ -269,7 +269,7 @@ abstract class AbstractRedisModel extends TestCase
                 'age'   => 22,
             ],
         ];
-        $model = TestRedisModel::fork(null, $this->poolName, $this->formatter);
+        $model = TestRedisModel::fork($this->poolName, $this->formatter);
         $record = $model::newInstance([
             'id'    => 2,
             'name'  => 'b',
@@ -303,7 +303,7 @@ abstract class AbstractRedisModel extends TestCase
             'name'  => 'b',
             'age'   => 22,
         ];
-        $model = TestRedisModelSerializable::fork(null, 'test_phpredis_standalone', $this->formatter);
+        $model = TestRedisModelSerializable::fork('test_phpredis_standalone', $this->formatter);
         $record = $model::newInstance($data);
         $record->save();
 
@@ -320,7 +320,7 @@ abstract class AbstractRedisModel extends TestCase
 
     public function testVirtual(): void
     {
-        $model = TestRedisModelVirtual::fork(null, 'test_phpredis_standalone', $this->formatter);
+        $model = TestRedisModelVirtual::fork('test_phpredis_standalone', $this->formatter);
         $record = $model::newInstance([
             'id'    => 2,
             'name'  => 'b',

@@ -16,7 +16,7 @@ abstract class AbstractRedisModelHashObject extends TestCase
     public function testSave(): void
     {
         /** @var class-string<TestRedisHashObjectModel> $model */
-        $model = TestRedisHashObjectModel::fork(null, $this->poolName, $this->formatter);
+        $model = TestRedisHashObjectModel::fork($this->poolName, $this->formatter);
         $record = $model::newInstance([
             'id'    => 1,
             'name'  => 'a',
@@ -28,7 +28,7 @@ abstract class AbstractRedisModelHashObject extends TestCase
     public function testFind(): void
     {
         /** @var class-string<TestRedisHashObjectModel> $model */
-        $model = TestRedisHashObjectModel::fork(null, $this->poolName, $this->formatter);
+        $model = TestRedisHashObjectModel::fork($this->poolName, $this->formatter);
         $expected = [
             'id'    => 1,
             'name'  => 'a',
@@ -45,7 +45,7 @@ abstract class AbstractRedisModelHashObject extends TestCase
     public function testSelect(): void
     {
         /** @var class-string<TestRedisHashObjectModel> $model */
-        $model = TestRedisHashObjectModel::fork(null, $this->poolName, $this->formatter);
+        $model = TestRedisHashObjectModel::fork($this->poolName, $this->formatter);
         $expected = [
             [
                 'id'    => 1,
@@ -76,7 +76,7 @@ abstract class AbstractRedisModelHashObject extends TestCase
 
     public function testDelete(): void
     {
-        $model = TestRedisHashObjectModel::fork(null, $this->poolName, $this->formatter);
+        $model = TestRedisHashObjectModel::fork($this->poolName, $this->formatter);
         $record = $model::find([
             'id'    => 1,
             'name'  => 'a',
@@ -92,7 +92,7 @@ abstract class AbstractRedisModelHashObject extends TestCase
     public function testSafeDelete(): void
     {
         /** @var class-string<TestRedisHashObjectModel> $model */
-        $model = TestRedisHashObjectModel::fork(null, $this->poolName, $this->formatter);
+        $model = TestRedisHashObjectModel::fork($this->poolName, $this->formatter);
         // --更新--
         // 原始记录
         $record = $model::newInstance([
@@ -156,7 +156,7 @@ abstract class AbstractRedisModelHashObject extends TestCase
 
     public function testDeleteBatch(): void
     {
-        $model = TestRedisHashObjectModel::fork(null, $this->poolName, $this->formatter);
+        $model = TestRedisHashObjectModel::fork($this->poolName, $this->formatter);
         $record = $model::newInstance([
             'id'    => 1,
             'name'  => 'a',
@@ -180,7 +180,7 @@ abstract class AbstractRedisModelHashObject extends TestCase
 
     public function testColumnType(): void
     {
-        $model = TestRedisHashObjectColumnTypeModel::fork(null, $this->poolName, $this->formatter);
+        $model = TestRedisHashObjectColumnTypeModel::fork($this->poolName, $this->formatter);
         $record = $model::newInstance();
         $record->setJson([
             'name' => 'imi',

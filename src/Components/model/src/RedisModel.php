@@ -911,7 +911,7 @@ abstract class RedisModel extends BaseModel
      *
      * @return class-string<static>
      */
-    public static function fork(?int $db = null, ?string $poolName = null, ?string $formatter = null): string
+    public static function fork(?string $poolName = null, ?string $formatter = null, ?int $db = null): string
     {
         // todo 觉得 model 的 meta 设置不统一， 建议 BaseModel 能提供更多底层支持扩展支持
         // 建议能传入 RedisEntity 对象的全部参数，能适用于更多场景

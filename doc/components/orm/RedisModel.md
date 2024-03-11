@@ -159,9 +159,9 @@ Redis模型中只有 `name`、`type` 和 `listSeparator` 生效。
 
 `type` 支持：
 
-* `json`，序列化为 JSON 字符串
-* `list`必须设置 `listSeparator`，以此来分割为数组
-* `set`，使用 `,` 分割为数组
+- `json`，序列化为 JSON 字符串
+- `list`必须设置 `listSeparator`，以此来分割为数组
+- `set`，使用 `,` 分割为数组
 
 ## 模型操作
 

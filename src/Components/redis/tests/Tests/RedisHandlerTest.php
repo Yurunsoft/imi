@@ -270,12 +270,12 @@ class RedisHandlerTest extends TestCase
         self::assertHandlerSuccess($handler);
     }
 
-    protected static function assertHandlerSuccess(IRedisHandler|IRedisClusterHandler|PhpRedisHandler|PhpRedisClusterHandler|PredisHandler|PredisClusterHandler $handler): void
+    protected static function assertHandlerSuccess(PhpRedisHandler|PhpRedisClusterHandler|PredisHandler|PredisClusterHandler $handler): void
     {
         self::assertTrue($handler->isConnected());
         $key = 'imi:test:set_' . bin2hex(random_bytes(8));
         self::assertTrue($handler->set($key, '123456'));
         self::assertEquals('123456', $handler->get($key));
-        self::assertTrue($handler->del($key) > 0);
+        self::assertTrue((int) $handler->del($key) > 0);
     }
 }

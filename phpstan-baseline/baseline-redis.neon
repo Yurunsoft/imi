@@ -1,0 +1,51 @@
+parameters:
+	ignoreErrors:
+		-
+			message: "#^Method RedisCluster\\:\\:flushDB\\(\\) invoked with 2 parameters, 1 required\\.$#"
+			count: 1
+			path: ../src/Components/redis/tests/Tests/PhpRedisClusterTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$key1 of method RedisCluster\\:\\:del\\(\\) expects int\\|string, array\\<int, string\\> given\\.$#"
+			count: 1
+			path: ../src/Components/redis/tests/Tests/PhpRedisClusterTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$nodeParams of method RedisCluster\\:\\:flushDB\\(\\) expects string, array\\<int, int\\|string\\> given\\.$#"
+			count: 1
+			path: ../src/Components/redis/tests/Tests/PhpRedisClusterTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$redis \\(T of Imi\\\\Redis\\\\Handler\\\\PhpRedisClusterHandler\\) of method Imi\\\\Redis\\\\Test\\\\Tests\\\\PhpRedisClusterTest\\:\\:flush\\(\\) should be compatible with parameter \\$redis \\(Imi\\\\Redis\\\\Handler\\\\PhpRedisHandler\\) of method Imi\\\\Redis\\\\Test\\\\Tests\\\\PhpRedisTest\\<Imi\\\\Redis\\\\Handler\\\\PhpRedisHandler\\>\\:\\:flush\\(\\)$#"
+			count: 1
+			path: ../src/Components/redis/tests/Tests/PhpRedisClusterTest.php
+
+		-
+			message: "#^Return type \\(T of Imi\\\\Redis\\\\Handler\\\\PhpRedisClusterHandler\\) of method Imi\\\\Redis\\\\Test\\\\Tests\\\\PhpRedisClusterTest\\:\\:testGetDrive\\(\\) should be compatible with return type \\(Imi\\\\Redis\\\\Handler\\\\PhpRedisHandler\\) of method Imi\\\\Redis\\\\Test\\\\Tests\\\\PhpRedisTest\\<Imi\\\\Redis\\\\Handler\\\\PhpRedisHandler\\>\\:\\:testGetDrive\\(\\)$#"
+			count: 1
+			path: ../src/Components/redis/tests/Tests/PhpRedisClusterTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$redis \\(T of Imi\\\\Redis\\\\Handler\\\\PredisClusterHandler\\) of method Imi\\\\Redis\\\\Test\\\\Tests\\\\PredisClusterTest\\:\\:flush\\(\\) should be compatible with parameter \\$redis \\(Imi\\\\Redis\\\\Handler\\\\PhpRedisHandler\\) of method Imi\\\\Redis\\\\Test\\\\Tests\\\\PhpRedisTest\\<Imi\\\\Redis\\\\Handler\\\\PhpRedisHandler\\>\\:\\:flush\\(\\)$#"
+			count: 1
+			path: ../src/Components/redis/tests/Tests/PredisClusterTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$redis \\(T of Imi\\\\Redis\\\\Handler\\\\PredisClusterHandler\\) of method Imi\\\\Redis\\\\Test\\\\Tests\\\\PredisClusterTest\\:\\:testGeoAdd\\(\\) should be compatible with parameter \\$redis \\(Imi\\\\Redis\\\\Handler\\\\PhpRedisHandler\\) of method Imi\\\\Redis\\\\Test\\\\Tests\\\\PhpRedisTest\\<Imi\\\\Redis\\\\Handler\\\\PhpRedisHandler\\>\\:\\:testGeoAdd\\(\\)$#"
+			count: 1
+			path: ../src/Components/redis/tests/Tests/PredisClusterTest.php
+
+		-
+			message: "#^Return type \\(T of Imi\\\\Redis\\\\Handler\\\\PredisClusterHandler\\) of method Imi\\\\Redis\\\\Test\\\\Tests\\\\PredisClusterTest\\:\\:testGetDrive\\(\\) should be compatible with return type \\(Imi\\\\Redis\\\\Handler\\\\PhpRedisHandler\\) of method Imi\\\\Redis\\\\Test\\\\Tests\\\\PhpRedisTest\\<Imi\\\\Redis\\\\Handler\\\\PhpRedisHandler\\>\\:\\:testGetDrive\\(\\)$#"
+			count: 1
+			path: ../src/Components/redis/tests/Tests/PredisClusterTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$redis \\(T of Imi\\\\Redis\\\\Handler\\\\PredisHandler\\) of method Imi\\\\Redis\\\\Test\\\\Tests\\\\PredisTest\\:\\:testGeoAdd\\(\\) should be compatible with parameter \\$redis \\(Imi\\\\Redis\\\\Handler\\\\PhpRedisHandler\\) of method Imi\\\\Redis\\\\Test\\\\Tests\\\\PhpRedisTest\\<Imi\\\\Redis\\\\Handler\\\\PhpRedisHandler\\>\\:\\:testGeoAdd\\(\\)$#"
+			count: 1
+			path: ../src/Components/redis/tests/Tests/PredisTest.php
+
+		-
+			message: "#^Return type \\(T of Imi\\\\Redis\\\\Handler\\\\PredisHandler\\) of method Imi\\\\Redis\\\\Test\\\\Tests\\\\PredisTest\\:\\:testGetDrive\\(\\) should be compatible with return type \\(Imi\\\\Redis\\\\Handler\\\\PhpRedisHandler\\) of method Imi\\\\Redis\\\\Test\\\\Tests\\\\PhpRedisTest\\<Imi\\\\Redis\\\\Handler\\\\PhpRedisHandler\\>\\:\\:testGetDrive\\(\\)$#"
+			count: 1
+			path: ../src/Components/redis/tests/Tests/PredisTest.php

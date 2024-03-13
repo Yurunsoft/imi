@@ -39,6 +39,16 @@ class PhpRedisHandler extends AbstractRedisHandler implements IRedisHandler
         return true === $result || '+PONG' === $result;
     }
 
+    public function flushdbEx(): bool
+    {
+        return $this->client->flushDB();
+    }
+
+    public function flushallEx(): bool
+    {
+        return $this->client->flushAll();
+    }
+
     public function scan(?int &$iterator, ?string $pattern = null, int $count = 0, ?string $type = null): mixed
     {
         $args = [];

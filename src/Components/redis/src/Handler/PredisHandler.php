@@ -31,6 +31,16 @@ class PredisHandler extends AbstractRedisHandler implements IRedisHandler
         return 'PONG' === (string) $this->client->ping();
     }
 
+    public function flushdbEx(): bool
+    {
+        return 'OK' === (string) $this->client->flushdb();
+    }
+
+    public function flushallEx(): bool
+    {
+        return 'OK' === (string) $this->client->flushall();
+    }
+
     public function __call(string $name, array $arguments): mixed
     {
         $result = $this->client->{$name}(...$arguments);

@@ -32,17 +32,9 @@ class PhpRedisTest extends TestCase
         self::assertInstanceOf(\Redis::class, $redisClient->getInstance());
 
         // 清空数据
-        $this->flush($redisClient);
+        self::assertTrue($redisClient->flushdbEx());
 
         return $redisClient;
-    }
-
-    /**
-     * @phpstan-param T $redis
-     */
-    protected function flush(IRedisHandler $redis): void
-    {
-        $redis->flushdb(false);
     }
 
     /**

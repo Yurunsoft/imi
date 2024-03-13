@@ -8,8 +8,6 @@ use Imi\Redis\Connector\PhpRedisConnector;
 use Imi\Redis\Connector\PredisConnector;
 use Imi\Redis\Connector\RedisDriverConfig;
 use Imi\Redis\Enum\RedisMode;
-use Imi\Redis\Handler\IRedisClusterHandler;
-use Imi\Redis\Handler\IRedisHandler;
 use Imi\Redis\Handler\PhpRedisClusterHandler;
 use Imi\Redis\Handler\PhpRedisHandler;
 use Imi\Redis\Handler\PredisClusterHandler;

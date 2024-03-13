@@ -36,23 +36,9 @@ class PredisClusterTest extends PhpRedisTest
         self::assertInstanceOf(PredisClusterHandler::class, $redisClient);
         self::assertInstanceOf(Client::class, $redisClient->getInstance());
 
-        $this->flush($redisClient);
+        self::assertTrue($redisClient->flushdbEx());
 
         return $redisClient;
-    }
-
-    /**
-     * @phpstan-param T $redis
-     */
-    protected function flush(IRedisHandler $redis): void
-    {
-        // 清空数据
-        foreach ($redis->getNodes() as $node)
-        {
-            $client = $redis->getClientBy('id', "{$node[0]}:{$node[1]}");
-            $result = $client->flushdb();
-            self::assertTrue($result instanceof \Predis\Response\Status && 'OK' === (string) $result);
-        }
     }
 
     /**

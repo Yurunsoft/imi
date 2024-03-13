@@ -60,6 +60,32 @@ class PredisClusterHandler extends AbstractRedisHandler implements IRedisCluster
         return true;
     }
 
+    public function flushdbEx(): bool
+    {
+        foreach ($this->getNodes() as $node)
+        {
+            $client = $this->client->getClientBy('id', "{$node[0]}:{$node[1]}");
+            if ('OK' !== (string) $client->flushdb())
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public function flushallEx(): bool
+    {
+        foreach ($this->getNodes() as $node)
+        {
+            $client = $this->client->getClientBy('id', "{$node[0]}:{$node[1]}");
+            if ('OK' !== (string) $client->flushall())
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public function __call(string $name, array $arguments): mixed
     {
         $result = $this->client->{$name}(...$arguments);

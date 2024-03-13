@@ -47,6 +47,26 @@ class PhpRedisClusterHandler extends AbstractRedisHandler implements IRedisClust
         return true;
     }
 
+    public function flushdbEx(): bool
+    {
+        foreach ($this->getNodes() as $node)
+        {
+            $this->client->flushDB($node);
+        }
+
+        return true;
+    }
+
+    public function flushallEx(): bool
+    {
+        foreach ($this->getNodes() as $node)
+        {
+            $this->client->flushAll($node);
+        }
+
+        return true;
+    }
+
     public function scan(?int &$iterator, array|string $node, ?string $pattern = null, int $count = 0): array|false
     {
         // @phpstan-ignore-next-line

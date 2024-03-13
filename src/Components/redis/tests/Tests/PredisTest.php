@@ -28,6 +28,8 @@ class PredisTest extends PhpRedisTest
         self::assertInstanceOf(PredisHandler::class, $redisClient);
         self::assertInstanceOf(Client::class, $redisClient->getInstance());
 
+        self::assertTrue($redisClient->flushdbEx());
+
         return $redisClient;
     }
 

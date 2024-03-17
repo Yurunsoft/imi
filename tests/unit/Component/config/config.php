@@ -155,6 +155,26 @@ return [
                 ],
             ],
         ],
+        'predis_test'            => [
+            'manager' => \Imi\ConnectionCenter\Handler\Singleton\SingletonConnectionManager::class,
+            'pool'    => [
+                'maxResources'    => 10,
+                'minResources'    => 0,
+            ],
+            'config'  => [
+                'driver'    => \Imi\Redis\Connector\RedisConnectionDriver::class,
+                'resources' => [
+                    [
+                        'host'      => env('REDIS_SERVER_HOST', '127.0.0.1'),
+                        'port'      => env('REDIS_SERVER_PORT', 6379),
+                        'password'  => env('REDIS_SERVER_PASSWORD'),
+
+                        'client' => 'predis',
+                        'mode'   => \Imi\Redis\Enum\RedisMode::Standalone,
+                    ],
+                ],
+            ],
+        ],
     ],
 
     // 缓存配置
@@ -194,10 +214,25 @@ return [
                 'formatHandlerClass'    => \Imi\Util\Format\Json::class,
             ],
         ],
+        'predis'          => [
+            'handlerClass'  => \Imi\Cache\Handler\Redis::class,
+            'option'        => [
+                'poolName'              => 'predis_test',
+                'formatHandlerClass'    => \Imi\Util\Format\Json::class,
+            ],
+        ],
         'redisHash'      => [
             'handlerClass'  => \Imi\Cache\Handler\RedisHash::class,
             'option'        => [
                 'poolName'              => 'redis_test',
+                'separator'             => '->',
+                'formatHandlerClass'    => \Imi\Util\Format\Json::class,
+            ],
+        ],
+        'predisHash'     => [
+            'handlerClass'  => \Imi\Cache\Handler\RedisHash::class,
+            'option'        => [
+                'poolName'              => 'predis_test',
                 'separator'             => '->',
                 'formatHandlerClass'    => \Imi\Util\Format\Json::class,
             ],

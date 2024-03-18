@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Imi\Lock\Handler;
 
 use Imi\Bean\Annotation\Bean;
+use Imi\Redis\Handler\PhpRedisHandler;
 use Imi\Redis\Redis as ImiRedis;
-use Imi\Redis\RedisHandler;
 use Imi\Redis\RedisManager;
 
 /**
@@ -89,29 +89,38 @@ class Redis extends BaseLock
      */
     protected function __tryLock(): bool
     {
-        return ImiRedis::use(fn (RedisHandler $redis): bool => (bool) $redis->evalEx(<<<'SCRIPT'
-        local key     = KEYS[1]
-        local content = ARGV[1]
-        local ttl     = ARGV[3]
-        local db      = tonumber(ARGV[2])
-        if db then
-            redis.call('select', db)
-        end
-        local lockSet = redis.call('set', key, content, 'NX', 'PX', ttl)
-        if lockSet == 0 then
-            local value = redis.call('get', key)
-            if(value == content) then
-                lockSet = 1;
-                redis.call('pexpire', key, ttl)
-            end
-        end
-        return lockSet
-        SCRIPT, [
-            $this->key,
-            $this->guid,
-            $this->db,
-            $this->lockExpire,
-        ], 1), $this->poolName);
+        return ImiRedis::use(
+            function ($redis): bool {
+                /** @var PhpRedisHandler $redis */
+                return (bool) $redis->evalEx(
+                    <<<'SCRIPT'
+                    local key     = KEYS[1]
+                    local content = ARGV[1]
+                    local ttl     = ARGV[3]
+                    local db      = tonumber(ARGV[2])
+                    if db then
+                        redis.call('select', db)
+                    end
+                    local lockSet = redis.call('set', key, content, 'NX', 'PX', ttl)
+                    if lockSet == 0 then
+                        local value = redis.call('get', key)
+                        if(value == content) then
+                            lockSet = 1;
+                            redis.call('pexpire', key, ttl)
+                        end
+                    end
+                    return lockSet
+                    SCRIPT,
+                    [
+                        $this->key,
+                        $this->guid,
+                        $this->db,
+                        $this->lockExpire,
+                    ],
+                    1);
+            },
+            $this->poolName,
+        );
     }
 
     /**
@@ -119,26 +128,34 @@ class Redis extends BaseLock
      */
     protected function __unlock(): bool
     {
-        return ImiRedis::use(function (RedisHandler $redis): bool {
-            $result = $redis->evalEx(<<<'SCRIPT'
-            local key     = KEYS[1]
-            local content = ARGV[1]
-            local db      = tonumber(ARGV[2])
-            if db then
-                redis.call('select', db)
-            end
-            local value = redis.call('get', key)
-            if value == content then
-                return redis.call('del', key);
-            end
-            return 0
-            SCRIPT, [
-                $this->key,
-                $this->guid,
-                $this->db,
-            ], 1);
+        return ImiRedis::use(
+            function ($redis): bool {
+                /** @var PhpRedisHandler $redis */
+                $result = $redis->evalEx(
+                    <<<'SCRIPT'
+                    local key     = KEYS[1]
+                    local content = ARGV[1]
+                    local db      = tonumber(ARGV[2])
+                    if db then
+                        redis.call('select', db)
+                    end
+                    local value = redis.call('get', key)
+                    if value == content then
+                        return redis.call('del', key);
+                    end
+                    return 0
+                    SCRIPT,
+                    [
+                        $this->key,
+                        $this->guid,
+                        $this->db,
+                    ],
+                    1
+                );
 
-            return $result > 0;
-        }, $this->poolName);
+                return $result > 0;
+            },
+            $this->poolName,
+        );
     }
 }

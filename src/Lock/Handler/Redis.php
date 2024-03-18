@@ -90,9 +90,9 @@ class Redis extends BaseLock
     protected function __tryLock(): bool
     {
         return ImiRedis::use(
-            function ($redis): bool {
+            fn ($redis): bool =>
                 /** @var PhpRedisHandler $redis */
-                return (bool) $redis->evalEx(
+                (bool) $redis->evalEx(
                     <<<'SCRIPT'
                     local key     = KEYS[1]
                     local content = ARGV[1]
@@ -117,8 +117,8 @@ class Redis extends BaseLock
                         $this->db,
                         $this->lockExpire,
                     ],
-                    1);
-            },
+                    1
+                ),
             $this->poolName,
         );
     }

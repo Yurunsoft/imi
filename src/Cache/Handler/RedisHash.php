@@ -59,10 +59,9 @@ class RedisHash extends Base
     public function get(string $key, mixed $default = null): mixed
     {
         $this->parseKey($key, $member);
-        $result = Redis::use(static function ($redis) use ($key, $member) {
+        $result = Redis::use(static fn ($redis) =>
             /** @var PhpRedisHandler $redis */
-            return $redis->hGet($key, $member);
-        }, $this->poolName);
+            $redis->hGet($key, $member), $this->poolName);
         if (false === $result || null === $result)
         {
             return $default;
@@ -80,10 +79,9 @@ class RedisHash extends Base
     {
         $this->parseKey($key, $member);
 
-        return false !== Redis::use(function ($redis) use ($key, $member, $value) {
+        return false !== Redis::use(fn ($redis) =>
             /** @var PhpRedisHandler $redis */
-            return $redis->hSet($key, $member, $this->encode($value));
-        }, $this->poolName);
+            $redis->hSet($key, $member, $this->encode($value)), $this->poolName);
     }
 
     /**
@@ -111,10 +109,9 @@ class RedisHash extends Base
      */
     public function clear(): bool
     {
-        return (bool) Redis::use(static function ($redis) {
+        return (bool) Redis::use(static fn ($redis) =>
             /** @var PhpRedisHandler $redis */
-            return $redis->flushdbEx();
-        }, $this->poolName);
+            $redis->flushdbEx(), $this->poolName);
     }
 
     /**
@@ -234,10 +231,9 @@ class RedisHash extends Base
     {
         $this->parseKey($key, $member);
 
-        return (bool) Redis::use(static function ($redis) use ($key, $member) {
+        return (bool) Redis::use(static fn ($redis) =>
             /** @var PhpRedisHandler $redis */
-            return $redis->hExists($key, $member);
-        }, $this->poolName);
+            $redis->hExists($key, $member), $this->poolName);
     }
 
     /**

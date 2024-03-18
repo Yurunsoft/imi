@@ -35,10 +35,9 @@ class Redis extends Base
      */
     public function get(string $key, mixed $default = null): mixed
     {
-        $result = ImiRedis::use(function ($redis) use ($key) {
+        $result = ImiRedis::use(fn ($redis) =>
             /** @var PhpRedisHandler $redis */
-            return $redis->get($this->parseKey($key));
-        }, $this->poolName);
+            $redis->get($this->parseKey($key)), $this->poolName);
         if (false === $result || null === $result)
         {
             return $default;
@@ -60,17 +59,15 @@ class Redis extends Base
             $ttl = DateTime::getSecondsByInterval($ttl);
         }
 
-        return (bool) ImiRedis::use(function ($redis) use ($key, $value, $ttl) {
-            return match (true)
-            {
-                $redis instanceof PhpRedisHandler,
-                $redis instanceof PhpRedisClusterHandler => $redis->set($this->parseKey($key), $this->encode($value), $ttl),
-                $redis instanceof PredisHandler,
-                $redis instanceof PredisClusterHandler => $ttl
-                        ? $redis->set($this->parseKey($key), $this->encode($value), 'ex', $ttl)
-                        : $redis->set($this->parseKey($key), $this->encode($value)),
-                default => throw new \RuntimeException('Unsupported redis handler')
-            };
+        return (bool) ImiRedis::use(fn ($redis) => match (true)
+        {
+            $redis instanceof PhpRedisHandler,
+            $redis instanceof PhpRedisClusterHandler => $redis->set($this->parseKey($key), $this->encode($value), $ttl),
+            $redis instanceof PredisHandler,
+            $redis instanceof PredisClusterHandler => $ttl
+                    ? $redis->set($this->parseKey($key), $this->encode($value), 'ex', $ttl)
+                    : $redis->set($this->parseKey($key), $this->encode($value)),
+            default => throw new \RuntimeException('Unsupported redis handler')
         }, $this->poolName);
     }
 
@@ -79,10 +76,9 @@ class Redis extends Base
      */
     public function delete(string $key): bool
     {
-        return (bool) ImiRedis::use(function ($redis) use ($key) {
+        return (bool) ImiRedis::use(fn ($redis) =>
             /** @var PhpRedisHandler $redis */
-            return (int) $redis->del($this->parseKey($key)) > 0;
-        }, $this->poolName);
+            (int) $redis->del($this->parseKey($key)) > 0, $this->poolName);
     }
 
     /**
@@ -90,10 +86,9 @@ class Redis extends Base
      */
     public function clear(): bool
     {
-        return (bool) ImiRedis::use(static function ($redis) {
+        return (bool) ImiRedis::use(static fn ($redis) =>
             /** @var PhpRedisHandler $redis */
-            return $redis->flushdbEx();
-        }, $this->poolName);
+            $redis->flushdbEx(), $this->poolName);
     }
 
     /**
@@ -105,10 +100,9 @@ class Redis extends Base
         {
             $key = $this->parseKey($key);
         }
-        $mgetResult = ImiRedis::use(static function ($redis) use ($keys) {
+        $mgetResult = ImiRedis::use(static fn ($redis) =>
             /** @var PhpRedisHandler $redis */
-            return $redis->mget($keys);
-        }, $this->poolName);
+            $redis->mget($keys), $this->poolName);
         $result = [];
         if ($mgetResult)
         {
@@ -185,10 +179,9 @@ class Redis extends Base
             $key = $this->parseKey($key);
         }
 
-        return (bool) ImiRedis::use(static function ($redis) use ($keys) {
+        return (bool) ImiRedis::use(static fn ($redis) =>
             /** @var PhpRedisHandler $redis */
-            return $redis->del($keys);
-        }, $this->poolName);
+            $redis->del($keys), $this->poolName);
     }
 
     /**
@@ -196,10 +189,9 @@ class Redis extends Base
      */
     public function has(string $key): bool
     {
-        return (bool) ImiRedis::use(function ($redis) use ($key) {
+        return (bool) ImiRedis::use(fn ($redis) =>
             /** @var PhpRedisHandler $redis */
-            return $redis->exists($this->parseKey($key));
-        }, $this->poolName);
+            $redis->exists($this->parseKey($key)), $this->poolName);
     }
 
     /**

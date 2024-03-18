@@ -266,6 +266,12 @@ return [
                     'poolName'  => 'redis_test',
                 ],
             ],
+            'predis' => [
+                'class'     => 'RedisLock',
+                'options'   => [
+                    'poolName'  => 'predis_test',
+                ],
+            ],
         ],
     ],
     'yurun2'            => env('yurun'),

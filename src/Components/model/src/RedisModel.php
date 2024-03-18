@@ -485,9 +485,9 @@ abstract class RedisModel extends BaseModel
 
         return match ($redisEntity->storage)
         {
-            RedisStorageMode::STRING      => static::__getRedis($this)->del($this->__getKey()) > 0,
-            RedisStorageMode::HASH        => static::__getRedis($this)->hDel($this->__getKey(), $this->__getMember()) > 0,
-            RedisStorageMode::HASH_OBJECT => static::__getRedis($this)->del($this->__getKey()) > 0,
+            RedisStorageMode::STRING      => (int) static::__getRedis($this)->del($this->__getKey()) > 0,
+            RedisStorageMode::HASH        => (int) static::__getRedis($this)->hDel($this->__getKey(), $this->__getMember()) > 0,
+            RedisStorageMode::HASH_OBJECT => (int) static::__getRedis($this)->del($this->__getKey()) > 0,
             default                       => throw new \InvalidArgumentException(sprintf('Invalid RedisEntity->storage %s', $redisEntity->storage)),
         };
     }

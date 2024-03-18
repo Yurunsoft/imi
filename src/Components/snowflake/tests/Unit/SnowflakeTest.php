@@ -15,6 +15,12 @@ class SnowflakeTest extends TestCase
         $this->assertTrue(\strlen(SnowflakeUtil::id('testBasic')) <= 19);
     }
 
+    public function testBasicByPredis(): void
+    {
+        $this->assertTrue(!empty(SnowflakeUtil::id('testBasicByPredis')));
+        $this->assertTrue(\strlen(SnowflakeUtil::id('testBasicByPredis')) <= 19);
+    }
+
     public function testWorkIdAndDataCenterId(): void
     {
         $this->assertTrue(!empty(SnowflakeUtil::id('test1')));

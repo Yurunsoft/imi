@@ -51,6 +51,7 @@ class PhpRedisClusterHandler extends AbstractRedisHandler implements IRedisClust
     {
         foreach ($this->getNodes() as $node)
         {
+            // @phpstan-ignore-next-line
             $this->client->flushDB($node);
         }
 
@@ -61,6 +62,7 @@ class PhpRedisClusterHandler extends AbstractRedisHandler implements IRedisClust
     {
         foreach ($this->getNodes() as $node)
         {
+            // @phpstan-ignore-next-line
             $this->client->flushAll($node);
         }
 

@@ -10,6 +10,16 @@ return [
         'Database' => 'Imi\Db',
     ],
 
+    'beans'             => [
+        'ErrorLog'          => [
+            'catchLevel'         => \E_ALL,
+            'exceptionLevel'     => \E_ALL,
+            'errorEventHandlers' => [
+                \Imi\Test\Component\ErrorEventHandler::class,
+            ],
+        ],
+    ],
+
     // 日志配置
     'logger'            => [
         'channels' => [

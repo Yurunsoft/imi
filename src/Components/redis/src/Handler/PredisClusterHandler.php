@@ -70,6 +70,7 @@ class PredisClusterHandler extends AbstractRedisHandler implements IRedisCluster
                 return false;
             }
         }
+
         return true;
     }
 
@@ -83,6 +84,7 @@ class PredisClusterHandler extends AbstractRedisHandler implements IRedisCluster
                 return false;
             }
         }
+
         return true;
     }
 

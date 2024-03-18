@@ -12,7 +12,8 @@ class ErrorEventHandler extends AbstractErrorEventHandler
 {
     public function handleError(int $errNo, string $errStr, string $errFile, int $errLine): void
     {
-        // 解决 idea 单文件测试引发异常情况
+        // 解决 idea 单文件测试引发异常
+        // 解决部分情况下不应该把错误转换为异常
         if (str_contains($errFile, '/phpunit/src/'))
         {
             $this->stopPropagation();

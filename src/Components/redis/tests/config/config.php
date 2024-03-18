@@ -7,7 +7,7 @@ use function Imi\env;
 return [
     // 组件命名空间
     'components'        => [
-        'model' => 'Imi\Redis',
+        'Redis' => 'Imi\Redis',
     ],
 
     // 日志配置

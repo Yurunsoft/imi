@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Imi\Components\redis\tests\Tests;
+namespace Imi\Redis\Test\Tests;
 
+use Imi\App;
 use Imi\Redis\Connector\PhpRedisConnector;
 use Imi\Redis\Connector\PredisConnector;
 use Imi\Redis\Connector\RedisDriverConfig;
@@ -12,12 +13,20 @@ use Imi\Redis\Handler\PhpRedisClusterHandler;
 use Imi\Redis\Handler\PhpRedisHandler;
 use Imi\Redis\Handler\PredisClusterHandler;
 use Imi\Redis\Handler\PredisHandler;
+use Imi\Redis\Test\Tests\Classes\TestInjectRedis;
 use Monolog\Test\TestCase;
 
 use function Imi\env;
 
 class RedisHandlerTest extends TestCase
 {
+    public function testInjectRedis(): void
+    {
+        $inject = App::newInstance(TestInjectRedis::class);
+        $inject->testPhpRedis();
+        $inject->testPredis();
+    }
+
     public function testPhpRedisTlsConnection(): void
     {
         foreach ([

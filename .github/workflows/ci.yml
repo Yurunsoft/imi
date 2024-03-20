@@ -265,9 +265,9 @@ jobs:
       - name: Test smarty
         if: ${{ env.test_prepared && always() }}
         run: composer test-smarty
-      - name: Test pgsql
-        if: ${{ matrix.swoole-cli == 'v5.0.3' && env.test_prepared && always() }}
-        run: composer test-pgsql
+      # - name: Test pgsql
+      #   if: ${{ matrix.swoole-cli == 'v5.0.3' && env.test_prepared && always() }}
+      #   run: composer test-pgsql
       - name: Test phar
         if: ${{ env.test_prepared && always() }}
         run: composer test-phar

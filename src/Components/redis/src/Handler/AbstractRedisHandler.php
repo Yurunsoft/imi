@@ -10,8 +10,6 @@ abstract class AbstractRedisHandler implements IRedisHandler
 {
     protected RedisDriverConfig $config;
 
-    abstract public function isConnected(): bool;
-
     public function isCluster(): bool
     {
         return $this instanceof IRedisClusterHandler;

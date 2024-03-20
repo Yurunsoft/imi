@@ -46,15 +46,7 @@ return [
         ],
     ],
 
-    'beans'             => [
-        'ErrorLog'          => [
-            'catchLevel'         => \E_ALL,
-            'exceptionLevel'     => \E_ALL,
-            'errorEventHandlers' => [
-                \Imi\Test\Component\ErrorEventHandler::class,
-            ],
-        ],
-    ],
+    'beans'             => [],
 
     'connectionCenter' => [
         'test_phpredis_standalone'            => [

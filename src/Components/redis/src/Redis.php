@@ -266,6 +266,8 @@ class Redis
      * 使用回调来使用池子中的资源，无需手动释放
      * 回调有 1 个参数：$instance(操作实例对象，Imi\Redis\Handler\IRedisHandler 类型)
      * 本方法返回值为回调的返回值
+     *
+     * @param callable(IRedisHandler): mixed $callable
      */
     public static function use(callable $callable, ?string $poolName = null): mixed
     {

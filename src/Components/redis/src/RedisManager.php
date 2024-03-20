@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Imi\Redis;
 
 use Imi\Config;
+use Imi\ConnectionCenter\Contract\IConnection;
 use Imi\ConnectionCenter\Facade\ConnectionCenter;
 use Imi\Redis\Handler\IRedisHandler;
 use Imi\Redis\Handler\PhpRedisClusterHandler;
@@ -50,6 +51,8 @@ class RedisManager
      * 使用回调来使用池子中的资源，无需手动释放
      * 回调有两个参数：$connection(连接对象), $instance(操作实例对象，Redis实例)
      * 本方法返回值为回调的返回值
+     *
+     * @param callable(IConnection, IRedisHandler|object): mixed $callable
      */
     public static function use(?string $poolName, callable $callable): mixed
     {

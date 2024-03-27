@@ -27,6 +27,11 @@ class PredisClusterHandler extends AbstractRedisHandler implements IRedisCluster
         return $this->client;
     }
 
+    public function getClientVersion(): string
+    {
+        return Client::VERSION;
+    }
+
     public function getNodes(): array
     {
         // 详细说明: https://github.com/predis/predis/issues/571#issuecomment-678300308

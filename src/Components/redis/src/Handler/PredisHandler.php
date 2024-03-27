@@ -26,6 +26,11 @@ class PredisHandler extends AbstractRedisHandler implements IRedisHandler
         return $this->client;
     }
 
+    public function getClientVersion(): string
+    {
+        return Client::VERSION;
+    }
+
     public function isConnected(): bool
     {
         return 'PONG' === (string) $this->client->ping();

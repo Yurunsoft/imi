@@ -26,6 +26,11 @@ class PhpRedisHandler extends AbstractRedisHandler implements IRedisHandler
         return $this->client;
     }
 
+    public function getClientVersion(): string
+    {
+        return phpversion('redis');
+    }
+
     public function __call(string $name, array $arguments): mixed
     {
         return $this->client->{$name}(...$arguments);

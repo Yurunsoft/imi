@@ -8,6 +8,8 @@ interface IRedisHandler
 {
     public function getInstance(): object;
 
+    public function getClientVersion(): string;
+
     public function isConnected(): bool;
 
     public function isCluster(): bool;

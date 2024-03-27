@@ -10,6 +10,8 @@ interface IRedisHandler
 
     public function getClientVersion(): string;
 
+    public function getServerVersion(): string;
+
     public function isConnected(): bool;
 
     public function isCluster(): bool;

@@ -9,6 +9,8 @@ use Predis\PredisException;
 
 trait TPredisMethod
 {
+    private ?array $serverInfoCache = null;
+
     public function _serialize(mixed $value): ?string
     {
         return $value;
@@ -17,6 +19,18 @@ trait TPredisMethod
     public function _unserialize(?string $value): mixed
     {
         return $value;
+    }
+
+    public function getServerVersion(): string
+    {
+        if (null === $this->serverInfoCache)
+        {
+            $info = $this->client->info('server');
+
+            $this->serverInfoCache = $info['Server'];
+        }
+
+        return $this->serverInfoCache['redis_version'];
     }
 
     public function getDBNum(): int

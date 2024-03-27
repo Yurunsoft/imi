@@ -8,6 +8,8 @@ use Imi\Redis\Handler\IRedisClusterHandler;
 
 trait TPhpRedisMethod
 {
+    private ?array $serverInfoCache = null;
+
     public function _serialize(mixed $value): ?string
     {
         return $this->client->_serialize($value);
@@ -16,6 +18,16 @@ trait TPhpRedisMethod
     public function _unserialize(?string $value): mixed
     {
         return $this->client->_unserialize($value);
+    }
+
+    public function getServerVersion(): string
+    {
+        if (null === $this->serverInfoCache)
+        {
+            $this->serverInfoCache = $this->client->info('server');
+        }
+
+        return $this->serverInfoCache['redis_version'];
     }
 
     /**

@@ -12,7 +12,7 @@ use Predis\Connection\Cluster\RedisCluster;
 /**
  * @mixin Client
  */
-class PredisClusterHandler extends AbstractRedisHandler implements IRedisClusterHandler
+class PredisClusterHandler extends AbstractRedisHandler implements IRedisClusterHandler, \IteratorAggregate
 {
     use TPredisMethod;
 
@@ -51,11 +51,16 @@ class PredisClusterHandler extends AbstractRedisHandler implements IRedisCluster
         return $nodes;
     }
 
+    public function getNode(array $node): Client
+    {
+        return $this->client->getClientBy('id', "{$node[0]}:{$node[1]}");
+    }
+
     public function isConnected(): bool
     {
         foreach ($this->getNodes() as $node)
         {
-            $client = $this->client->getClientBy('id', "{$node[0]}:{$node[1]}");
+            $client = $this->getNode($node);
             if ('PONG' !== (string) $client->ping())
             {
                 return false;
@@ -69,7 +74,7 @@ class PredisClusterHandler extends AbstractRedisHandler implements IRedisCluster
     {
         foreach ($this->getNodes() as $node)
         {
-            $client = $this->client->getClientBy('id', "{$node[0]}:{$node[1]}");
+            $client = $this->getNode($node);
             if ('OK' !== (string) $client->flushdb())
             {
                 return false;
@@ -83,7 +88,7 @@ class PredisClusterHandler extends AbstractRedisHandler implements IRedisCluster
     {
         foreach ($this->getNodes() as $node)
         {
-            $client = $this->client->getClientBy('id', "{$node[0]}:{$node[1]}");
+            $client = $this->getNode($node);
             if ('OK' !== (string) $client->flushall())
             {
                 return false;
@@ -143,5 +148,10 @@ class PredisClusterHandler extends AbstractRedisHandler implements IRedisCluster
     public function isSupportSerialize(): bool
     {
         return false;
+    }
+
+    public function getIterator(): \Traversable
+    {
+        return $this->client->getIterator();
     }
 }

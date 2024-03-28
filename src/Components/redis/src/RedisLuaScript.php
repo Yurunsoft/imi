@@ -79,7 +79,7 @@ abstract class RedisLuaScript implements IRedisLuaScript
         }
     }
 
-    public function invoke(IRedisHandler $redis, array $keys, array $argv = []): mixed
+    public function invoke(IRedisHandler $redis, array $keys, ...$argv): mixed
     {
         $keysNum = $this->keysNum();
 
@@ -180,8 +180,8 @@ abstract class RedisLuaScript implements IRedisLuaScript
         return $result;
     }
 
-    public function __invoke(IRedisHandler $redis, array $keys, array $argv = []): mixed
+    public function __invoke(IRedisHandler $redis, array $keys, ...$argv): mixed
     {
-        return $this->invoke($redis, $keys, $argv);
+        return $this->invoke($redis, $keys, ...$argv);
     }
 }

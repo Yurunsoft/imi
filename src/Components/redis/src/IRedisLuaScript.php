@@ -14,5 +14,5 @@ interface IRedisLuaScript
 
     public function withReadOnly(): static;
 
-    public function invoke(IRedisHandler $redis, array $keys, array $argv = []): mixed;
+    public function invoke(IRedisHandler $redis, array $keys, ...$argv): mixed;
 }

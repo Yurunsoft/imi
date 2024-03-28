@@ -129,19 +129,19 @@ class PhpRedisTest extends TestCase
         // 必定重试
         $script = new TestEvalScript1();
         $original = bin2hex(random_bytes(16));
-        $result = $script->invoke($redis, [$key], [$original]);
+        $result = $script->invoke($redis, [$key], $original);
         self::assertEquals($original, $result);
 
         // 必定复用
         $original = bin2hex(random_bytes(16));
-        $result = $script->invoke($redis, [$key], [$original]);
+        $result = $script->invoke($redis, [$key], $original);
         self::assertEquals($original, $result);
 
         try
         {
             $keyFail = "imi:{test-k{$unique}}:fail-key";
             $script
-                ->invoke($redis, [$key, $keyFail], [$original]);
+                ->invoke($redis, [$key, $keyFail], $original);
             self::fail('Error not trigger');
         }
         catch (\InvalidArgumentException $exception)
@@ -153,7 +153,7 @@ class PhpRedisTest extends TestCase
         {
             $script
                 ->triggerScriptError()
-                ->invoke($redis, [$key], [$original]);
+                ->invoke($redis, [$key], $original);
             self::fail('Error not trigger');
         }
         catch (RedisLuaException $exception)
@@ -185,12 +185,12 @@ class PhpRedisTest extends TestCase
         // 必定重试
         $script = new TestEvalScriptReadOnly();
         $original = bin2hex(random_bytes(16));
-        $result = $script->withReadOnly()->invoke($redis, [$key, $key2], [$original]);
+        $result = $script->withReadOnly()->invoke($redis, [$key, $key2], $original);
         self::assertEquals("value_{$unique}_{$original}", $result);
 
         // 必定复用
         $original = bin2hex(random_bytes(16));
-        $result = $script->withReadOnly()->invoke($redis, [$key, $key2], [$original]);
+        $result = $script->withReadOnly()->invoke($redis, [$key, $key2], $original);
         self::assertEquals("value_{$unique}_{$original}", $result);
 
         if (isset($oriOption))

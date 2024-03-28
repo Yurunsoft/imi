@@ -79,7 +79,7 @@ abstract class RedisLuaScript implements IRedisLuaScript
         }
     }
 
-    public function invoke(IRedisHandler $redis, array $keys, ...$argv): mixed
+    public function invoke(IRedisHandler $redis, array $keys, mixed ...$argv): mixed
     {
         $keysNum = $this->keysNum();
 
@@ -94,93 +94,95 @@ abstract class RedisLuaScript implements IRedisLuaScript
         }
 
         $retry = false;
-        RETRY_EVAL:
-        if ($redis instanceof PhpRedisHandler || $redis instanceof PhpRedisClusterHandler)
-        {
-            $redis->clearLastError();
-        }
-        try
-        {
-            if ($retry)
-            {
-                if ($redis instanceof PhpRedisHandler || $redis instanceof PhpRedisClusterHandler)
-                {
-                    if ($this->readOnly)
-                    {
-                        $result = $redis->eval_ro($this->script(), array_merge($keys, $argv), $keysNum);
-                    }
-                    else
-                    {
-                        $result = $redis->eval($this->script(), array_merge($keys, $argv), $keysNum);
-                    }
-                }
-                elseif ($redis instanceof PredisHandler || $redis instanceof PredisClusterHandler)
-                {
-                    if ($this->readOnly)
-                    {
-                        $result = $redis->eval_ro($this->script(), $keys, ...$argv);
-                    }
-                    else
-                    {
-                        $result = $redis->eval($this->script(), $keysNum, ...$keys, ...$argv);
-                    }
-                }
-                else
-                {
-                    throw new \RuntimeException('Unknown redis handler, ' . $redis::class);
-                }
-            }
-            else
-            {
-                if ($redis instanceof PhpRedisHandler || $redis instanceof PhpRedisClusterHandler)
-                {
-                    if ($this->readOnly)
-                    {
-                        $result = $redis->evalsha_ro($this->getSha1(), array_merge($keys, $argv), $keysNum);
-                    }
-                    else
-                    {
-                        $result = $redis->evalSha($this->getSha1(), array_merge($keys, $argv), $keysNum);
-                    }
-                }
-                elseif ($redis instanceof PredisHandler || $redis instanceof PredisClusterHandler)
-                {
-                    if ($this->readOnly)
-                    {
-                        $result = $redis->evalsha_ro($this->getSha1(), $keys, ...$argv);
-                    }
-                    else
-                    {
-                        $result = $redis->evalsha($this->getSha1(), $keysNum, ...$keys, ...$argv);
-                    }
-                }
-                else
-                {
-                    throw new \RuntimeException('Unknown redis handler, ' . $redis::class);
-                }
-            }
+        do {
             if ($redis instanceof PhpRedisHandler || $redis instanceof PhpRedisClusterHandler)
             {
-                if (false === $result && null !== ($error = $redis->getLastError()))
+                $redis->clearLastError();
+            }
+            try
+            {
+                // @phpstan-ignore-next-line 误报认为 $retry 总是 false
+                if ($retry)
                 {
-                    throw new \RuntimeException($error);
+                    if ($redis instanceof PhpRedisHandler || $redis instanceof PhpRedisClusterHandler)
+                    {
+                        if ($this->readOnly)
+                        {
+                            $result = $redis->eval_ro($this->script(), array_merge($keys, $argv), $keysNum);
+                        }
+                        else
+                        {
+                            $result = $redis->eval($this->script(), array_merge($keys, $argv), $keysNum);
+                        }
+                    }
+                    elseif ($redis instanceof PredisHandler || $redis instanceof PredisClusterHandler)
+                    {
+                        if ($this->readOnly)
+                        {
+                            $result = $redis->eval_ro($this->script(), $keys, ...$argv);
+                        }
+                        else
+                        {
+                            $result = $redis->eval($this->script(), $keysNum, ...$keys, ...$argv);
+                        }
+                    }
+                    else
+                    {
+                        throw new \RuntimeException('Unknown redis handler, ' . $redis::class);
+                    }
+                }
+                else
+                {
+                    if ($redis instanceof PhpRedisHandler || $redis instanceof PhpRedisClusterHandler)
+                    {
+                        if ($this->readOnly)
+                        {
+                            $result = $redis->evalsha_ro($this->getSha1(), array_merge($keys, $argv), $keysNum);
+                        }
+                        else
+                        {
+                            $result = $redis->evalSha($this->getSha1(), array_merge($keys, $argv), $keysNum);
+                        }
+                    }
+                    elseif ($redis instanceof PredisHandler || $redis instanceof PredisClusterHandler)
+                    {
+                        if ($this->readOnly)
+                        {
+                            $result = $redis->evalsha_ro($this->getSha1(), $keys, ...$argv);
+                        }
+                        else
+                        {
+                            $result = $redis->evalsha($this->getSha1(), $keysNum, ...$keys, ...$argv);
+                        }
+                    }
+                    else
+                    {
+                        throw new \RuntimeException('Unknown redis handler, ' . $redis::class);
+                    }
+                }
+                if ($redis instanceof PhpRedisHandler || $redis instanceof PhpRedisClusterHandler)
+                {
+                    if (false === $result && null !== ($error = $redis->getLastError()))
+                    {
+                        throw new \RuntimeException($error);
+                    }
                 }
             }
-        }
-        catch (\Throwable $e)
-        {
-            if (false === $retry && str_starts_with($e->getMessage(), 'NOSCRIPT'))
+            catch (\Throwable $e)
             {
-                $retry = true;
-                goto RETRY_EVAL;
+                if (false === $retry && str_starts_with($e->getMessage(), 'NOSCRIPT'))
+                {
+                    $retry = true;
+                    continue;
+                }
+                throw new RedisLuaException(static::class, $e->getMessage(), previous: $e);
             }
-            throw new RedisLuaException(static::class, $e->getMessage(), previous: $e);
-        }
 
-        return $result;
+            return $result;
+        } while (true);
     }
 
-    public function __invoke(IRedisHandler $redis, array $keys, ...$argv): mixed
+    public function __invoke(IRedisHandler $redis, array $keys, mixed ...$argv): mixed
     {
         return $this->invoke($redis, $keys, ...$argv);
     }

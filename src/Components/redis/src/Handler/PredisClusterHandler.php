@@ -7,6 +7,7 @@ namespace Imi\Redis\Handler;
 use Imi\Redis\Connector\RedisDriverConfig;
 use Imi\Redis\Traits\TPredisMethod;
 use Predis\Client;
+use Predis\ClientInterface;
 use Predis\Connection\Cluster\RedisCluster;
 
 /**
@@ -51,7 +52,7 @@ class PredisClusterHandler extends AbstractRedisHandler implements IRedisCluster
         return $nodes;
     }
 
-    public function getNode(array $node): Client
+    public function getNode(array $node): ClientInterface
     {
         return $this->client->getClientBy('id', "{$node[0]}:{$node[1]}");
     }

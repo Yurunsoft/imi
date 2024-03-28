@@ -141,9 +141,22 @@ return [
 - [phpredis](https://github.com/phpredis/phpredis)
 - [predis](https://github.com/predis/predis)
 
+## Cluster 集群注意事项
+
+使用 `Hash tags` 确保多 `key` 操作时能在同一个节点上执行，避免跨节点操作。
+同时请注意选用合适的`key`分片部分，避免数据倾斜单一节点。
+
+<https://redis.io/docs/reference/cluster-spec>
+
+| Key               | 用于`Hash`的部分 |
+|-------------------|-------------|
+| user:{1000}:roles | 1000        |
+| foo{}{bar}        | foo{}{bar}  |
+| foo{bar}{zap}     | bar         |
+
 ## TODO
 
-> 支持资源URL 'tcp://192.168.0.222?timeout=60&db=1;tcp://192.168.0.222', 'unix:///var/run/redis/redis-server.sock?db=1'
-> 支持 ACL 鉴权
-> Sentinel 模式实现
-> 完善的传参验证
+- [ ] 支持资源URL 'tcp://192.168.0.222?timeout=60&db=1;tcp://192.168.0.222', 'unix:///var/run/redis/redis-server.sock?db=1'
+- [ ] 支持 ACL 鉴权
+- [ ] Sentinel 模式实现
+- [ ] 完善的传参验证

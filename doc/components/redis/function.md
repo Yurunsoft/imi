@@ -84,6 +84,59 @@ SCRIPT
     );
 ```
 
+### LuaScript类
+
+imi 提供的通过类定义 LUA 脚本的方式，可以更好的管理和复用 LUA 脚本。
+
+***定义***
+
+```php
+declare(strict_types=1);
+
+use Imi\Redis\RedisLuaScript;
+
+class TestEvalScript1 extends RedisLuaScript
+{
+    public function keysNum(): int
+    {
+        // 定义脚本需要的 key 数量
+        return 2;
+    }
+
+    public function script(): string
+    {
+        // 定义脚本内容
+        return <<<LUA
+            local key = KEYS[1]
+            local value = ARGV[1]
+            redis.call('set', key, value)
+            return redis.call('get', key)
+            LUA;
+    }
+}
+```
+
+***使用***
+
+```php
+use Imi\Redis\IRedisHandler;
+
+/** @var IRedisHandler $redis */
+
+$script = new TestEvalScript1();
+$result = $script->invoke($redis, ['imi-script:key1', 'imi-script:key2'], 'val1', 'val2', 'val3');
+
+// 对脚本进行只读执行 （PS: 因例子脚本中使用`set`，只读调用将会导致报错）
+$script->withReadOnly()->invoke($redis, ['imi-script:key1', 'imi-script:key2'], 'val4', 'val5');
+```
+
+> 注意**cluster**模式下使用时必须确保所以`key`都命中同一`node`，否则会导致执行失败。
+
+> 注意**只读执行**环境条件:
+> redis >= 7.0
+> phpredis >= 6.0
+> predis >= 2.2 (cluster 模式下存在 bug，待扩展修复才能使用)
+
 ### SCAN系列方法
 
 #### 主要用法

@@ -51,10 +51,6 @@ return [
     'connectionCenter' => [
         'test_phpredis_standalone'            => [
             'manager' => \Imi\ConnectionCenter\Handler\Singleton\SingletonConnectionManager::class,
-            'pool'    => [
-                'maxResources'    => 10,
-                'minResources'    => 0,
-            ],
             'config'  => [
                 'driver'    => \Imi\Redis\Connector\RedisConnectionDriver::class,
                 'resources' => [
@@ -66,15 +62,15 @@ return [
                         'client' => 'phpredis',
                         'mode'   => \Imi\Redis\Enum\RedisMode::Standalone,
                     ],
+                ],
+                'pool'    => [
+                    'maxResources'    => 8,
+                    'minResources'    => 0,
                 ],
             ],
         ],
         'test_phpredis_cluster'            => [
             'manager' => \Imi\ConnectionCenter\Handler\Singleton\SingletonConnectionManager::class,
-            'pool'    => [
-                'maxResources'    => 10,
-                'minResources'    => 0,
-            ],
             'config'  => [
                 'driver'    => \Imi\Redis\Connector\RedisConnectionDriver::class,
                 'resources' => [
@@ -88,13 +84,13 @@ return [
                     ],
                 ],
             ],
+            'pool'    => [
+                'maxResources'    => 8,
+                'minResources'    => 0,
+            ],
         ],
         'test_predis_standalone'            => [
             'manager' => \Imi\ConnectionCenter\Handler\Singleton\SingletonConnectionManager::class,
-            'pool'    => [
-                'maxResources'    => 10,
-                'minResources'    => 0,
-            ],
             'config'  => [
                 'driver'    => \Imi\Redis\Connector\RedisConnectionDriver::class,
                 'resources' => [
@@ -107,14 +103,14 @@ return [
                         'mode'   => \Imi\Redis\Enum\RedisMode::Standalone,
                     ],
                 ],
+                'pool'    => [
+                    'maxResources'    => 8,
+                    'minResources'    => 0,
+                ],
             ],
         ],
         'test_predis_cluster'            => [
             'manager' => \Imi\ConnectionCenter\Handler\Singleton\SingletonConnectionManager::class,
-            'pool'    => [
-                'maxResources'    => 10,
-                'minResources'    => 0,
-            ],
             'config'  => [
                 'driver'    => \Imi\Redis\Connector\RedisConnectionDriver::class,
                 'resources' => [
@@ -126,6 +122,10 @@ return [
 
                         'seeds' => explode(',', env('REDIS_SERVER_CLUSTER_SEEDS', '')),
                     ],
+                ],
+                'pool'    => [
+                    'maxResources'    => 8,
+                    'minResources'    => 0,
                 ],
             ],
         ],

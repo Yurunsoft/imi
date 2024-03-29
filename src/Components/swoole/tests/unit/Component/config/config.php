@@ -77,10 +77,6 @@ return [
     'connectionCenter' => [
         'redis_test'            => [
             'manager' => \Imi\ConnectionCenter\Handler\Pool\PoolConnectionManager::class,
-            'pool'    => [
-                'maxResources'    => 10,
-                'minResources'    => 0,
-            ],
             'config'  => [
                 'driver'    => \Imi\Redis\Connector\RedisConnectionDriver::class,
                 'resources' => [
@@ -94,14 +90,14 @@ return [
                         'mode'   => \Imi\Redis\Enum\RedisMode::Standalone,
                     ],
                 ],
+                'pool'    => [
+                    'maxResources'       => 8,
+                    'minResources'       => 0,
+                ],
             ],
         ],
         'redis_cache'            => [
             'manager' => \Imi\ConnectionCenter\Handler\Pool\PoolConnectionManager::class,
-            'pool'    => [
-                'maxResources'    => 10,
-                'minResources'    => 0,
-            ],
             'config'  => [
                 'driver'    => \Imi\Redis\Connector\RedisConnectionDriver::class,
                 'resources' => [
@@ -115,6 +111,10 @@ return [
                         'client' => 'phpredis',
                         'mode'   => \Imi\Redis\Enum\RedisMode::Standalone,
                     ],
+                ],
+                'pool'    => [
+                    'maxResources'    => 8,
+                    'minResources'    => 0,
                 ],
             ],
         ],

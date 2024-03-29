@@ -19,6 +19,11 @@ abstract class RedisLuaScript implements IRedisLuaScript
 
     protected bool $readOnly = false;
 
+    public static function isSupportReadOnly(IRedisHandler $redis): bool
+    {
+        return version_compare($redis->getServerVersion(), '7.0', '>=');
+    }
+
     public function withReadOnly(): static
     {
         // phpredis 6.0 and redis >= 7.0 support readonly
@@ -30,11 +35,6 @@ abstract class RedisLuaScript implements IRedisLuaScript
         $script->readOnly = true;
 
         return $script;
-    }
-
-    public static function isSupportReadOnly(IRedisHandler $redis): bool
-    {
-        return version_compare($redis->getServerVersion(), '7.0', '>=');
     }
 
     public function isReadOnly(): bool
@@ -186,5 +186,28 @@ abstract class RedisLuaScript implements IRedisLuaScript
     public function __invoke(IRedisHandler $redis, array $keys, mixed ...$argv): mixed
     {
         return $this->invoke($redis, $keys, ...$argv);
+    }
+
+    public static function fastCreate(string $script, int $keyNum): static
+    {
+        return new class($script, $keyNum) extends RedisLuaScript
+        {
+            public function __construct(
+                private readonly string $script,
+                private readonly int    $keyNum,
+            )
+            {
+            }
+
+            public function keysNum(): int
+            {
+                return $this->keyNum;
+            }
+
+            public function script(): string
+            {
+                return $this->script;
+            }
+        };
     }
 }

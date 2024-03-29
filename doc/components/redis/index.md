@@ -153,11 +153,3 @@ return [
 | user:{1000}:roles | 1000        |
 | foo{}{bar}        | foo{}{bar}  |
 | foo{bar}{zap}     | bar         |
-
-## TODO
-
-- [ ] 支持资源URL 'tcp://192.168.0.222?timeout=60&db=1;tcp://192.168.0.222', 'unix:///var/run/redis/redis-server.sock?db=1'
-- [ ] 支持 ACL 鉴权
-- [ ] Sentinel 模式实现
-- [ ] 完善的传参验证
-- [ ] 多客户端测试（swoole, queue, amqp, rate-limit）

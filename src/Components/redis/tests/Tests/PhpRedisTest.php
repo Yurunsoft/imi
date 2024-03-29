@@ -168,6 +168,10 @@ class PhpRedisTest extends TestCase
     #[Depends('testGetDrive')]
     public function testEvalScriptReadOnly(IRedisHandler $redis): void
     {
+        if (version_compare($redis->getServerVersion(), '7.0', '<')) {
+            $this->markTestSkipped(sprintf('Redis version %s does not support read-only script', $redis->getServerVersion()));
+        }
+
         $this->flushLuaScript($redis);
 
         $unique = bin2hex(random_bytes(16));

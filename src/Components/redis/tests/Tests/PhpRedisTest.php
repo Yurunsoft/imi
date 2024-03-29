@@ -176,7 +176,7 @@ class PhpRedisTest extends TestCase
         {
             $this->markTestSkipped(sprintf('PhpRedis version %s does not support read-only script', $redis->getClientVersion()));
         }
-        if ($redis instanceof PredisClusterHandler && version_compare($redis->getClientVersion(), '2.2', '<'))
+        if ($redis instanceof PredisClusterHandler && version_compare($redis->getClientVersion(), '2.2.2', '<='))
         {
             $this->markTestSkipped(sprintf('Predis (Cluster) version %s does not support read-only script', $redis->getClientVersion()));
         }

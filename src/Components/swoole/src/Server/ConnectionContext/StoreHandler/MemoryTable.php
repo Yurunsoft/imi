@@ -6,8 +6,10 @@ namespace Imi\Swoole\Server\ConnectionContext\StoreHandler;
 
 use Imi\Bean\Annotation\Bean;
 use Imi\Lock\Lock;
+use Imi\Redis\Handler\IRedisHandler;
+use Imi\Redis\Handler\PhpRedisHandler;
+use Imi\Redis\Handler\PredisHandler;
 use Imi\Redis\Redis;
-use Imi\Redis\RedisHandler;
 use Imi\Server\ConnectionContext\StoreHandler\IHandler;
 use Imi\Swoole\Util\MemoryTableManager;
 use Imi\Timer\Timer;
@@ -62,7 +64,8 @@ class MemoryTable implements IHandler
     {
         if (0 === Worker::getWorkerId())
         {
-            $this->useRedis(function (RedisHandler $redis): void {
+            $this->useRedis(function (IRedisHandler $redis): void {
+                /** @var PhpRedisHandler|PredisHandler $redis */
                 $key = $this->key;
                 $keys = (array) $key;
                 $count = 0;
@@ -185,7 +188,8 @@ class MemoryTable implements IHandler
             $data['__flag'] = $flag;
             $this->save((string) $clientId, $data);
         });
-        $this->useRedis(function (RedisHandler $redis) use ($flag, $clientId): void {
+        $this->useRedis(function (IRedisHandler $redis) use ($flag, $clientId): void {
+            /** @var PhpRedisHandler|PredisHandler $redis */
             $redis->hSet($this->key . ':binder', $flag, $clientId);
         });
     }
@@ -195,7 +199,10 @@ class MemoryTable implements IHandler
      */
     public function bindNx(string $flag, int|string $clientId): bool
     {
-        $result = $this->useRedis(fn (RedisHandler $redis) => $redis->hSetNx($this->key . ':binder', $flag, $clientId));
+        $result = $this->useRedis(function (IRedisHandler $redis) use ($flag, $clientId) {
+            /** @var PhpRedisHandler|PredisHandler $redis */
+            return $redis->hSetNx($this->key . ':binder', $flag, $clientId);
+        });
         if ($result)
         {
             $this->lock((string) $clientId, function () use ($flag, $clientId): void {
@@ -213,7 +220,8 @@ class MemoryTable implements IHandler
      */
     public function unbind(string $flag, int|string $clientId, ?int $keepTime = null): void
     {
-        $this->useRedis(function (RedisHandler $redis) use ($flag, $clientId, $keepTime): void {
+        $this->useRedis(function (IRedisHandler $redis) use ($flag, $clientId, $keepTime): void {
+            /** @var PhpRedisHandler|PredisHandler $redis */
             $key = $this->key . ':binder';
             $this->lock((string) $clientId, function () use ($flag, $clientId): void {
                 $data = $this->read((string) $clientId);
@@ -235,7 +243,10 @@ class MemoryTable implements IHandler
      */
     public function getClientIdByFlag(string $flag): array
     {
-        return (array) $this->useRedis(fn (RedisHandler $redis) => $redis->hGet($this->key . ':binder', $flag) ?: null);
+        return (array) $this->useRedis(function (IRedisHandler $redis) use ($flag) {
+            /** @var PhpRedisHandler|PredisHandler $redis */
+            return $redis->hGet($this->key . ':binder', $flag) ?: null;
+        });
     }
 
     /**
@@ -243,7 +254,10 @@ class MemoryTable implements IHandler
      */
     public function getClientIdsByFlags(array $flags): array
     {
-        $result = $this->useRedis(fn (RedisHandler $redis) => $redis->hMget($this->key . ':binder', $flags));
+        $result = $this->useRedis(function (IRedisHandler $redis) use ($flags) {
+            /** @var PhpRedisHandler|PredisHandler $redis */
+            return $redis->hMget($this->key . ':binder', $flags);
+        });
         foreach ($result as $k => $v)
         {
             $result[$k] = (array) $v;
@@ -279,7 +293,10 @@ class MemoryTable implements IHandler
      */
     public function getOldClientIdByFlag(string $flag): ?int
     {
-        return $this->useRedis(fn (RedisHandler $redis) => $redis->get($this->key . ':binder:old:' . $flag) ?: null);
+        return $this->useRedis(function (IRedisHandler $redis) use ($flag) {
+            /** @var PhpRedisHandler|PredisHandler $redis */
+            return $redis->get($this->key . ':binder:old:' . $flag) ?: null;
+        });
     }
 
     /**
@@ -287,7 +304,8 @@ class MemoryTable implements IHandler
      */
     private function useRedis(callable $callback): mixed
     {
-        return Redis::use(function (RedisHandler $redis) use ($callback) {
+        return Redis::use(function (IRedisHandler $redis) use ($callback) {
+            /** @var PhpRedisHandler|PredisHandler $redis */
             if (null !== $this->redisDb)
             {
                 $redis->select($this->redisDb);

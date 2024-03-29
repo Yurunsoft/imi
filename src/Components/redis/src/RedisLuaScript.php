@@ -70,7 +70,14 @@ abstract class RedisLuaScript implements IRedisLuaScript
             $result = $redis->script('load', $this->script());
             if (false === $result)
             {
-                throw new RedisLuaException(static::class, $redis->getLastError());
+                if ($redis instanceof PhpRedisHandler || $redis instanceof PhpRedisClusterHandler)
+                {
+                    throw new RedisLuaException(static::class, $redis->getLastError());
+                }
+                else
+                {
+                    throw new RedisLuaException(static::class, 'load lua script fail');
+                }
             }
             if ($this->getSha1() !== $result)
             {
@@ -190,13 +197,11 @@ abstract class RedisLuaScript implements IRedisLuaScript
 
     public static function fastCreate(string $script, int $keyNum): static
     {
-        return new class($script, $keyNum) extends RedisLuaScript
-        {
+        return new class($script, $keyNum) extends RedisLuaScript {
             public function __construct(
                 private readonly string $script,
-                private readonly int    $keyNum,
-            )
-            {
+                private readonly int $keyNum,
+            ) {
             }
 
             public function keysNum(): int

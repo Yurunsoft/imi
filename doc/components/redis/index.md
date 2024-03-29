@@ -160,3 +160,4 @@ return [
 - [ ] 支持 ACL 鉴权
 - [ ] Sentinel 模式实现
 - [ ] 完善的传参验证
+- [ ] 多客户端测试（swoole, queue, amqp, rate-limit）

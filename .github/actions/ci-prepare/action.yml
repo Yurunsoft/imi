@@ -17,6 +17,7 @@ runs:
         docker compose -f ./.github/docker-compose.yml up -d ${{ inputs.env }} redis-new
         docker exec ${{ inputs.env }} php -v
         docker exec ${{ inputs.env }} php -m
+        docker exec ${{ inputs.env }} php --ri redis
         docker exec ${{ inputs.env }} php --ri swoole
         docker exec ${{ inputs.env }} php -r "echo 'opcache config: '; print_r(opcache_get_status(false));"
         docker exec ${{ inputs.env }} composer -V

@@ -168,8 +168,17 @@ class PhpRedisTest extends TestCase
     #[Depends('testGetDrive')]
     public function testEvalScriptReadOnly(IRedisHandler $redis): void
     {
-        if (version_compare($redis->getServerVersion(), '7.0', '<')) {
+        if (version_compare($redis->getServerVersion(), '7.0', '<'))
+        {
             $this->markTestSkipped(sprintf('Redis version %s does not support read-only script', $redis->getServerVersion()));
+        }
+        if (($redis instanceof PhpRedisHandler || $redis instanceof PhpRedisClusterHandler) && version_compare($redis->getClientVersion(), '6.0', '<'))
+        {
+            $this->markTestSkipped(sprintf('PhpRedis version %s does not support read-only script', $redis->getClientVersion()));
+        }
+        if ($redis instanceof PredisClusterHandler && version_compare($redis->getClientVersion(), '2.2', '<'))
+        {
+            $this->markTestSkipped(sprintf('Predis (Cluster) version %s does not support read-only script', $redis->getClientVersion()));
         }
 
         $this->flushLuaScript($redis);

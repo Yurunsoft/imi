@@ -94,7 +94,8 @@ abstract class RedisLuaScript implements IRedisLuaScript
         }
 
         $retry = false;
-        do {
+        while (true)
+        {
             if ($redis instanceof PhpRedisHandler || $redis instanceof PhpRedisClusterHandler)
             {
                 $redis->clearLastError();
@@ -179,7 +180,7 @@ abstract class RedisLuaScript implements IRedisLuaScript
             }
 
             return $result;
-        } while (true);
+        }
     }
 
     public function __invoke(IRedisHandler $redis, array $keys, mixed ...$argv): mixed

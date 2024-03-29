@@ -199,10 +199,10 @@ class MemoryTable implements IHandler
      */
     public function bindNx(string $flag, int|string $clientId): bool
     {
-        $result = $this->useRedis(function (IRedisHandler $redis) use ($flag, $clientId) {
+        $result = $this->useRedis(fn (IRedisHandler $redis) =>
             /** @var PhpRedisHandler|PredisHandler $redis */
-            return $redis->hSetNx($this->key . ':binder', $flag, $clientId);
-        });
+            $redis->hSetNx($this->key . ':binder', $flag, $clientId)
+        );
         if ($result)
         {
             $this->lock((string) $clientId, function () use ($flag, $clientId): void {
@@ -243,10 +243,10 @@ class MemoryTable implements IHandler
      */
     public function getClientIdByFlag(string $flag): array
     {
-        return (array) $this->useRedis(function (IRedisHandler $redis) use ($flag) {
+        return (array) $this->useRedis(fn (IRedisHandler $redis) =>
             /** @var PhpRedisHandler|PredisHandler $redis */
-            return $redis->hGet($this->key . ':binder', $flag) ?: null;
-        });
+            $redis->hGet($this->key . ':binder', $flag) ?: null
+        );
     }
 
     /**
@@ -254,10 +254,10 @@ class MemoryTable implements IHandler
      */
     public function getClientIdsByFlags(array $flags): array
     {
-        $result = $this->useRedis(function (IRedisHandler $redis) use ($flags) {
+        $result = $this->useRedis(fn (IRedisHandler $redis) =>
             /** @var PhpRedisHandler|PredisHandler $redis */
-            return $redis->hMget($this->key . ':binder', $flags);
-        });
+            $redis->hMget($this->key . ':binder', $flags)
+        );
         foreach ($result as $k => $v)
         {
             $result[$k] = (array) $v;
@@ -293,14 +293,16 @@ class MemoryTable implements IHandler
      */
     public function getOldClientIdByFlag(string $flag): ?int
     {
-        return $this->useRedis(function (IRedisHandler $redis) use ($flag) {
+        return $this->useRedis(fn (IRedisHandler $redis) =>
             /** @var PhpRedisHandler|PredisHandler $redis */
-            return $redis->get($this->key . ':binder:old:' . $flag) ?: null;
-        });
+            $redis->get($this->key . ':binder:old:' . $flag) ?: null
+        );
     }
 
     /**
      * 使用redis.
+     *
+     * @param callable(PhpRedisHandler|PredisHandler): mixed $callback
      */
     private function useRedis(callable $callback): mixed
     {

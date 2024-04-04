@@ -9,8 +9,14 @@ namespace Imi\ConnectionCenter\Contract;
  */
 use Imi\ConnectionCenter\Enum\ConnectionStatus;
 
+/**
+ * @template T of object
+ */
 interface IConnection
 {
+    /**
+     * @param T $instance
+     */
     public function __construct(IConnectionManager $manager, object $instance);
 
     /**
@@ -20,6 +26,8 @@ interface IConnection
 
     /**
      * 获取连接资源管理的对象实例.
+     *
+     * @return T
      */
     public function getInstance(): object;
 

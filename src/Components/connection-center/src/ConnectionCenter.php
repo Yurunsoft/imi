@@ -98,7 +98,7 @@ class ConnectionCenter
                 }
             }
         }
-        if (null === $connection)
+        if (null === $connection || ConnectionStatus::Available !== $connection->getStatus())
         {
             $connection = $this->getConnection($name);
             $requestContext[static::class][$name] = [

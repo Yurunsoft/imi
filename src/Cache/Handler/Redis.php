@@ -9,7 +9,7 @@ use Imi\Redis\Handler\PhpRedisClusterHandler;
 use Imi\Redis\Handler\PhpRedisHandler;
 use Imi\Redis\Handler\PredisClusterHandler;
 use Imi\Redis\Handler\PredisHandler;
-use Imi\Redis\Redis as ImiRedis;
+use Imi\Redis\RedisConnectionService;
 use Imi\Util\DateTime;
 
 #[Bean(name: 'RedisCache')]
@@ -30,14 +30,23 @@ class Redis extends Base
      */
     protected bool $replaceDot = false;
 
+    public function __construct(array $option = [], protected ?RedisConnectionService $redisManager = null)
+    {
+        parent::__construct($option);
+
+        $this->redisManager ??= new RedisConnectionService();
+        $this->redisManager->setPoolName($this->poolName);
+    }
+
     /**
      * {@inheritDoc}
      */
     public function get(string $key, mixed $default = null): mixed
     {
-        $result = ImiRedis::use(fn ($redis) =>
-            /** @var PhpRedisHandler $redis */
-            $redis->get($this->parseKey($key)), $this->poolName);
+        $result = $this
+            ->redisManager
+            ->getInstance()
+            ->get($this->parseKey($key));
         if (false === $result || null === $result)
         {
             return $default;
@@ -59,16 +68,19 @@ class Redis extends Base
             $ttl = DateTime::getSecondsByInterval($ttl);
         }
 
-        return (bool) ImiRedis::use(fn ($redis) => match (true)
+        $redis = $this->redisManager->getInstance();
+
+        return (bool) match (true)
         {
             $redis instanceof PhpRedisHandler,
             $redis instanceof PhpRedisClusterHandler => $redis->set($this->parseKey($key), $this->encode($value), $ttl),
             $redis instanceof PredisHandler,
             $redis instanceof PredisClusterHandler => $ttl
-                    ? $redis->set($this->parseKey($key), $this->encode($value), 'ex', $ttl)
-                    : $redis->set($this->parseKey($key), $this->encode($value)),
+                ? $redis->set($this->parseKey($key), $this->encode($value), 'ex', $ttl)
+                : $redis->set($this->parseKey($key), $this->encode($value)),
+            // @phpstan-ignore-next-line
             default => throw new \RuntimeException('Unsupported redis handler')
-        }, $this->poolName);
+        };
     }
 
     /**
@@ -76,9 +88,9 @@ class Redis extends Base
      */
     public function delete(string $key): bool
     {
-        return (bool) ImiRedis::use(fn ($redis) =>
-            /** @var PhpRedisHandler $redis */
-            (int) $redis->del($this->parseKey($key)) > 0, $this->poolName);
+        $redis = $this->redisManager->getInstance();
+
+        return (int) $redis->del($this->parseKey($key)) > 0;
     }
 
     /**
@@ -86,9 +98,9 @@ class Redis extends Base
      */
     public function clear(): bool
     {
-        return (bool) ImiRedis::use(static fn ($redis) =>
-            /** @var PhpRedisHandler $redis */
-            $redis->flushdbEx(), $this->poolName);
+        $redis = $this->redisManager->getInstance();
+
+        return $redis->flushdbEx();
     }
 
     /**
@@ -100,21 +112,27 @@ class Redis extends Base
         {
             $key = $this->parseKey($key);
         }
-        $mgetResult = ImiRedis::use(static fn ($redis) =>
-            /** @var PhpRedisHandler $redis */
-            $redis->mget($keys), $this->poolName);
+        unset($key);
+        $mgetResult = $this->redisManager->getInstance()->mget($keys);
         $result = [];
         if ($mgetResult)
         {
             foreach ($mgetResult as $i => $v)
             {
+                $key = $keys[$i];
+
+                if ($this->prefix && str_starts_with((string) $key, $this->prefix))
+                {
+                    $key = substr((string) $key, \strlen($this->prefix));
+                }
+
                 if (false === $v || null === $v)
                 {
-                    $result[$keys[$i]] = $default;
+                    $result[$key] = $default;
                 }
                 else
                 {
-                    $result[$keys[$i]] = $this->decode($v);
+                    $result[$key] = $this->decode($v);
                 }
             }
         }
@@ -135,38 +153,40 @@ class Redis extends Base
         {
             $setValues = $values;
         }
+        $values = [];
         foreach ($setValues as $k => $v)
         {
-            $setValues[$this->parseKey((string) $k)] = $this->encode($v);
+            $values[$this->parseKey((string) $k)] = $this->encode($v);
         }
         // ttl 支持 \DateInterval 格式
         if ($ttl instanceof \DateInterval)
         {
             $ttl = DateTime::getSecondsByInterval($ttl);
         }
-        $result = ImiRedis::use(static function ($redis) use ($setValues, $ttl) {
-            /** @var PhpRedisHandler $redis */
-            $redis->multi();
-            $redis->mset($setValues);
-            if (null !== $ttl)
-            {
-                foreach ($setValues as $k => $v)
-                {
-                    $redis->expire((string) $k, $ttl);
-                }
-            }
-            foreach ($redis->exec() as $result)
-            {
-                if (!$result)
-                {
-                    return false;
-                }
-            }
 
-            return true;
-        }, $this->poolName);
+        $redis = $this->redisManager->getInstance();
+        if ($redis instanceof PredisClusterHandler)
+        {
+            throw new \RuntimeException('predis cluster not support setMultiple method');
+        }
+        $redis->multi();
+        $redis->mset($values);
+        if (null !== $ttl)
+        {
+            foreach ($values as $k => $v)
+            {
+                $redis->expire((string) $k, $ttl);
+            }
+        }
+        foreach ($redis->exec() as $result)
+        {
+            if (!$result)
+            {
+                return false;
+            }
+        }
 
-        return (bool) $result;
+        return true;
     }
 
     /**
@@ -179,9 +199,9 @@ class Redis extends Base
             $key = $this->parseKey($key);
         }
 
-        return (bool) ImiRedis::use(static fn ($redis) =>
-            /** @var PhpRedisHandler $redis */
-            $redis->del($keys), $this->poolName);
+        $redis = $this->redisManager->getInstance();
+
+        return (bool) $redis->del($keys);
     }
 
     /**
@@ -189,9 +209,9 @@ class Redis extends Base
      */
     public function has(string $key): bool
     {
-        return (bool) ImiRedis::use(fn ($redis) =>
-            /** @var PhpRedisHandler $redis */
-            $redis->exists($this->parseKey($key)), $this->poolName);
+        $redis = $this->redisManager->getInstance();
+
+        return (int) $redis->exists($this->parseKey($key)) > 0;
     }
 
     /**

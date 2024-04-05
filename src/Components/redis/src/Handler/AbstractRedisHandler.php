@@ -19,4 +19,9 @@ abstract class AbstractRedisHandler implements IRedisHandler
     {
         return $this->config;
     }
+
+    public function getClientName(): string
+    {
+        return $this->config->client;
+    }
 }

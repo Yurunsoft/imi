@@ -8,6 +8,8 @@ interface IRedisHandler
 {
     public function getInstance(): object;
 
+    public function getClientName(): string;
+
     public function getClientVersion(): string;
 
     public function getServerVersion(): string;

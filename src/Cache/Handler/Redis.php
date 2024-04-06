@@ -81,19 +81,27 @@ class Redis extends Base
         {
             $key = $this->parseKey($key);
         }
+        unset($key);
         $mgetResult = ImiRedis::use(static fn (\Imi\Redis\RedisHandler $redis) => $redis->mget($keys), $this->poolName, true);
         $result = [];
         if ($mgetResult)
         {
             foreach ($mgetResult as $i => $v)
             {
+                $key = $keys[$i];
+
+                if ($this->prefix && str_starts_with((string) $key, $this->prefix))
+                {
+                    $key = substr((string) $key, \strlen($this->prefix));
+                }
+
                 if (false === $v)
                 {
-                    $result[$keys[$i]] = $default;
+                    $result[$key] = $default;
                 }
                 else
                 {
-                    $result[$keys[$i]] = $this->decode($v);
+                    $result[$key] = $this->decode($v);
                 }
             }
         }
@@ -114,21 +122,22 @@ class Redis extends Base
         {
             $setValues = $values;
         }
+        $values = [];
         foreach ($setValues as $k => $v)
         {
-            $setValues[$this->parseKey((string) $k)] = $this->encode($v);
+            $values[$this->parseKey((string) $k)] = $this->encode($v);
         }
         // ttl 支持 \DateInterval 格式
         if ($ttl instanceof \DateInterval)
         {
             $ttl = DateTime::getSecondsByInterval($ttl);
         }
-        $result = ImiRedis::use(static function (\Imi\Redis\RedisHandler $redis) use ($setValues, $ttl) {
+        $result = ImiRedis::use(static function (\Imi\Redis\RedisHandler $redis) use ($values, $ttl) {
             $redis->multi();
-            $redis->mset($setValues);
+            $redis->mset($values);
             if (null !== $ttl)
             {
-                foreach ($setValues as $k => $v)
+                foreach ($values as $k => $v)
                 {
                     $redis->expire((string) $k, $ttl);
                 }

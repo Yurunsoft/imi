@@ -228,7 +228,7 @@ jobs:
         shell: bash
         run: |
           sudo apt update && sudo apt install -y rsync
-          docker-compose -f ./.github/docker-compose.yml up -d mysql postgres redis rabbitmq kafka1
+          docker compose -f ./.github/docker-compose.yml up -d mysql postgres redis rabbitmq kafka1
           echo "127.0.0.1 kafka1" | sudo tee -a /etc/hosts
       - name: Setup swoole-cli
         run: .github/script/install-swoole-cli.sh ${{ matrix.swoole-cli }}

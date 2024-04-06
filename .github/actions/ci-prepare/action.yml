@@ -12,7 +12,7 @@ runs:
     - name: Setup Services
       shell: bash
       run: |
-        docker-compose -f ./.github/docker-compose.yml up -d ${{ inputs.env }}
+        docker compose -f ./.github/docker-compose.yml up -d ${{ inputs.env }}
         docker exec ${{ inputs.env }} php -v
         docker exec ${{ inputs.env }} php -m
         docker exec ${{ inputs.env }} php --ri swoole

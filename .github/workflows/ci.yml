@@ -211,6 +211,9 @@ jobs:
           docker compose -f ./.github/service/redis-cluster/docker-compose.yml exec node-0 cat /bitnami/redis/data/nodes.conf
       - name: Test
         if: ${{ env.test_prepared && always() }}
+        env:
+          REDIS_SERVER_CLUSTER_PASSWORD: "l83aa26"
+          REDIS_SERVER_CLUSTER_SEEDS: "172.10.12.2:6379,172.10.12.3:6379,172.10.12.4:6379,172.10.12.5:6379,172.10.12.6:6379,172.10.12.7:6379"
         run: composer test
       - name: Test connection-center
         if: ${{ env.test_prepared && always() }}

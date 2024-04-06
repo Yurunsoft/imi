@@ -37,7 +37,7 @@ jobs:
           mkdir -p /tmp/base_cache/phpstan
 
       - name: Cache dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: /tmp/base_cache/composer
           key: ${{ runner.os }}-composer-${{ env.IMAGE_VERSION }}-${{ hashFiles('*/composer.json', 'src/Components/*/composer.json') }}
@@ -46,7 +46,7 @@ jobs:
             ${{ runner.os }}-composer-
 
       - name: Cache phpstan
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         if: ${{ false }}
         with:
           path: /tmp/base_cache/phpstan

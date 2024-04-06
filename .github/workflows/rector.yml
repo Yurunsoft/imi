@@ -34,7 +34,7 @@ jobs:
           mkdir -p /tmp/base_cache/rector
 
       - name: Cache dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: /tmp/base_cache/composer
           key: ${{ runner.os }}-composer-${{ env.IMAGE_VERSION }}-${{ hashFiles('*/composer.json', 'src/Components/*/composer.json') }}
@@ -61,7 +61,7 @@ jobs:
           echo "test_prepared=1" >> $GITHUB_ENV
 
       - name: Cache Rector
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: /tmp/base_cache/rector
           key: ${{ runner.os }}-rector-${{ env.IMAGE_VERSION }}-${{ github.run_id }}

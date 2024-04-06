@@ -23,6 +23,16 @@ class CacheRedisTest extends BaseCacheTestCase
             'formatHandlerClass' => \Imi\Util\Format\Json::class,
         ]);
 
+        $value = bin2hex(random_bytes(8));
+        $values = [
+            'k1' => 'v1' . $value,
+            'k2' => 'v2' . $value,
+            'k3' => 'v3' . $value,
+        ];
+        Assert::assertTrue($cache->setMultiple($values));
+        $getValues = $cache->getMultiple([0 => 'k1', 2 => 'k2', 'A' => 'k3']);
+        Assert::assertEquals($values, $getValues);
+
         $this->go(static function () use ($cache): void {
             $value = bin2hex(random_bytes(8));
 

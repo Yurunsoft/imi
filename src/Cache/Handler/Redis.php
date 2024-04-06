@@ -77,10 +77,12 @@ class Redis extends Base
      */
     public function getMultiple(iterable $keys, mixed $default = null): iterable
     {
+        $newKeys = [];
         $parsedKeys = [];
-        foreach ($keys as $i => $key)
+        foreach ($keys as $key)
         {
-            $parsedKeys[$i] = $this->parseKey($key);
+            $parsedKeys[] = $this->parseKey($key);
+            $newKeys[] = $key;
         }
         $mgetResult = ImiRedis::use(static fn (\Imi\Redis\RedisHandler $redis) => $redis->mget($parsedKeys), $this->poolName, true);
         $result = [];
@@ -90,11 +92,11 @@ class Redis extends Base
             {
                 if (false === $v)
                 {
-                    $result[$keys[$i]] = $default;
+                    $result[$newKeys[$i]] = $default;
                 }
                 else
                 {
-                    $result[$keys[$i]] = $this->decode($v);
+                    $result[$newKeys[$i]] = $this->decode($v);
                 }
             }
         }

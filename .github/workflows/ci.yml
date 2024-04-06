@@ -34,7 +34,6 @@ jobs:
       REPOSITORY_OWNER: ${{ github.repository_owner }}
       IMAGE_VERSION: ${{ matrix.swoole.version }}
       MYSQL_DOCKER_VERSION: "8.0"
-      REDIS_SERVER_HOST: redis
       ROADRUNNER_DOCKER_VERSION: ${{ matrix.roadrunner }}
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
@@ -61,13 +60,13 @@ jobs:
         run: |
           docker ps
           docker logs shared-tmp || true
-          docker logs redis-new || true
+          docker logs redis || true
           docker exec ${ENV_SERVICE} bash -c "ls -lha /run/shared"
           echo ">>> redis-cluster-node-0"
           docker exec ${ENV_SERVICE} bash -c "echo -e 'auth l83aa26\r\ninfo server' | nc redis-cluster-node-0-1 6379 -w 1"
           docker exec ${ENV_SERVICE} bash -c "echo -e 'auth l83aa26\r\ncluster info\r\ncluster nodes' | nc redis-cluster-node-0-1 6379 -w 1"
-          echo ">>> redis-new"
-          docker exec ${ENV_SERVICE} bash -c "echo -e 'auth l83aa26\r\ninfo server' | nc redis-new 6377 -w 1"
+          echo ">>> redis"
+          docker exec ${ENV_SERVICE} bash -c "echo -e 'auth l83aa26\r\ninfo server' | nc redis 6379 -w 1"
       - name: Test
         if: ${{ env.test_prepared && always() }}
         run: docker exec ${ENV_SERVICE} composer test
@@ -143,6 +142,10 @@ jobs:
     env:
       MYSQL_DOCKER_VERSION: "8.0"
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      REDIS_SERVER_HOST: "127.0.0.1"
+      REDIS_SERVER_PASSWORD: "l83aa26"
+      REDIS_SERVER_CLUSTER_PASSWORD: "l83aa26"
+      REDIS_SERVER_CLUSTER_SEEDS: "172.10.12.2:6379,172.10.12.3:6379,172.10.12.4:6379,172.10.12.5:6379,172.10.12.6:6379,172.10.12.7:6379"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -152,7 +155,7 @@ jobs:
           sudo apt update && sudo apt install -y rsync netcat-openbsd tree
           docker network create imi-ci-service-network --subnet 172.10.12.0/24
           docker compose -f ./.github/service/redis-cluster/docker-compose.yml up -d
-          docker compose -f ./.github/docker-compose.yml up -d mysql postgres redis redis-new rabbitmq kafka1
+          docker compose -f ./.github/docker-compose.yml up -d mysql postgres redis rabbitmq kafka1
           echo "127.0.0.1 kafka1" | sudo tee -a /etc/hosts
       - name: Setup swoole-cli
         run: .github/script/install-swoole-cli.sh ${{ matrix.swoole-cli }}
@@ -199,10 +202,7 @@ jobs:
           find /run/shared -name *.sock
           tree -alfugh /run/shared
           echo ">>> redis"
-          echo -e 'info server' | nc 127.0.0.1 6379 -w 1
-          echo ">>> ====="
-          echo ">>> redis-new"
-          echo -e 'auth l83aa26\r\ninfo server' | nc 127.0.0.1 6377 -w 1
+          echo -e 'auth l83aa26\r\ninfo server' | nc 127.0.0.1 6379 -w 1
           echo ">>> ====="
           docker compose -f ./.github/service/redis-cluster/docker-compose.yml logs
           echo ">>> redis-cluster"
@@ -211,9 +211,6 @@ jobs:
           docker compose -f ./.github/service/redis-cluster/docker-compose.yml exec node-0 cat /bitnami/redis/data/nodes.conf
       - name: Test
         if: ${{ env.test_prepared && always() }}
-        env:
-          REDIS_SERVER_CLUSTER_PASSWORD: "l83aa26"
-          REDIS_SERVER_CLUSTER_SEEDS: "172.10.12.2:6379,172.10.12.3:6379,172.10.12.4:6379,172.10.12.5:6379,172.10.12.6:6379,172.10.12.7:6379"
         run: composer test
       - name: Test connection-center
         if: ${{ env.test_prepared && always() }}
@@ -224,10 +221,8 @@ jobs:
       - name: Test redis
         if: ${{ env.test_prepared && always() }}
         env:
-          REDIS_SERVER_CLUSTER_PASSWORD: "l83aa26"
-          REDIS_SERVER_CLUSTER_SEEDS: "172.10.12.2:6379,172.10.12.3:6379,172.10.12.4:6379,172.10.12.5:6379,172.10.12.6:6379,172.10.12.7:6379"
-          REDIS_SERVER_TLS_CLUSTER_SEEDS: "172.10.12.2:6443,172.10.12.3:6443,172.10.12.4:6443,172.10.12.5:6443,172.10.12.6:6443,172.10.12.7:6443"
           REDIS_SERVER_UNIX_SOCK: "/run/shared/redis.sock"
+          REDIS_SERVER_TLS_CLUSTER_SEEDS: "172.10.12.2:6443,172.10.12.3:6443,172.10.12.4:6443,172.10.12.5:6443,172.10.12.6:6443,172.10.12.7:6443"
           REDIS_SERVER_TLS_HOST: "127.0.0.1"
           REDIS_SERVER_TLS_PORT: "6443"
           REDIS_SERVER_TLS_PASSWORD: "l83aa26"

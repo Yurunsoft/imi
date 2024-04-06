@@ -40,28 +40,30 @@ services:
     volumes:
       - "${GITHUB_WORKSPACE}:/imi:rw"
 
-  redis:
-    image: redis:6-alpine
-    container_name: redis
-    depends_on:
-      - shared-tmp
-    command: redis-server /etc/redis.conf
-    volumes:
-      - ./redis.conf:/etc/redis.conf
-      - /run/shared:/run/shared
-    ports:
-      - 6379:6379
+#  redis:
+#    image: redis:6-alpine
+#    container_name: redis
+#    depends_on:
+#      - shared-tmp
+#    command: redis-server /etc/redis.conf
+#    volumes:
+#      - ./redis.conf:/etc/redis.conf
+#      - /run/shared:/run/shared
+#    ports:
+#      - 6379:6379
 
-  redis-new:
+  redis:
     image: bitnami/redis:7.2
-    container_name: redis-new
+    container_name: redis
     depends_on:
       - shared-tmp
     volumes:
       - "${GITHUB_WORKSPACE}/.github/service/redis-tls/certs:/opt/bitnami/redis/certs"
+      - "${GITHUB_WORKSPACE}/.github/service/redis-tls/redis-overrides.conf:/opt/bitnami/redis/redis-overrides.conf"
       - /run/shared:/run/shared
     environment:
-      REDIS_PORT_NUMBER: 6377
+      REDIS_OVERRIDES_FILE: "/opt/bitnami/redis/redis-overrides.conf"
+      REDIS_PORT_NUMBER: 6379
       REDIS_PASSWORD: "l83aa26"
       REDIS_TLS_ENABLED: "true"
       REDIS_TLS_PORT_NUMBER: 6443
@@ -71,13 +73,18 @@ services:
       REDIS_TLS_CA_FILE: "/opt/bitnami/redis/certs/ca.crt"
       REDIS_TLS_AUTH_CLIENTS: "yes"
     healthcheck:
-      test: ["CMD-SHELL", "redis-cli -h 127.0.0.1 -p 6377 -a l83aa26 INFO | grep 'redis_version'"]
+      test: ["CMD-SHELL", "redis-cli -h 127.0.0.1 -p $${REDIS_PORT_NUMBER:-6379} -a $${REDIS_PASSWORD} INFO | grep 'redis_version'"]
       interval: 3s
       timeout: 60s
       retries: 30
     ports:
-      - "6377:6377"
+      - "6379:6379"
       - "6443:6443"
+    networks:
+      proxies:
+        aliases:
+          - redis
+        ipv4_address: 172.10.12.111
 
   rabbitmq:
     container_name: rabbitmq
@@ -124,13 +131,13 @@ services:
       - shared-tmp
       - mysql
       - redis
-      - redis-new
       - rabbitmq
       - kafka1
       - postgres
     environment:
       MYSQL_SERVER_HOST: mysql
-      REDIS_SERVER_HOST: ${REDIS_SERVER_HOST}
+      REDIS_SERVER_HOST: ${REDIS_SERVER_HOST:-redis}
+      REDIS_SERVER_PASSWORD: ${REDIS_SERVER_PASSWORD:-l83aa26}
       PGSQL_SERVER_HOST: postgres
       MYSQL_SERVER_PASSWORD: ""
       AMQP_SERVER_HOST: "rabbitmq"
@@ -140,7 +147,7 @@ services:
       REDIS_SERVER_CLUSTER_SEEDS: "172.10.12.2:6379,172.10.12.3:6379,172.10.12.4:6379,172.10.12.5:6379,172.10.12.6:6379,172.10.12.7:6379"
       REDIS_SERVER_TLS_CLUSTER_SEEDS: "172.10.12.2:6443,172.10.12.3:6443,172.10.12.4:6443,172.10.12.5:6443,172.10.12.6:6443,172.10.12.7:6443"
       REDIS_SERVER_UNIX_SOCK: "/run/shared/redis.sock"
-      REDIS_SERVER_TLS_HOST: "redis-new"
+      REDIS_SERVER_TLS_HOST: "redis"
       REDIS_SERVER_TLS_PORT: "6443"
       REDIS_SERVER_TLS_PASSWORD: "l83aa26"
       REDIS_SERVER_TLS_CA_FILE: "/imi/.github/service/redis-tls/certs/ca.crt"
@@ -162,13 +169,13 @@ services:
       - shared-tmp
       - mysql
       - redis
-      - redis-new
       - rabbitmq
       - kafka1
       - postgres
     environment:
       MYSQL_SERVER_HOST: mysql
       REDIS_SERVER_HOST: ${REDIS_SERVER_HOST}
+      REDIS_SERVER_PASSWORD: ${REDIS_SERVER_PASSWORD:-l83aa26}
       PGSQL_SERVER_HOST: postgres
       MYSQL_SERVER_PASSWORD: ""
       AMQP_SERVER_HOST: "rabbitmq"
@@ -178,7 +185,7 @@ services:
       REDIS_SERVER_CLUSTER_SEEDS: "172.10.12.2:6379,172.10.12.3:6379,172.10.12.4:6379,172.10.12.5:6379,172.10.12.6:6379,172.10.12.7:6379"
       REDIS_SERVER_TLS_CLUSTER_SEEDS: "172.10.12.2:6443,172.10.12.3:6443,172.10.12.4:6443,172.10.12.5:6443,172.10.12.6:6443,172.10.12.7:6443"
       REDIS_SERVER_UNIX_SOCK: "/run/shared/redis.sock"
-      REDIS_SERVER_TLS_HOST: "redis-new"
+      REDIS_SERVER_TLS_HOST: "redis"
       REDIS_SERVER_TLS_PORT: "6443"
       REDIS_SERVER_TLS_PASSWORD: "l83aa26"
       REDIS_SERVER_TLS_CA_FILE: "/imi/.github/service/redis-tls/certs/ca.crt"

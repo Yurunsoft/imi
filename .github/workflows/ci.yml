@@ -59,6 +59,12 @@ jobs:
       - name: Test
         if: ${{ env.test_prepared && always() }}
         run: docker exec ${ENV_SERVICE} composer test
+      - name: Test connection-center
+        if: ${{ env.test_prepared && always() }}
+        run: docker exec ${ENV_SERVICE} composer test-connection-center
+      - name: Test database
+        if: ${{ env.test_prepared && always() }}
+        run: docker exec ${ENV_SERVICE} composer test-database
       - name: Test swoole
         if: ${{ env.test_prepared && always() }}
         run: docker exec ${ENV_SERVICE} composer test-swoole
@@ -104,12 +110,6 @@ jobs:
       - name: Test phar
         if: ${{ env.test_prepared && always() }}
         run: docker exec ${ENV_SERVICE} composer test-phar
-      - name: Test connection-center
-        if: ${{ env.test_prepared && always() }}
-        run: docker exec ${ENV_SERVICE} composer test-connection-center
-      - name: Test database
-        if: ${{ env.test_prepared && always() }}
-        run: docker exec ${ENV_SERVICE} composer test-database
       - name: Test model
         if: ${{ env.test_prepared && always() }}
         run: docker exec ${ENV_SERVICE} composer test-model
@@ -156,6 +156,12 @@ jobs:
       - name: Test
         if: ${{ env.test_prepared && always() }}
         run: docker exec ${ENV_SERVICE} composer test
+      - name: Test connection-center
+        if: ${{ env.test_prepared && always() }}
+        run: docker exec ${ENV_SERVICE} composer test-connection-center
+      - name: Test database
+        if: ${{ env.test_prepared && always() }}
+        run: docker exec ${ENV_SERVICE} composer test-database
       - name: Test swoole
         if: ${{ env.test_prepared && always() }}
         run: docker exec ${ENV_SERVICE} composer test-swoole
@@ -198,12 +204,6 @@ jobs:
       - name: Test pgsql
         if: ${{ env.test_prepared && always() }}
         run: docker exec ${ENV_SERVICE} composer test-pgsql
-      - name: Test connection-center
-        if: ${{ env.test_prepared && always() }}
-        run: docker exec ${ENV_SERVICE} composer test-connection-center
-      - name: Test database
-        if: ${{ env.test_prepared && always() }}
-        run: docker exec ${ENV_SERVICE} composer test-database
       - name: Test model
         if: ${{ env.test_prepared && always() }}
         run: docker exec ${ENV_SERVICE} composer test-model
@@ -270,6 +270,12 @@ jobs:
       - name: Test
         if: ${{ env.test_prepared && always() }}
         run: composer test
+      - name: Test connection-center
+        if: ${{ env.test_prepared && always() }}
+        run: composer test-connection-center
+      - name: Test database
+        if: ${{ env.test_prepared && always() }}
+        run: composer test-database
       - name: Test swoole
         if: ${{ env.test_prepared && always() }}
         run: composer test-swoole
@@ -309,12 +315,6 @@ jobs:
       - name: Test phar
         if: ${{ env.test_prepared && always() }}
         run: composer test-phar
-      - name: Test connection-center
-        if: ${{ env.test_prepared && always() }}
-        run: composer test-connection-center
-      - name: Test database
-        if: ${{ env.test_prepared && always() }}
-        run: composer test-database
       - name: Test model
         if: ${{ env.test_prepared && always() }}
         run: composer test-model
@@ -412,6 +412,12 @@ jobs:
       - name: Test
         if: ${{ env.test_prepared && always() }}
         run: composer test
+      - name: Test connection-center
+        if: ${{ env.test_prepared && always() }}
+        run: composer test-connection-center
+      - name: Test database
+        if: ${{ env.test_prepared && always() }}
+        run: composer test-database
       - name: Test swoole
         if: ${{ env.test_prepared && always() }}
         run: composer test-swoole
@@ -448,12 +454,6 @@ jobs:
       - name: Test phar
         if: ${{ env.test_prepared && always() }}
         run: composer test-phar
-      - name: Test connection-center
-        if: ${{ env.test_prepared && always() }}
-        run: composer test-connection-center
-      - name: Test database
-        if: ${{ env.test_prepared && always() }}
-        run: composer test-database
       - name: Test model
         if: ${{ env.test_prepared && always() }}
         run: composer test-model
@@ -544,6 +544,12 @@ jobs:
       - name: Test
         if: ${{ env.test_prepared && always() }}
         run: composer test
+      - name: Test connection-center
+        if: ${{ env.test_prepared && always() }}
+        run: composer test-connection-center-common
+      - name: Test database
+        if: ${{ env.test_prepared && always() }}
+        run: composer test-database
       - name: Test fpm
         if: ${{ env.test_prepared && always() }}
         run: composer test-fpm
@@ -562,12 +568,6 @@ jobs:
       - name: Test snowflake
         if: ${{ env.test_prepared && always() }}
         run: composer test-snowflake
-      - name: Test connection-center
-        if: ${{ env.test_prepared && always() }}
-        run: composer test-connection-center-common
-      - name: Test database
-        if: ${{ env.test_prepared && always() }}
-        run: composer test-database
       - name: Test model
         if: ${{ env.test_prepared && always() }}
         run: composer test-model

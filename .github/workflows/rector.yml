@@ -24,11 +24,11 @@ jobs:
       ENV_SERVICE: swoole-only
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Prepare
         run: |
-          docker-compose -f ./.github/docker-compose.yml up -d ${ENV_SERVICE}
+          docker compose -f ./.github/docker-compose.yml up -d ${ENV_SERVICE}
           docker exec ${ENV_SERVICE} php -v
           docker exec ${ENV_SERVICE} php -m
           docker exec ${ENV_SERVICE} php --ri swoole

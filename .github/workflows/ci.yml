@@ -43,9 +43,9 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Cache dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: /tmp/composer
           key: ${{ runner.os }}-composer-${{ matrix.swoole.version }}-${{ hashFiles('/composer.json') }}
@@ -125,9 +125,9 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Cache dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: /tmp/composer
           key: ${{ runner.os }}-composer-${{ matrix.swoole.version }}-${{ hashFiles('/composer.json') }}
@@ -196,12 +196,12 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Setup Services
         shell: bash
         run: |
           sudo apt update && sudo apt install -y rsync
-          docker-compose -f ./.github/docker-compose.yml up -d mysql postgres redis rabbitmq kafka1
+          docker compose -f ./.github/docker-compose.yml up -d mysql postgres redis rabbitmq kafka1
           echo "127.0.0.1 kafka1" | sudo tee -a /etc/hosts
       - name: Setup swoole-cli
         run: .github/script/install-swoole-cli.sh ${{ matrix.swoole-cli }}
@@ -216,7 +216,7 @@ jobs:
         id: composer-cache
         run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
       - name: Cache dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
           key: ${{ runner.os }}-composer-${{ matrix.swoole-cli }}-${{ hashFiles('/composer.json') }}
@@ -298,7 +298,7 @@ jobs:
       ROADRUNNER_DOCKER_VERSION: ${{ matrix.roadrunner }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Setup MySQL
         uses: shogo82148/actions-setup-mysql@v1
         with:
@@ -339,7 +339,7 @@ jobs:
         id: composer-cache
         run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
       - name: Cache dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
           key: ${{ runner.os }}-composer-${{ env.php-versions }}-${{ hashFiles('/composer.json') }}
@@ -423,7 +423,7 @@ jobs:
       ROADRUNNER_DOCKER_VERSION: ${{ matrix.roadrunner }}
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Setup MySQL
         uses: shogo82148/actions-setup-mysql@v1

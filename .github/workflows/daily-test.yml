@@ -28,9 +28,9 @@ jobs:
       COMPOSER_ENV: --ignore-platform-reqs
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Cache dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: /tmp/composer
           key: ${{ runner.os }}-composer-${{ matrix.swoole.version }}-${{ hashFiles('/composer.json') }}

@@ -108,31 +108,26 @@ class Redis extends Base
      */
     public function getMultiple(iterable $keys, mixed $default = null): iterable
     {
-        foreach ($keys as &$key)
+        $newKeys = [];
+        $parsedKeys = [];
+        foreach ($keys as $key)
         {
-            $key = $this->parseKey($key);
+            $parsedKeys[] = $this->parseKey($key);
+            $newKeys[] = $key;
         }
-        unset($key);
-        $mgetResult = $this->redisManager->getInstance()->mget($keys);
+        $mgetResult = $this->redisManager->getInstance()->mget($parsedKeys);
         $result = [];
         if ($mgetResult)
         {
             foreach ($mgetResult as $i => $v)
             {
-                $key = $keys[$i];
-
-                if ($this->prefix && str_starts_with((string) $key, $this->prefix))
-                {
-                    $key = substr((string) $key, \strlen($this->prefix));
-                }
-
                 if (false === $v || null === $v)
                 {
-                    $result[$key] = $default;
+                    $result[$newKeys[$i]] = $default;
                 }
                 else
                 {
-                    $result[$key] = $this->decode($v);
+                    $result[$newKeys[$i]] = $this->decode($v);
                 }
             }
         }

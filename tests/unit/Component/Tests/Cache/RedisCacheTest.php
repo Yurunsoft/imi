@@ -230,6 +230,27 @@ class RedisCacheTest extends BaseTest
         Assert::assertEquals($values, $getValues);
     }
 
+    #[DataProvider('redisConnectionProvider')]
+    public function testSetMultipleKeys(string $name): void
+    {
+        if ('predis_cluster' === $name)
+        {
+            $this->expectExceptionMessage('predis cluster not support setMultiple method');
+        }
+        $value = bin2hex(random_bytes(8));
+
+        $values = [
+            'k1' => 'v1' . $value,
+            'k2' => 'v2' . $value,
+            'k3' => 'v3' . $value,
+        ];
+        $cache = $this->getCacheHandler($name);
+
+        Assert::assertTrue($cache->setMultiple($values));
+        $getValues = $cache->getMultiple([0 => 'k1', 2 => 'k2', 'A' => 'k3']);
+        Assert::assertEquals($values, $getValues);
+    }
+
     /**
      * @testdox Set multiple TTL
      */

@@ -82,22 +82,19 @@ class Redis extends Base
         {
             $parsedKeys[$i] = $this->parseKey($key);
         }
-        unset($key);
         $mgetResult = ImiRedis::use(static fn (\Imi\Redis\RedisHandler $redis) => $redis->mget($parsedKeys), $this->poolName, true);
         $result = [];
         if ($mgetResult)
         {
             foreach ($mgetResult as $i => $v)
             {
-                $key = $keys[$i];
-
                 if (false === $v)
                 {
-                    $result[$key] = $default;
+                    $result[$keys[$i]] = $default;
                 }
                 else
                 {
-                    $result[$key] = $this->decode($v);
+                    $result[$keys[$i]] = $this->decode($v);
                 }
             }
         }

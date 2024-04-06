@@ -23,6 +23,7 @@
             "Imi\\Redis\\Dev\\": "dev/"
         },
         "files": [
+            "./tests/helper.php",
             "../../../vendor/autoload.php",
             "../connection-center/vendor/autoload.php"
         ]

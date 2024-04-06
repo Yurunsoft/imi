@@ -29,20 +29,7 @@ class RedisHandlerTest extends TestCase
 
     public function testPhpRedisTlsConnection(): void
     {
-        foreach ([
-            'REDIS_SERVER_TLS_HOST',
-            'REDIS_SERVER_TLS_PORT',
-            'REDIS_SERVER_TLS_CA_FILE',
-            'REDIS_SERVER_TLS_CERT_FILE',
-            'REDIS_SERVER_TLS_KEY_FILE',
-        ] as $key)
-        {
-            $value = env($key);
-            if (empty($value))
-            {
-                self::markTestSkipped("tls options {$key} is empty, skip tls test");
-            }
-        }
+        assert_env_redis_with_tls_is_ready();
 
         $config = new RedisDriverConfig(
             client: 'phpredis',
@@ -79,10 +66,7 @@ class RedisHandlerTest extends TestCase
             self::markTestSkipped('unixsock test not support windows');
         }
 
-        if (!env('REDIS_SERVER_UNIX_SOCK'))
-        {
-            self::markTestSkipped('unixsock test not support, please set REDIS_SERVER_UNIX_SOCK');
-        }
+        assert_env_redis_unix_sock_is_ready();
 
         $config = new RedisDriverConfig(
             client: 'phpredis',
@@ -108,19 +92,7 @@ class RedisHandlerTest extends TestCase
 
     public function testPhpRedisTlsClusterConnection(): void
     {
-        foreach ([
-            'REDIS_SERVER_TLS_CLUSTER_SEEDS',
-            'REDIS_SERVER_TLS_CA_FILE',
-            'REDIS_SERVER_TLS_CERT_FILE',
-            'REDIS_SERVER_TLS_KEY_FILE',
-        ] as $key)
-        {
-            $value = env($key);
-            if (empty($value))
-            {
-                self::markTestSkipped("tls options {$key} is empty, skip tls test");
-            }
-        }
+        assert_env_redis_cluster_with_tls_is_ready();
 
         $seeds = explode(',', env('REDIS_SERVER_TLS_CLUSTER_SEEDS', ''));
 
@@ -154,20 +126,7 @@ class RedisHandlerTest extends TestCase
 
     public function testPredisTlsConnection(): void
     {
-        foreach ([
-            'REDIS_SERVER_TLS_HOST',
-            'REDIS_SERVER_TLS_PORT',
-            'REDIS_SERVER_TLS_CA_FILE',
-            'REDIS_SERVER_TLS_CERT_FILE',
-            'REDIS_SERVER_TLS_KEY_FILE',
-        ] as $key)
-        {
-            $value = env($key);
-            if (empty($value))
-            {
-                self::markTestSkipped("tls options {$key} is empty, skip tls test");
-            }
-        }
+        assert_env_redis_with_tls_is_ready();
 
         $config = new RedisDriverConfig(
             client: 'predis',
@@ -204,10 +163,7 @@ class RedisHandlerTest extends TestCase
             self::markTestSkipped('unixsock test not support windows');
         }
 
-        if (!env('REDIS_SERVER_UNIX_SOCK'))
-        {
-            self::markTestSkipped('unixsock test not support, please set REDIS_SERVER_UNIX_SOCK');
-        }
+        assert_env_redis_unix_sock_is_ready();
 
         $config = new RedisDriverConfig(
             client: 'predis',
@@ -233,19 +189,7 @@ class RedisHandlerTest extends TestCase
 
     public function testPredisTlsClusterConnection(): void
     {
-        foreach ([
-            'REDIS_SERVER_TLS_CLUSTER_SEEDS',
-            'REDIS_SERVER_TLS_CA_FILE',
-            'REDIS_SERVER_TLS_CERT_FILE',
-            'REDIS_SERVER_TLS_KEY_FILE',
-        ] as $key)
-        {
-            $value = env($key);
-            if (empty($value))
-            {
-                self::markTestSkipped("tls options {$key} is empty, skip tls test");
-            }
-        }
+        assert_env_redis_cluster_with_tls_is_ready();
 
         $seeds = explode(',', env('REDIS_SERVER_TLS_CLUSTER_SEEDS', ''));
 

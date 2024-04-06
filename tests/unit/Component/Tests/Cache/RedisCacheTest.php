@@ -43,74 +43,87 @@ class RedisCacheTest extends BaseTest
             return $this->connections[$name];
         }
 
-        $config = match ($name)
+        switch ($name)
         {
-            'phpredis_base' => new RedisDriverConfig(
-                client: 'phpredis',
-                mode: RedisMode::Standalone,
-                scheme: null,
-                host: env('REDIS_SERVER_HOST', '127.0.0.1'),
-                port: env('REDIS_SERVER_PORT', 6379),
-                seeds: null,
-                password: env('REDIS_SERVER_PASSWORD'),
-                database: 0,
-                prefix: '',
-                timeout: 1,
-                readTimeout: 1,
-                serialize: false,
-                options: [],
-                tls: null,
-            ),
-            'phpredis_cluster' => new RedisDriverConfig(
-                client: 'phpredis',
-                mode: RedisMode::Cluster,
-                scheme: null,
-                host: '127.0.0.1',
-                port: 0,
-                seeds: explode(',', env('REDIS_SERVER_CLUSTER_SEEDS', '')),
-                password: env('REDIS_SERVER_CLUSTER_PASSWORD'),
-                database: 0,
-                prefix: '',
-                timeout: 1,
-                readTimeout: 1,
-                serialize: false,
-                options: [],
-                tls: null,
-            ),
-            'predis_base' => new RedisDriverConfig(
-                client: 'predis',
-                mode: RedisMode::Standalone,
-                scheme: null,
-                host: env('REDIS_SERVER_HOST', '127.0.0.1'),
-                port: env('REDIS_SERVER_PORT', 6379),
-                seeds: null,
-                password: env('REDIS_SERVER_PASSWORD'),
-                database: 0,
-                prefix: '',
-                timeout: 1,
-                readTimeout: 1,
-                serialize: false,
-                options: [],
-                tls: null,
-            ),
-            'predis_cluster' => new RedisDriverConfig(
-                client: 'predis',
-                mode: RedisMode::Cluster,
-                scheme: null,
-                host: '127.0.0.1',
-                port: 0,
-                seeds: explode(',', env('REDIS_SERVER_CLUSTER_SEEDS', '')),
-                password: env('REDIS_SERVER_CLUSTER_PASSWORD'),
-                database: 0,
-                prefix: '',
-                timeout: 1,
-                readTimeout: 1,
-                serialize: false,
-                options: [],
-                tls: null,
-            ),
-            default => throw new \RuntimeException("Unsupported redis connection: {$name}"),
-        };
+            case 'phpredis_base':
+                assert_env_redis_is_ready();
+                $config = new RedisDriverConfig(
+                    client: 'phpredis',
+                    mode: RedisMode::Standalone,
+                    scheme: null,
+                    host: env('REDIS_SERVER_HOST', '127.0.0.1'),
+                    port: env('REDIS_SERVER_PORT', 6379),
+                    seeds: null,
+                    password: env('REDIS_SERVER_PASSWORD'),
+                    database: 0,
+                    prefix: '',
+                    timeout: 1,
+                    readTimeout: 1,
+                    serialize: false,
+                    options: [],
+                    tls: null,
+                );
+                break;
+            case 'phpredis_cluster':
+                assert_env_redis_cluster_is_ready();
+                $config = new RedisDriverConfig(
+                    client: 'phpredis',
+                    mode: RedisMode::Cluster,
+                    scheme: null,
+                    host: '127.0.0.1',
+                    port: 0,
+                    seeds: explode(',', env('REDIS_SERVER_CLUSTER_SEEDS', '')),
+                    password: env('REDIS_SERVER_CLUSTER_PASSWORD'),
+                    database: 0,
+                    prefix: '',
+                    timeout: 1,
+                    readTimeout: 1,
+                    serialize: false,
+                    options: [],
+                    tls: null,
+                );
+                break;
+            case 'predis_base':
+                assert_env_redis_is_ready();
+                $config = new RedisDriverConfig(
+                    client: 'predis',
+                    mode: RedisMode::Standalone,
+                    scheme: null,
+                    host: env('REDIS_SERVER_HOST', '127.0.0.1'),
+                    port: env('REDIS_SERVER_PORT', 6379),
+                    seeds: null,
+                    password: env('REDIS_SERVER_PASSWORD'),
+                    database: 0,
+                    prefix: '',
+                    timeout: 1,
+                    readTimeout: 1,
+                    serialize: false,
+                    options: [],
+                    tls: null,
+                );
+                break;
+            case 'predis_cluster':
+                assert_env_redis_cluster_is_ready();
+                $config = new RedisDriverConfig(
+                    client: 'predis',
+                    mode: RedisMode::Cluster,
+                    scheme: null,
+                    host: '127.0.0.1',
+                    port: 0,
+                    seeds: explode(',', env('REDIS_SERVER_CLUSTER_SEEDS', '')),
+                    password: env('REDIS_SERVER_CLUSTER_PASSWORD'),
+                    database: 0,
+                    prefix: '',
+                    timeout: 1,
+                    readTimeout: 1,
+                    serialize: false,
+                    options: [],
+                    tls: null,
+                );
+                break;
+            default:
+                throw new \RuntimeException("Unsupported redis connection: {$name}");
+        }
 
         /** @var IRedisConnector $connector */
         $connector = match ($config->client)

@@ -36,7 +36,7 @@ jobs:
         with:
           ref: "3.0"
       - name: Cache dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: /tmp/base_cache/composer
           key: ${{ runner.os }}-daily-test-3.0-composer-${{ matrix.php }}-${{ hashFiles('*/composer.json', 'src/Components/*/composer.json') }}
@@ -133,7 +133,7 @@ jobs:
         with:
           ref: "2.1"
       - name: Cache dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: /tmp/base_cache/composer
           key: ${{ runner.os }}-daily-test-2.1-composer-${{ matrix.php }}-${{ hashFiles('*/composer.json', 'src/Components/*/composer.json') }}

@@ -25,6 +25,7 @@ jobs:
     strategy:
       matrix:
         image:
+          - {tag: php8.3-swoole-5.1, version: 5.1-php8.3}
           - {tag: php8.2-swoole-5.1, version: 5.1-php8.2}
           - {tag: php8.1-swoole-5.1, version: 5.1-php8.1}
           - {tag: php8.2-swoole-5.0, version: 5.0-php8.2}

@@ -45,7 +45,7 @@ jobs:
           echo "REPOSITORY_OWNER=${REPOSITORY_OWNER,,}" >>${GITHUB_ENV}
           mkdir -p /tmp/base_cache/composer
       - name: Cache dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: /tmp/base_cache/composer
           key: ${{ runner.os }}-composer-${{ env.IMAGE_VERSION }}-${{ hashFiles('*/composer.json', 'src/Components/*/composer.json') }}
@@ -59,6 +59,12 @@ jobs:
       - name: Test
         if: ${{ env.test_prepared && always() }}
         run: docker exec ${ENV_SERVICE} composer test
+      - name: Test connection-center
+        if: ${{ env.test_prepared && always() }}
+        run: docker exec ${ENV_SERVICE} composer test-connection-center
+      - name: Test database
+        if: ${{ env.test_prepared && always() }}
+        run: docker exec ${ENV_SERVICE} composer test-database
       - name: Test swoole
         if: ${{ env.test_prepared && always() }}
         run: docker exec ${ENV_SERVICE} composer test-swoole
@@ -104,12 +110,6 @@ jobs:
       - name: Test phar
         if: ${{ env.test_prepared && always() }}
         run: docker exec ${ENV_SERVICE} composer test-phar
-      - name: Test connection-center
-        if: ${{ env.test_prepared && always() }}
-        run: docker exec ${ENV_SERVICE} composer test-connection-center
-      - name: Test database
-        if: ${{ env.test_prepared && always() }}
-        run: docker exec ${ENV_SERVICE} composer test-database
       - name: Test model
         if: ${{ env.test_prepared && always() }}
         run: docker exec ${ENV_SERVICE} composer test-model
@@ -142,7 +142,7 @@ jobs:
           echo "REPOSITORY_OWNER=${REPOSITORY_OWNER,,}" >>${GITHUB_ENV}
           mkdir -p /tmp/base_cache/composer
       - name: Cache dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: /tmp/base_cache/composer
           key: ${{ runner.os }}-composer-${{ env.IMAGE_VERSION }}-${{ hashFiles('*/composer.json', 'src/Components/*/composer.json') }}
@@ -156,6 +156,12 @@ jobs:
       - name: Test
         if: ${{ env.test_prepared && always() }}
         run: docker exec ${ENV_SERVICE} composer test
+      - name: Test connection-center
+        if: ${{ env.test_prepared && always() }}
+        run: docker exec ${ENV_SERVICE} composer test-connection-center
+      - name: Test database
+        if: ${{ env.test_prepared && always() }}
+        run: docker exec ${ENV_SERVICE} composer test-database
       - name: Test swoole
         if: ${{ env.test_prepared && always() }}
         run: docker exec ${ENV_SERVICE} composer test-swoole
@@ -198,12 +204,6 @@ jobs:
       - name: Test pgsql
         if: ${{ env.test_prepared && always() }}
         run: docker exec ${ENV_SERVICE} composer test-pgsql
-      - name: Test connection-center
-        if: ${{ env.test_prepared && always() }}
-        run: docker exec ${ENV_SERVICE} composer test-connection-center
-      - name: Test database
-        if: ${{ env.test_prepared && always() }}
-        run: docker exec ${ENV_SERVICE} composer test-database
       - name: Test model
         if: ${{ env.test_prepared && always() }}
         run: docker exec ${ENV_SERVICE} composer test-model
@@ -228,7 +228,7 @@ jobs:
         shell: bash
         run: |
           sudo apt update && sudo apt install -y rsync
-          docker-compose -f ./.github/docker-compose.yml up -d mysql postgres redis rabbitmq kafka1
+          docker compose -f ./.github/docker-compose.yml up -d mysql postgres redis rabbitmq kafka1
           echo "127.0.0.1 kafka1" | sudo tee -a /etc/hosts
       - name: Setup swoole-cli
         run: .github/script/install-swoole-cli.sh ${{ matrix.swoole-cli }}
@@ -243,7 +243,7 @@ jobs:
         id: composer-cache
         run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
       - name: Cache dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
           key: ${{ runner.os }}-composer-swoole-cli-${{ matrix.swoole-cli }}-${{ hashFiles('*/composer.json', 'src/Components/*/composer.json') }}
@@ -270,6 +270,12 @@ jobs:
       - name: Test
         if: ${{ env.test_prepared && always() }}
         run: composer test
+      - name: Test connection-center
+        if: ${{ env.test_prepared && always() }}
+        run: composer test-connection-center
+      - name: Test database
+        if: ${{ env.test_prepared && always() }}
+        run: composer test-database
       - name: Test swoole
         if: ${{ env.test_prepared && always() }}
         run: composer test-swoole
@@ -309,12 +315,6 @@ jobs:
       - name: Test phar
         if: ${{ env.test_prepared && always() }}
         run: composer test-phar
-      - name: Test connection-center
-        if: ${{ env.test_prepared && always() }}
-        run: composer test-connection-center
-      - name: Test database
-        if: ${{ env.test_prepared && always() }}
-        run: composer test-database
       - name: Test model
         if: ${{ env.test_prepared && always() }}
         run: composer test-model
@@ -381,7 +381,7 @@ jobs:
         id: composer-cache
         run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
       - name: Cache dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
           key: ${{ runner.os }}-composer-${{ env.php-versions }}-${{ hashFiles('*/composer.json', 'src/Components/*/composer.json') }}
@@ -412,6 +412,12 @@ jobs:
       - name: Test
         if: ${{ env.test_prepared && always() }}
         run: composer test
+      - name: Test connection-center
+        if: ${{ env.test_prepared && always() }}
+        run: composer test-connection-center
+      - name: Test database
+        if: ${{ env.test_prepared && always() }}
+        run: composer test-database
       - name: Test swoole
         if: ${{ env.test_prepared && always() }}
         run: composer test-swoole
@@ -448,12 +454,6 @@ jobs:
       - name: Test phar
         if: ${{ env.test_prepared && always() }}
         run: composer test-phar
-      - name: Test connection-center
-        if: ${{ env.test_prepared && always() }}
-        run: composer test-connection-center
-      - name: Test database
-        if: ${{ env.test_prepared && always() }}
-        run: composer test-database
       - name: Test model
         if: ${{ env.test_prepared && always() }}
         run: composer test-model
@@ -512,7 +512,7 @@ jobs:
           "dir=$CacheDir" >> $env:GITHUB_OUTPUT
 
       - name: Cache dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
           key: ${{ runner.os }}-composer-${{ matrix.php }}-${{ hashFiles('*/composer.json', 'src/Components/*/composer.json') }}
@@ -544,6 +544,12 @@ jobs:
       - name: Test
         if: ${{ env.test_prepared && always() }}
         run: composer test
+      - name: Test connection-center
+        if: ${{ env.test_prepared && always() }}
+        run: composer test-connection-center-common
+      - name: Test database
+        if: ${{ env.test_prepared && always() }}
+        run: composer test-database
       - name: Test fpm
         if: ${{ env.test_prepared && always() }}
         run: composer test-fpm
@@ -562,12 +568,6 @@ jobs:
       - name: Test snowflake
         if: ${{ env.test_prepared && always() }}
         run: composer test-snowflake
-      - name: Test connection-center
-        if: ${{ env.test_prepared && always() }}
-        run: composer test-connection-center-common
-      - name: Test database
-        if: ${{ env.test_prepared && always() }}
-        run: composer test-database
       - name: Test model
         if: ${{ env.test_prepared && always() }}
         run: composer test-model

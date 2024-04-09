@@ -33,7 +33,7 @@ jobs:
           mkdir -p /tmp/base_cache/phpcsfixer
 
       - name: Cache dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: /tmp/base_cache/composer
           key: ${{ runner.os }}-composer-${{ env.IMAGE_VERSION }}-${{ hashFiles('*/composer.json', 'src/Components/*/composer.json') }}
@@ -42,7 +42,7 @@ jobs:
             ${{ runner.os }}-composer-
 
       - name: Cache phpcsfixer
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: /tmp/base_cache/phpcsfixer
           key: ${{ runner.os }}-phpcsfixer-${{ env.IMAGE_VERSION }}-${{ hashFiles('*/.php-cs-fixer.php') }}
@@ -53,7 +53,7 @@ jobs:
       - name: Prepare2
         run: |
           echo "::group::Env prepare"
-          docker-compose -f ./.github/docker-compose.yml up -d ${ENV_SERVICE}
+          docker compose -f ./.github/docker-compose.yml up -d ${ENV_SERVICE}
           echo "::endgroup::"
           echo "::group::Env info"
           docker exec ${ENV_SERVICE} php -v

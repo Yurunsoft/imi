@@ -77,11 +77,14 @@ class Redis extends Base
      */
     public function getMultiple(iterable $keys, mixed $default = null): iterable
     {
-        foreach ($keys as &$key)
+        $newKeys = [];
+        $parsedKeys = [];
+        foreach ($keys as $key)
         {
-            $key = $this->parseKey($key);
+            $parsedKeys[] = $this->parseKey($key);
+            $newKeys[] = $key;
         }
-        $mgetResult = ImiRedis::use(static fn (\Imi\Redis\RedisHandler $redis) => $redis->mget($keys), $this->poolName, true);
+        $mgetResult = ImiRedis::use(static fn (\Imi\Redis\RedisHandler $redis) => $redis->mget($parsedKeys), $this->poolName, true);
         $result = [];
         if ($mgetResult)
         {
@@ -89,11 +92,11 @@ class Redis extends Base
             {
                 if (false === $v)
                 {
-                    $result[$keys[$i]] = $default;
+                    $result[$newKeys[$i]] = $default;
                 }
                 else
                 {
-                    $result[$keys[$i]] = $this->decode($v);
+                    $result[$newKeys[$i]] = $this->decode($v);
                 }
             }
         }
@@ -114,21 +117,22 @@ class Redis extends Base
         {
             $setValues = $values;
         }
+        $values = [];
         foreach ($setValues as $k => $v)
         {
-            $setValues[$this->parseKey((string) $k)] = $this->encode($v);
+            $values[$this->parseKey((string) $k)] = $this->encode($v);
         }
         // ttl 支持 \DateInterval 格式
         if ($ttl instanceof \DateInterval)
         {
             $ttl = DateTime::getSecondsByInterval($ttl);
         }
-        $result = ImiRedis::use(static function (\Imi\Redis\RedisHandler $redis) use ($setValues, $ttl) {
+        $result = ImiRedis::use(static function (\Imi\Redis\RedisHandler $redis) use ($values, $ttl) {
             $redis->multi();
-            $redis->mset($setValues);
+            $redis->mset($values);
             if (null !== $ttl)
             {
-                foreach ($setValues as $k => $v)
+                foreach ($values as $k => $v)
                 {
                     $redis->expire((string) $k, $ttl);
                 }

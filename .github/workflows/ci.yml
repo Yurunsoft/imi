@@ -44,7 +44,7 @@ jobs:
           echo "REPOSITORY_OWNER=${REPOSITORY_OWNER,,}" >>${GITHUB_ENV}
           mkdir -p /tmp/base_cache/composer
       - name: Cache dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: /tmp/base_cache/composer
           key: ${{ runner.os }}-composer-${{ env.IMAGE_VERSION }}-${{ hashFiles('*/composer.json', 'src/Components/*/composer.json') }}
@@ -170,7 +170,7 @@ jobs:
         id: composer-cache
         run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
       - name: Cache dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
           key: ${{ runner.os }}-composer-swoole-cli-${{ matrix.swoole-cli }}-${{ hashFiles('*/composer.json', 'src/Components/*/composer.json') }}
@@ -338,7 +338,7 @@ jobs:
         id: composer-cache
         run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
       - name: Cache dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
           key: ${{ runner.os }}-composer-${{ env.php-versions }}-${{ hashFiles('*/composer.json', 'src/Components/*/composer.json') }}
@@ -479,7 +479,7 @@ jobs:
           "dir=$CacheDir" >> $env:GITHUB_OUTPUT
 
       - name: Cache dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
           key: ${{ runner.os }}-composer-${{ matrix.php }}-${{ hashFiles('*/composer.json', 'src/Components/*/composer.json') }}

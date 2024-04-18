@@ -19,7 +19,8 @@ class DocBlock
     {
         if (null === self::$factory)
         {
-            self::$factory = DocBlockFactory::createInstance();
+            // @phpstan-ignore-next-line
+            return self::$factory = DocBlockFactory::createInstance();
         }
 
         return self::$factory;

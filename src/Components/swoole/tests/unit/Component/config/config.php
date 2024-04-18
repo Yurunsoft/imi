@@ -16,8 +16,9 @@ return [
         'Imi\Swoole\Test\Component\Async',
         'Imi\Swoole\Test\Component\Pool',
     ],
-    // 'ignoreNamespace'   => [
-    // ],
+    'ignorePaths' => [
+        \dirname(__DIR__) . \DIRECTORY_SEPARATOR . 'test.php',
+    ],
 
     // 组件命名空间
     'components'    => [

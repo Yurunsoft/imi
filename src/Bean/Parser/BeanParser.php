@@ -69,7 +69,7 @@ class BeanParser extends BaseParser
                             $tag = $docblock->getTagsByName('var')[0] ?? null;
                             if ($tag)
                             {
-                                $annotation->name = $tag[0]->getType()->__toString();
+                                $annotation->name = $tag->getType()->__toString();
                             }
                         }
                     }

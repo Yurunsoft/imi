@@ -10,6 +10,7 @@ use Imi\Bean\ReflectionContainer;
 use Imi\Bean\ReflectionUtil;
 use Imi\Server\Http\Route\Annotation\Controller;
 use Imi\Util\DocBlock;
+use phpDocumentor\Reflection\Types\Context;
 
 /**
  * @Bean(name="GrpcInterfaceManager", recursion=false)
@@ -93,7 +94,7 @@ class GrpcInterfaceManager
             }
             else
             {
-                $docblock = DocBlock::getDocBlock($docComment);
+                $docblock = DocBlock::getDocBlock($docComment, new Context($interface->getNamespaceName()));
                 // @phpstan-ignore-next-line
                 $responseClass = (string) $docblock->getTagsByName('return')[0]->getType();
             }

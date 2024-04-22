@@ -12,8 +12,7 @@ use Imi\Bean\BeanManager;
 use Imi\Bean\ReflectionContainer;
 use Imi\Server\Annotation\ServerInject;
 use Imi\Util\DocBlock;
-use Imi\Util\Imi;
-use Yurun\Doctrine\Common\Annotations\PhpParser;
+use phpDocumentor\Reflection\Types\Context;
 
 class BeanParser extends BaseParser
 {
@@ -62,39 +61,16 @@ class BeanParser extends BaseParser
                         $comment = $propRef->getDocComment();
                         if (false === $comment)
                         {
-                            $tag = null;
-                        }
-                        else
-                        {
-                            $docblock = DocBlock::getDocBlock($comment);
-                            $tag = $docblock->getTagsByName('var')[0] ?? null;
-                        }
-                        if ($tag)
-                        {
-                            $name = trim($tag->__toString(), '\\ \t\n\r\0\x0B');
-                            $phpParser = new PhpParser();
-                            $uses = $phpParser->parseClass(ReflectionContainer::getClassReflection($className));
-                            $lowerName = strtolower($name);
-                            if (isset($uses[$lowerName]))
-                            {
-                                $annotation->name = $uses[$lowerName];
-                            }
-                            else
-                            {
-                                $tmpClassName = Imi::getClassNamespace($className) . '\\' . $name;
-                                if (class_exists($tmpClassName))
-                                {
-                                    $annotation->name = $tmpClassName;
-                                }
-                                else
-                                {
-                                    $annotation->name = $name;
-                                }
-                            }
-                        }
-                        else
-                        {
                             throw new \RuntimeException(sprintf('@%s in %s::$%s must set name', $annotationClass, $className, $target));
+                        }
+                        else
+                        {
+                            $docblock = DocBlock::getDocBlock($comment, new Context($propRef->getDeclaringClass()->getNamespaceName()));
+                            $tag = $docblock->getTagsByName('var')[0] ?? null;
+                            if ($tag)
+                            {
+                                $annotation->name = $tag[0]->getType()->__toString();
+                            }
                         }
                     }
                     break;

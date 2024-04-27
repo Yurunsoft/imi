@@ -8,7 +8,7 @@ use Imi\Bean\Annotation\AnnotationManager;
 use Imi\Bean\BeanFactory;
 use Imi\Db\Query\Interfaces\IQuery;
 use Imi\Db\Query\Interfaces\IResult;
-use Imi\Db\Query\Where\Where;
+use Imi\Db\Query\Interfaces\IWhereCollector;
 use Imi\Event\Event;
 use Imi\Model\Contract\IModelQuery;
 use Imi\Model\Event\ModelEvents;
@@ -63,9 +63,10 @@ trait TSoftDelete
     {
         /** @var IModelQuery $query */
         $query = parent::query($poolName, $queryType, $queryClass, $alias);
+        $softDeleteAnnotation = self::__getSoftDeleteAnnotation();
+        $whereMethod = $softDeleteAnnotation->postWhere ? 'postWhere' : 'whereBrackets';
 
-        return $query->whereBrackets(static function (IQuery $query) {
-            $softDeleteAnnotation = self::__getSoftDeleteAnnotation();
+        return $query->{$whereMethod}(static function (IQuery $query, IWhereCollector $whereCollector) use ($softDeleteAnnotation) {
             $table = $query->getOption()->table;
             if (null === ($alias = $table->getAlias()))
             {
@@ -87,12 +88,7 @@ trait TSoftDelete
             {
                 $fieldTableName = $alias;
             }
-            if (null === $softDeleteAnnotation->default)
-            {
-                return new Where($fieldTableName . '.' . $softDeleteAnnotation->field, 'is', null);
-            }
-
-            return new Where($fieldTableName . '.' . $softDeleteAnnotation->field, '=', $softDeleteAnnotation->default);
+            $whereCollector->where($fieldTableName . '.' . $softDeleteAnnotation->field, null === $softDeleteAnnotation->default ? 'is' : '=', $softDeleteAnnotation->default);
         });
     }
 
@@ -215,7 +211,14 @@ trait TSoftDelete
                     $query->where($name, '=', $ids[$i]);
                 }
             }
-            $query->where($softDeleteAnnotation->field, '!=', $softDeleteAnnotation->default);
+            if ($softDeleteAnnotation->postWhere)
+            {
+                $query->postWhere(static fn (IQuery $query, IWhereCollector $whereCollector) => $whereCollector->where($softDeleteAnnotation->field, '!=', $softDeleteAnnotation->default));
+            }
+            else
+            {
+                $query->where($softDeleteAnnotation->field, '!=', $softDeleteAnnotation->default);
+            }
         }
 
         // 查找前

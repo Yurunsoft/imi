@@ -496,6 +496,20 @@ Db::query()->whereStruct(new \Imi\Db\Query\Where\Where('age', '<', 14), 'or');
 Db::query()->orWhereStruct(new \Imi\Db\Query\Where\Where('age', '<', 14));
 ```
 
+#### postWhere
+
+用法类似 `whereBrackets`，后置 Where 条件
+
+```php
+// where `a` = 1 and (`b` = 2 or `c` = 3) and (`d` != 4)
+Db::query()->postWhere(static function (\Imi\Db\Query\Interfaces\IQuery $query, \Imi\Db\Query\Interfaces\IWhereCollector $where) {
+                $whereCollector->where('b', '=', 2)
+                                ->orWhere('c', '=', 3);
+            })
+            ->postWhere(static fn () => new Where('d', '!=', 4, 'or'))
+            ->where('a', '=', 1);
+```
+
 #### 全文搜索（fullText）
 
 imi 查询构建器提供的全文搜索功能，不仅支持全文搜索匹配，还支持返回匹配分数和排序等功能。

@@ -21,6 +21,11 @@ class WhereCollector implements IWhereCollector
      */
     protected array $where = [];
 
+    /**
+     * @var IBaseWhere[]
+     */
+    protected array $postWhere = [];
+
     protected IQuery $query;
 
     public function __construct(IQuery $query)
@@ -34,6 +39,14 @@ class WhereCollector implements IWhereCollector
     public function getWhere(): array
     {
         return $this->where;
+    }
+
+    /**
+     * @return IBaseWhere[]
+     */
+    public function getPostWhere(): array
+    {
+        return $this->postWhere;
     }
 
     /**
@@ -94,5 +107,15 @@ class WhereCollector implements IWhereCollector
     public function whereIsNotNull(string $fieldName, string $logicalOperator = LogicalOperator::AND): self
     {
         return $this->whereRaw($this->query->fieldQuote($fieldName) . ' is not null', $logicalOperator);
+    }
+
+    /**
+     * @return static
+     */
+    public function postWhere(callable $callback, string $logicalOperator = 'and'): self
+    {
+        $this->postWhere[] = new WhereBrackets($callback, $logicalOperator);
+
+        return $this;
     }
 }

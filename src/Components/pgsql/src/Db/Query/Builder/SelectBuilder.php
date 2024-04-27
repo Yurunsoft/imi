@@ -19,7 +19,7 @@ class SelectBuilder extends BaseBuilder
                 . ' from '
                 . $option->table->toString($query)
                 . $this->parseJoin($option->join)
-                . $this->parseWhere($option->where)
+                . $this->parseWhere($option->where, $option->postWhere)
                 . $this->parseGroup($option->group)
                 . $this->parseHaving($option->having)
                 . $this->parseOrder($option->order)

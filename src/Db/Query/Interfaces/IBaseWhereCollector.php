@@ -187,4 +187,18 @@ interface IBaseWhereCollector
      * @return static
      */
     public function orWhereIsNotNull(string $fieldName): self;
+
+    /**
+     * 后置 Where，and 条件.
+     *
+     * @return static
+     */
+    public function postWhere(callable $callback, string $logicalOperator = 'and'): self;
+
+    /**
+     * 后置 Where，or 条件.
+     *
+     * @return static
+     */
+    public function orPostWhere(callable $callback): self;
 }

@@ -100,17 +100,23 @@ class WhereBrackets extends BaseWhere implements IWhereBrackets
         elseif (null === $callResult)
         {
             $result = '(';
-            foreach ($whereCollector->getWhere() as $i => $where)
+            foreach ([
+                $whereCollector->getWhere(),
+                $whereCollector->getPostWhere(),
+            ] as $wheres)
             {
-                if (0 === $i)
+                foreach ($wheres as $i => $where)
                 {
-                    $result .= $where->toStringWithoutLogic($query);
+                    if (0 === $i)
+                    {
+                        $result .= $where->toStringWithoutLogic($query);
+                    }
+                    else
+                    {
+                        $result .= ' ' . $where->getLogicalOperator() . ' ' . $where->toStringWithoutLogic($query);
+                    }
+                    $binds = array_merge($binds, $where->getBinds());
                 }
-                else
-                {
-                    $result .= ' ' . $where->getLogicalOperator() . ' ' . $where->toStringWithoutLogic($query);
-                }
-                $binds = array_merge($binds, $where->getBinds());
             }
 
             return $result . ')';

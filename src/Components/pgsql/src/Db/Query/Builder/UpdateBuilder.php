@@ -96,7 +96,7 @@ class UpdateBuilder extends BaseBuilder
         }
         $sql = 'update ' . $option->table->toString($query) . ' set ' . implode(',', $setStrs)
             . $jsonSets
-            . $this->parseWhere($option->where)
+            . $this->parseWhere($option->where, $option->postWhere)
             . $this->parseOrder($option->order);
 
         $query->bindValues($params);

@@ -94,29 +94,33 @@ abstract class BaseBuilder implements IBuilder
      * where.
      *
      * @param \Imi\Db\Query\Interfaces\IBaseWhere[] $where
+     * @param \Imi\Db\Query\Interfaces\IBaseWhere[] $postWhere
      */
-    protected function parseWhere(array $where): string
+    protected function parseWhere(array $where, array $postWhere): string
     {
-        if (!$where)
+        if (!$where && !$postWhere)
         {
             return '';
         }
         $result = [];
         $params = &$this->params;
         $query = $this->query;
-        foreach ($where as $item)
+        foreach ([$where, $postWhere] as $whereList)
         {
-            $sql = $item->toStringWithoutLogic($query);
-            if ('' === $sql)
+            foreach ($whereList as $item)
             {
-                continue;
-            }
-            $result[] = $item->getLogicalOperator();
-            $result[] = $sql;
-            $binds = $item->getBinds();
-            if ($binds)
-            {
-                $params = array_merge($params, $binds);
+                $sql = $item->toStringWithoutLogic($query);
+                if ('' === $sql)
+                {
+                    continue;
+                }
+                $result[] = $item->getLogicalOperator();
+                $result[] = $sql;
+                $binds = $item->getBinds();
+                if ($binds)
+                {
+                    $params = array_merge($params, $binds);
+                }
             }
         }
         unset($result[0]);

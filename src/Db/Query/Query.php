@@ -391,6 +391,16 @@ abstract class Query implements IQuery
     /**
      * {@inheritDoc}
      */
+    public function postWhere(callable $callback, string $logicalOperator = LogicalOperator::AND): self
+    {
+        $this->option->postWhere[] = new WhereBrackets($callback, $logicalOperator);
+
+        return $this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public function join(string $table, string $left, string $operation, string $right, ?string $tableAlias = null, IBaseWhere $where = null, string $type = 'inner'): self
     {
         $this->option->join[] = new Join($this, $table, $left, $operation, $right, $tableAlias, $where, $type);

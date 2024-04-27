@@ -32,6 +32,13 @@ class QueryOption
     public array $where = [];
 
     /**
+     * 后置 where 条件.
+     *
+     * @var \Imi\Db\Query\Interfaces\IBaseWhere[]
+     */
+    public array $postWhere = [];
+
+    /**
      * join.
      *
      * @var \Imi\Db\Query\Interfaces\IJoin[]

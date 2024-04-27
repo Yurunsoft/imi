@@ -16,7 +16,7 @@ class DeleteBuilder extends BaseBuilder
         $option = $query->getOption();
 
         $sql = 'delete from ' . $option->table->toString($query)
-                . $this->parseWhere($option->where)
+                . $this->parseWhere($option->where, $option->postWhere)
                 . $this->parseOrder($option->order)
         ;
         $query->bindValues($this->params);

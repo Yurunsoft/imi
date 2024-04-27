@@ -95,7 +95,7 @@ class UpdateBuilder extends BaseBuilder
             . (($option->partition && '' !== ($partition = $option->partition->toString($query))) ? (' PARTITION(' . $partition . ')') : '')
             . ' set ' . implode(',', $setStrs)
             . $jsonSets
-            . $this->parseWhere($option->where)
+            . $this->parseWhere($option->where, $option->postWhere)
             . $this->parseOrder($option->order)
             . $this->parseLimit($option->offset, $option->limit);
 

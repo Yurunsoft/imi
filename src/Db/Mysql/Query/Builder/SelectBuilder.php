@@ -24,7 +24,7 @@ class SelectBuilder extends BaseBuilder
                 . $option->table->toString($query)
                 . (($option->partition && '' !== ($partition = $option->partition->toString($query))) ? (' PARTITION(' . $partition . ')') : '')
                 . $this->parseJoin($option->join)
-                . $this->parseWhere($option->where)
+                . $this->parseWhere($option->where, $option->postWhere)
                 . $this->parseGroup($option->group)
                 . $this->parseHaving($option->having)
                 . $this->parseOrder($option->order)

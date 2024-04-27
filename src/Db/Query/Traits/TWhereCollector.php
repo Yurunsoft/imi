@@ -204,4 +204,12 @@ trait TWhereCollector
 
         return $result;
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function orPostWhere(callable $callback): self
+    {
+        return $this->postWhere($callback, LogicalOperator::OR);
+    }
 }

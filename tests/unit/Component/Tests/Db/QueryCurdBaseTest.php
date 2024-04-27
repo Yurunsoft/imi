@@ -874,4 +874,22 @@ abstract class QueryCurdBaseTest extends BaseTest
         $this->assertEquals('select * from `test` where `a` is NULL', $query->buildSelectSql());
         $this->assertEquals([], $query->getBinds());
     }
+
+    public function testPostWhere(): void
+    {
+        $query = Db::query()->from('test')
+                            ->postWhere(static function (IQuery $query, IWhereCollector $whereCollector) {
+                                $whereCollector->where('b', '=', 2)
+                                               ->orWhere('c', '=', 3);
+                            })
+                            ->postWhere(static fn () => new Where('d', '!=', 4, 'or'))
+                            ->where('a', '=', 1);
+        $this->assertEquals('select * from `test` where `a` = :p1 and (`b` = :p2 or `c` = :p3) and (`d` != :p4)', $query->buildSelectSql());
+        $this->assertEquals([
+            ':p1' => 1,
+            ':p2' => 2,
+            ':p3' => 3,
+            ':p4' => 4,
+        ], $query->getBinds());
+    }
 }

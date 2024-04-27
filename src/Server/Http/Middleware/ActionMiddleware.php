@@ -204,6 +204,10 @@ class ActionMiddleware implements MiddlewareInterface
                 $headers[$name] = implode(', ', $values);
             }
         }
+        else
+        {
+            $extractData = [];
+        }
 
         /** @var ActionMethodItem[] $actionMethodCache */
         foreach ($actionMethodCache as $actionMethodCacheItem)

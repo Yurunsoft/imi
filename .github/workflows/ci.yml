@@ -352,6 +352,9 @@ jobs:
         uses: shogo82148/actions-setup-redis@v1
         with:
           redis-version: "6.x"
+      - name: Brew
+        run: |
+          brew install pcre
       - name: Get Openssl Dir
         id: opecssl-dir
         run: echo "path=$(brew --prefix openssl@1.1)" >> $GITHUB_OUTPUT

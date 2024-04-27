@@ -206,7 +206,7 @@ class ActionMiddleware implements MiddlewareInterface
         }
         else
         {
-            $extractData = [];
+            $allData = [];
         }
 
         /** @var ActionMethodItem[] $actionMethodCache */

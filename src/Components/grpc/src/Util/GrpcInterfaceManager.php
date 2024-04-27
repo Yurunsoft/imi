@@ -95,8 +95,7 @@ class GrpcInterfaceManager
             else
             {
                 $docblock = DocBlock::getDocBlock($docComment, new Context($interface->getNamespaceName()));
-                // @phpstan-ignore-next-line
-                $responseClass = (string) $docblock->getTagsByName('return')[0]->getType();
+                $responseClass = (string) $docblock->getTagsWithTypeByName('return')[0]->getType();
             }
 
             $methods[$method->getName()] = [

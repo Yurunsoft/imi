@@ -66,7 +66,7 @@ class BeanParser extends BaseParser
                         else
                         {
                             $docblock = DocBlock::getDocBlock($comment, new Context($propRef->getDeclaringClass()->getNamespaceName()));
-                            $tag = $docblock->getTagsByName('var')[0] ?? null;
+                            $tag = $docblock->getTagsWithTypeByName('var')[0] ?? null;
                             if ($tag)
                             {
                                 $annotation->name = $tag->getType()->__toString();

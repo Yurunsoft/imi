@@ -9,6 +9,8 @@ use Imi\Bean\Annotation\AnnotationManager;
 use Imi\Bean\BeanFactory;
 use Imi\Bean\ReflectionUtil;
 use Imi\Model\Annotation\Column;
+use Imi\Model\Annotation\JsonDecode;
+use Imi\Model\Annotation\JsonEncode;
 use Imi\Model\Annotation\RedisEntity;
 use Imi\Model\Enum\RedisStorageMode;
 use Imi\Model\Event\ModelEvents;
@@ -117,15 +119,16 @@ abstract class RedisModel extends BaseModel
                     switch ($fieldAnnotation->type ?? self::$fieldTypeCache[$class][$k] ?? null)
                     {
                         case 'json':
-                            $fieldsJsonDecode ??= $meta->getFieldsJsonDecode();
+                            $fieldsJsonDecode ??= $meta->getPropertyAnnotations()[JsonDecode::class] ?? [];
                             if (isset($fieldsJsonDecode[$k][0]))
                             {
                                 $realJsonDecode = $fieldsJsonDecode[$k][0];
                             }
                             else
                             {
-                                $realJsonDecode = ($jsonDecode ??= ($meta->getJsonDecode() ?? false));
+                                $realJsonDecode = ($jsonDecode ??= ($meta->getClassAnnotations()[JsonDecode::class][0] ?? false));
                             }
+                            /** @var JsonDecode|false $realJsonDecode */
                             if ($realJsonDecode)
                             {
                                 $value = json_decode($v, $realJsonDecode->associative, $realJsonDecode->depth, $realJsonDecode->flags);
@@ -792,15 +795,16 @@ abstract class RedisModel extends BaseModel
             switch ($columnAnnotation->type)
             {
                 case 'json':
-                    $fieldsJsonEncode ??= $meta->getFieldsJsonEncode();
+                    $fieldsJsonEncode ??= $meta->getPropertyAnnotations()[JsonEncode::class] ?? [];
                     if (isset($fieldsJsonEncode[$name][0]))
                     {
                         $realJsonEncode = $fieldsJsonEncode[$name][0];
                     }
                     else
                     {
-                        $realJsonEncode = ($jsonEncode ??= ($meta->getJsonEncode() ?? false));
+                        $realJsonEncode = ($jsonEncode ??= ($meta->getClassAnnotations()[JsonEncode::class][0] ?? false));
                     }
+                    /** @var JsonEncode|false $realJsonEncode */
                     if (null === $value && $columnAnnotation->nullable)
                     {
                         // 当字段允许`null`时，使用原生`null`存储

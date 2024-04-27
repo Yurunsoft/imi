@@ -5,17 +5,13 @@ declare(strict_types=1);
 namespace Imi\Model;
 
 use Imi\Bean\Annotation\AnnotationManager;
+use Imi\Bean\Annotation\Base;
 use Imi\Config;
 use Imi\Model\Annotation\Column;
 use Imi\Model\Annotation\Entity;
-use Imi\Model\Annotation\ExtractProperty;
 use Imi\Model\Annotation\Id;
-use Imi\Model\Annotation\JsonDecode;
-use Imi\Model\Annotation\JsonEncode;
-use Imi\Model\Annotation\JsonNotNull;
 use Imi\Model\Annotation\Serializable;
 use Imi\Model\Annotation\Serializables;
-use Imi\Model\Annotation\Sql;
 use Imi\Model\Annotation\Table;
 use Imi\Util\Text;
 
@@ -96,25 +92,6 @@ class Meta
     private bool $camel = true;
 
     /**
-     * 序列化注解.
-     */
-    private ?Serializables $serializables = null;
-
-    /**
-     * 序列化注解列表.
-     *
-     * @var \Imi\Model\Annotation\Serializable[][]
-     */
-    private array $serializableSets = [];
-
-    /**
-     * 提取属性注解.
-     *
-     * @var \Imi\Model\Annotation\ExtractProperty[][]
-     */
-    private array $extractPropertys = [];
-
-    /**
      * 是否有关联.
      */
     private bool $relation = false;
@@ -123,44 +100,6 @@ class Meta
      * 自增字段名.
      */
     private ?string $autoIncrementField = null;
-
-    /**
-     * JsonNotNull 注解集合.
-     *
-     * @var \Imi\Model\Annotation\JsonNotNull[][]
-     */
-    private array $propertyJsonNotNullMap = [];
-
-    /**
-     * JSON 序列化时的配置.
-     */
-    private ?JsonEncode $jsonEncode = null;
-
-    /**
-     * 针对字段设置的 JSON 序列化时的配置.
-     *
-     * @var JsonEncode[]
-     */
-    private array $fieldsJsonEncode = [];
-
-    /**
-     * JSON 反序列化时的配置.
-     */
-    private ?JsonDecode $jsonDecode = null;
-
-    /**
-     * 针对字段设置的 JSON 反序列化时的配置.
-     *
-     * @var JsonDecode[]
-     */
-    private array $fieldsJsonDecode = [];
-
-    /**
-     * 定义 SQL 语句的字段列表.
-     *
-     * @var \Imi\Model\Annotation\Sql[][]
-     */
-    private array $sqlColumns = [];
 
     /**
      * 真实的模型类名.
@@ -184,6 +123,20 @@ class Meta
      */
     private bool $incrUpdate = false;
 
+    /**
+     * 类注解集合.
+     *
+     * @var \Imi\Bean\Annotation\Base[][]
+     */
+    private array $classAnnotations = [];
+
+    /**
+     * 属性注解集合.
+     *
+     * @var \Imi\Bean\Annotation\Base[][][]
+     */
+    private array $propertyAnnotations = [];
+
     public function __construct(string $modelClass,
         /**
          * 是否为继承父类的模型.
@@ -201,33 +154,27 @@ class Meta
         $modelConfig = Config::get('@app.models.' . $realModelClass);
         $this->realModelClass = $realModelClass;
         $this->className = $modelClass;
-        $annotations = AnnotationManager::getClassAnnotations($realModelClass, [
-            Table::class,
-            Entity::class,
-            JsonEncode::class,
-            JsonDecode::class,
-            Serializables::class,
-        ], true, true);
-        $propertyAnnotations = AnnotationManager::getPropertiesAnnotations($realModelClass, [
-            Column::class,
-            Serializable::class,
-            ExtractProperty::class,
-            JsonNotNull::class,
-            Sql::class,
-            JsonEncode::class,
-            JsonDecode::class,
-            Id::class,
-        ]);
-        /** @var \Imi\Model\Annotation\Table|null $table */
-        $table = $annotations[Table::class];
-        /** @var \Imi\Model\Annotation\Entity|null $entity */
-        $entity = $annotations[Entity::class];
-        $this->jsonEncode = $annotations[JsonEncode::class];
-        $this->jsonDecode = $annotations[JsonDecode::class];
-        /** @var Serializables|null $serializables */
-        $serializables = $this->serializables = $annotations[Serializables::class];
-        if ($table)
+        // 类注解
+        $classAnnotations = [];
+        /** @var Base $annotation */
+        foreach (AnnotationManager::getClassAnnotations($realModelClass) as $annotation)
         {
+            $classAnnotations[$annotation::class][] = $annotation;
+        }
+        $this->classAnnotations = $classAnnotations;
+        // 属性注解
+        $propertyAnnotations = [];
+        foreach (AnnotationManager::getPropertiesAnnotations($realModelClass) as $propertyName => $annotations)
+        {
+            foreach ($annotations as $annotation)
+            {
+                $propertyAnnotations[$annotation::class][$propertyName][] = $annotation;
+            }
+        }
+        $this->propertyAnnotations = $propertyAnnotations;
+        if ($table = $classAnnotations[Table::class][0] ?? null)
+        {
+            /** @var \Imi\Model\Annotation\Table|null $table */
             $this->dbPoolName = $modelConfig['poolName'] ?? $table->dbPoolName;
             $this->id = $id = (array) $table->id;
             $this->setTableName($modelConfig['name'] ?? $table->name);
@@ -237,7 +184,7 @@ class Meta
         {
             $id = [];
         }
-        if ($ids = $propertyAnnotations[Id::class])
+        if ($ids = ($propertyAnnotations[Id::class] ?? null))
         {
             $setToId = !$id;
             /** @var Id[] $propertyIds */
@@ -266,7 +213,7 @@ class Meta
         $this->firstId = $id[0] ?? null;
         /** @var Column[] $fields */
         $fields = $dbFields = [];
-        foreach ($propertyAnnotations[Column::class] as $name => $columns)
+        foreach ($propertyAnnotations[Column::class] ?? [] as $name => $columns)
         {
             /** @var Column $column */
             $column = $columns[0];
@@ -283,13 +230,6 @@ class Meta
                 $this->autoIncrementField = $name;
             }
         }
-        /** @var Serializable[][] $serializableSets */
-        $serializableSets = $this->serializableSets = $propertyAnnotations[Serializable::class];
-        $this->extractPropertys = $propertyAnnotations[ExtractProperty::class];
-        $this->propertyJsonNotNullMap = $propertyAnnotations[JsonNotNull::class];
-        $this->sqlColumns = $propertyAnnotations[Sql::class];
-        $this->fieldsJsonEncode = $propertyAnnotations[JsonEncode::class];
-        $this->fieldsJsonDecode = $propertyAnnotations[JsonDecode::class];
         $this->relation = $relation = ModelRelationManager::hasRelation($realModelClass);
         if ($relation)
         {
@@ -303,10 +243,13 @@ class Meta
         }
         $this->dbFields = $dbFields;
         $this->fields = $fields;
+        /** @var \Imi\Model\Annotation\Entity|null $entity */
+        $entity = $classAnnotations[Entity::class][0] ?? null;
         $this->camel = $camel = $entity->camel ?? true;
         $this->bean = $entity->bean ?? true;
         $this->incrUpdate = $entity->incrUpdate ?? false;
         $serializableFieldNames = $parsedSerializableFieldNames = $fieldNames = [];
+        $serializableSets = $propertyAnnotations[Serializable::class] ?? [];
         foreach ($fields as $fieldName => $column)
         {
             $fieldNames[] = $fieldName;
@@ -332,8 +275,9 @@ class Meta
                     continue;
                 }
             }
-            elseif ($serializables)
+            elseif ($serializables = $classAnnotations[Serializables::class][0] ?? null)
             {
+                /** @var Serializables $serializables */
                 if (\in_array($name, $serializables->fields))
                 {
                     // 在黑名单中的字段剔除
@@ -460,24 +404,6 @@ class Meta
     }
 
     /**
-     * Get 序列化注解.
-     */
-    public function getSerializables(): ?Serializables
-    {
-        return $this->serializables;
-    }
-
-    /**
-     * Get 提取属性注解.
-     *
-     * @return \Imi\Model\Annotation\ExtractProperty[][]
-     */
-    public function getExtractPropertys(): array
-    {
-        return $this->extractPropertys;
-    }
-
-    /**
      * Get 类名.
      */
     public function getClassName(): string
@@ -486,49 +412,11 @@ class Meta
     }
 
     /**
-     * Get 序列化注解列表.
-     *
-     * @return \Imi\Model\Annotation\Serializable[][]
-     */
-    public function getSerializableSets(): array
-    {
-        return $this->serializableSets;
-    }
-
-    /**
      * Get 自增字段名.
      */
     public function getAutoIncrementField(): ?string
     {
         return $this->autoIncrementField;
-    }
-
-    /**
-     * Get jsonNotNull 注解集合.
-     *
-     * @return \Imi\Model\Annotation\JsonNotNull[][]
-     */
-    public function getPropertyJsonNotNullMap(): array
-    {
-        return $this->propertyJsonNotNullMap;
-    }
-
-    /**
-     * Get JSON 序列化时的配置.
-     */
-    public function getJsonEncode(): ?JsonEncode
-    {
-        return $this->jsonEncode;
-    }
-
-    /**
-     * Get 定义 SQL 语句的字段列表.
-     *
-     * @return \Imi\Model\Annotation\Sql[][]
-     */
-    public function getSqlColumns(): array
-    {
-        return $this->sqlColumns;
     }
 
     /**
@@ -611,34 +499,6 @@ class Meta
     }
 
     /**
-     * Get 针对字段设置的 JSON 序列化时的配置.
-     *
-     * @return JsonEncode[]
-     */
-    public function getFieldsJsonEncode(): array
-    {
-        return $this->fieldsJsonEncode;
-    }
-
-    /**
-     * Get jSON 反序列化时的配置.
-     */
-    public function getJsonDecode(): ?JsonDecode
-    {
-        return $this->jsonDecode;
-    }
-
-    /**
-     * Get 针对字段设置的 JSON 反序列化时的配置.
-     *
-     * @return JsonDecode[]
-     */
-    public function getFieldsJsonDecode(): array
-    {
-        return $this->fieldsJsonDecode;
-    }
-
-    /**
      * Get 处理后的序列化字段数组.
      */
     public function getParsedSerializableFieldNames(): array
@@ -660,5 +520,21 @@ class Meta
     public function isIncrUpdate(): bool
     {
         return $this->incrUpdate;
+    }
+
+    /**
+     * @return \Imi\Bean\Annotation\Base[][][]
+     */
+    public function getPropertyAnnotations(): array
+    {
+        return $this->propertyAnnotations;
+    }
+
+    /**
+     * @return \Imi\Bean\Annotation\Base[][]
+     */
+    public function getClassAnnotations(): array
+    {
+        return $this->classAnnotations;
     }
 }

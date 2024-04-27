@@ -17,7 +17,9 @@ class CreateTime extends CreateTimeBase
     /**
      * date.
      */
-    #[Column(name: 'date', type: 'date', length: 0, default: '', createTime: true)]
+    #[Column(name: 'date', type: 'date', length: 0, default: '')]
+    // 测试 CreateTime 注解
+    #[\Imi\Model\Annotation\CreateTime()]
     protected ?string $date = null;
 
     /**

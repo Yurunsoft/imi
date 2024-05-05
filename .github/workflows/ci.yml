@@ -309,6 +309,10 @@ jobs:
           redis-version: "7.2"
           redis-port: "6379"
           redis-tls-port: "6443"
+      # MacOS Arm64 下需要下面的修复，否则无法编译成功
+      - name: Fix include
+        run: |
+          sudo ln -s $(brew --prefix pcre2)/include/pcre2.h /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/
       - name: Get Openssl Dir
         id: opecssl-dir
         run: echo "path=$(brew --prefix openssl@1.1)" >> $GITHUB_OUTPUT

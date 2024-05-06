@@ -175,7 +175,7 @@ class ValidatorHelper
      */
     public static function mobile($str): bool
     {
-        return preg_match('/^(1(([35789][0-9])|(47)))\d{8}$/', (string) $str) > 0;
+        return preg_match('/^(\\+?0?86\\-?)?1[3456789]\\d{9}$/', (string) $str) > 0;
     }
 
     /**

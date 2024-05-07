@@ -74,11 +74,23 @@ class ConnectionCenter
         return $this->connectionManagers;
     }
 
+    /**
+     * 获取连接.
+     *
+     * 需要调用 getInstance() 获取实际的对象进行操作.
+     *
+     * 需要自行管理连接生命周期，连接对象释放即归还连接池.
+     */
     public function getConnection(string $name): IConnection
     {
         return $this->getConnectionManager($name)->getConnection();
     }
 
+    /**
+     * 获取连接.
+     *
+     * 自动管理生命周期，当前上下文结束时自动释放.
+     */
     public function getRequestContextConnection(string $name): IConnection
     {
         $requestContext = RequestContext::getContext();
@@ -118,5 +130,23 @@ class ConnectionCenter
         }
 
         return $connection;
+    }
+
+    /**
+     * 创建新的连接.
+     *
+     * 返回的连接是实际的对象，不受连接管理器管理生命周期.
+     */
+    public function createConnection(?string $name = null, bool $autoConnect = true): mixed
+    {
+        $driver = self::getConnectionManager($name)->getDriver();
+        $instance = $driver->createInstance();
+
+        if ($autoConnect)
+        {
+            return $driver->connect($instance);
+        }
+
+        return $instance;
     }
 }

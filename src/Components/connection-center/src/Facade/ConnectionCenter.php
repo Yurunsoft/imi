@@ -15,6 +15,7 @@ use Imi\Facade\BaseFacade;
  * @method static IConnectionManager[]                              getConnectionManagers()
  * @method static \Imi\ConnectionCenter\Contract\IConnection        getConnection(string $name)
  * @method static \Imi\ConnectionCenter\Contract\IConnection        getRequestContextConnection(string $name)
+ * @method static mixed                                             createConnection(?string $name = NULL, bool $autoConnect = true)
  */
 #[
     \Imi\Facade\Annotation\Facade(class: \Imi\ConnectionCenter\AppConnectionCenter::class)

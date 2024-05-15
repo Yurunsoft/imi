@@ -8,6 +8,7 @@ use Imi\Db\Mysql\Consts\LogicalOperator;
 use Imi\Db\Query\Interfaces\IBaseWhere;
 use Imi\Db\Query\Interfaces\IQuery;
 use Imi\Db\Query\Interfaces\IWhereBrackets;
+use Imi\Db\Query\Interfaces\IWhereCollector;
 use Imi\Db\Query\Traits\TRaw;
 use Imi\Db\Query\WhereCollector;
 
@@ -97,7 +98,7 @@ class WhereBrackets extends BaseWhere implements IWhereBrackets
 
             return '(' . $result . ')';
         }
-        elseif (null === $callResult)
+        elseif (null === $callResult || $callResult instanceof IWhereCollector)
         {
             $result = '(';
             foreach ([

@@ -14,6 +14,8 @@ use Imi\Db\Query\Raw;
 use Imi\Db\Query\Result;
 use Imi\Event\Event;
 use Imi\Model\Annotation\Column;
+use Imi\Model\Annotation\CreateTime;
+use Imi\Model\Annotation\UpdateTime;
 use Imi\Model\Contract\IModelQuery;
 use Imi\Model\Event\ModelEvents;
 use Imi\Model\Event\Param\AfterDeleteEventParam;
@@ -814,6 +816,7 @@ abstract class Model extends BaseModel
         }
         $incrUpdate = $meta->isIncrUpdate();
         $ids = $meta->getIds();
+        $propertyAnnotations = $meta->getPropertyAnnotations();
         foreach ($meta->getDbFields() as $dbFieldName => $item)
         {
             /** @var Column $column */
@@ -838,10 +841,11 @@ abstract class Model extends BaseModel
             }
             $columnType = $column->type;
             // 字段自动更新时间
-            if ($column->updateTime && !$isInsert && (empty($object[$dbFieldName]) || (($originData[$dbFieldName] ?? null) === $object[$dbFieldName])))
+            if ((($updateTimeAnnotation = $propertyAnnotations[UpdateTime::class][$name][0] ?? null) || $column->updateTime) && !$isInsert && (empty($object[$dbFieldName]) || (($originData[$dbFieldName] ?? null) === $object[$dbFieldName])))
             {
                 $microTime ??= microtime(true);
-                $value = static::parseDateTime($columnType, $column->updateTime, $microTime);
+                /** @var UpdateTime|null $updateTimeAnnotation */
+                $value = static::parseDateTime($columnType, $updateTimeAnnotation?->timeAccuracy ?? $column->updateTime, $microTime);
                 if (null === $value)
                 {
                     throw new \RuntimeException(sprintf('Column %s type is %s, can not updateTime', $dbFieldName, $columnType));
@@ -851,10 +855,11 @@ abstract class Model extends BaseModel
                     $object[$dbFieldName] = $value;
                 }
             }
-            elseif ($column->createTime && ($isInsert || $isSaveInsert) && empty($object[$dbFieldName]))
+            elseif ((($createTimeAnnotation = $propertyAnnotations[CreateTime::class][$name][0] ?? null) || $column->createTime) && ($isInsert || $isSaveInsert) && empty($object[$dbFieldName]))
             {
                 $microTime ??= microtime(true);
-                $value = static::parseDateTime($columnType, $column->createTime, $microTime);
+                /** @var CreateTime|null $createTimeAnnotation */
+                $value = static::parseDateTime($columnType, $createTimeAnnotation?->timeAccuracy ?? $column->createTime, $microTime);
                 if (null === $value)
                 {
                     throw new \RuntimeException(sprintf('Column %s type is %s, can not createTime', $dbFieldName, $columnType));

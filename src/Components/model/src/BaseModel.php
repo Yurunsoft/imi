@@ -11,6 +11,8 @@ use Imi\Bean\ReflectionContainer;
 use Imi\Event\IEvent;
 use Imi\Event\TEvent;
 use Imi\Model\Annotation\Column;
+use Imi\Model\Annotation\ExtractProperty;
+use Imi\Model\Annotation\JsonNotNull;
 use Imi\Model\Annotation\Relation\AutoSelect;
 use Imi\Model\Event\ModelEvents;
 use Imi\Model\Event\Param\InitEventParam;
@@ -302,7 +304,8 @@ abstract class BaseModel implements \Iterator, \ArrayAccess, IArrayable, \JsonSe
         if (\is_array($value) || \is_object($value))
         {
             // 提取字段中的属性到当前模型
-            $extractProperties = $meta->getExtractPropertys();
+            /** @var ExtractProperty[][] $extractProperties */
+            $extractProperties = $meta->getPropertyAnnotations()[ExtractProperty::class] ?? [];
             if (
                 (($name = $key) && isset($extractProperties[$name]))
                 || (($name = Text::toUnderScoreCase($key)) && isset($extractProperties[$name]))
@@ -387,7 +390,7 @@ abstract class BaseModel implements \Iterator, \ArrayAccess, IArrayable, \JsonSe
             if (null === $value)
             {
                 // JsonNotNull 注解支持
-                if (isset(($propertyJsonNotNullMap ??= ($meta ??= $this->__meta)->getPropertyJsonNotNullMap())[$name]))
+                if (isset(($meta ??= $this->__meta)->getPropertyAnnotations()[JsonNotNull::class][$name]))
                 {
                     continue;
                 }

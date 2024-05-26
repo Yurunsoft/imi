@@ -9,6 +9,7 @@ use Imi\Db\Query\Interfaces\IResult;
 use Imi\Db\Query\Result\ChunkByOffsetResult;
 use Imi\Db\Query\Result\ChunkResult;
 use Imi\Db\Query\Result\CursorResult;
+use Imi\Model\Annotation\Sql;
 use Imi\Model\Meta;
 use Imi\Model\Model;
 use Imi\Model\ModelQueryResult;
@@ -63,8 +64,9 @@ trait TModelQuery
     {
         /** @var \Imi\Model\Meta $meta */
         $meta = $this->modelClass::__getMeta();
-        if ($sqlColumns = $meta->getSqlColumns())
+        if ($sqlColumns = $meta->getPropertyAnnotations()[Sql::class] ?? [])
         {
+            /** @var Sql[][] $sqlColumns */
             $this->field($meta->getTableName() . '.*');
             $fields = $meta->getFields();
             foreach ($sqlColumns as $name => $sqlAnnotations)

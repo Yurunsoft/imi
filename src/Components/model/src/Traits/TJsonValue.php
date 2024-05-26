@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Imi\Model\Traits;
 
 use Imi\Model\Annotation\Column;
+use Imi\Model\Annotation\JsonDecode;
+use Imi\Model\Annotation\JsonEncode;
 use Imi\Model\Meta;
 use Imi\Util\LazyArrayObject;
 
@@ -12,8 +14,9 @@ trait TJsonValue
 {
     protected static function parseJsonInitValue(string $name, mixed $value, Column $fieldAnnotation, Meta $meta): mixed
     {
-        $fieldsJsonDecode = $meta->getFieldsJsonDecode();
-        $realJsonDecode = $fieldsJsonDecode[$name][0] ?? $meta->getJsonDecode();
+        $fieldsJsonDecode = $meta->getPropertyAnnotations()[JsonDecode::class] ?? [];
+        $realJsonDecode = $fieldsJsonDecode[$name][0] ?? $meta->getClassAnnotations()[JsonDecode::class][0] ?? false;
+        /** @var JsonDecode|false $realJsonDecode */
         if ($realJsonDecode)
         {
             $data = json_decode((string) $value, $realJsonDecode->associative, $realJsonDecode->depth, $realJsonDecode->flags);
@@ -78,15 +81,9 @@ trait TJsonValue
 
     protected static function parseJsonSaveValue(string $name, mixed $value, Column $fieldAnnotation, Meta $meta): mixed
     {
-        $fieldsJsonEncode = $meta->getFieldsJsonEncode();
-        if (isset($fieldsJsonEncode[$name][0]))
-        {
-            $realJsonEncode = $fieldsJsonEncode[$name][0];
-        }
-        else
-        {
-            $realJsonEncode = $meta->getJsonEncode();
-        }
+        $fieldsJsonEncode = $meta->getPropertyAnnotations()[JsonEncode::class] ?? [];
+        $realJsonEncode = $fieldsJsonEncode[$name][0] ?? $meta->getClassAnnotations()[JsonEncode::class][0] ?? false;
+        /** @var JsonEncode|false $realJsonEncode */
         if (null === $value && $fieldAnnotation->nullable)
         {
             // 当字段允许`null`时，使用原生`null`存储

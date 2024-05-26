@@ -17,7 +17,9 @@ class UpdateTime extends UpdateTimeBase
     /**
      * date.
      */
-    #[Column(name: 'date', type: 'date', length: 0, default: '', updateTime: true)]
+    #[Column(name: 'date', type: 'date', length: 0, default: '')]
+    // 测试 UpdateTime 注解
+    #[\Imi\Model\Annotation\UpdateTime()]
     protected ?string $date = null;
 
     /**

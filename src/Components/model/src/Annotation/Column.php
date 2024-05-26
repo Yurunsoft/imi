@@ -58,11 +58,15 @@ class Column extends Base
         /**
          * save/update 模型时是否将当前时间写入该字段；支持 date/time/datetime/timestamp/year/int/bigint；当字段为 int 类型，写入秒级时间戳；当字段为 bigint 类型，写入毫秒级时间戳.
          *
+         * @deprecated 3.1
+         *
          * @var bool|int
          */
         public $updateTime = false,
         /**
          * 列表分割字符串；如果字段类型为list，并且此字段不为null，读取时会处理为数组，写入时会处理为字符串.
+         *
+         * @deprecated 3.1
          */
         public ?string $listSeparator = null,
         /**
@@ -79,6 +83,8 @@ class Column extends Base
         public bool $unsigned = false,
         /**
          * save/create 模型时是否将当前时间写入该字段，save时表有自增ID主键才支持；支持 date/time/datetime/timestamp/year/int/bigint；当字段为 int 类型，写入秒级时间戳；当字段为 bigint 类型，写入毫秒级时间戳.
+         *
+         * @deprecated 3.1
          *
          * @var bool|int
          */

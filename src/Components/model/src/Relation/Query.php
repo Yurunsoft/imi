@@ -9,6 +9,7 @@ use Imi\Bean\BeanFactory;
 use Imi\Db\Query\Field;
 use Imi\Event\Event;
 use Imi\Model\Annotation\Relation\AutoSelect;
+use Imi\Model\Annotation\Sql;
 use Imi\Model\BaseModel;
 use Imi\Model\Contract\IModelQuery;
 use Imi\Model\Model;
@@ -871,9 +872,9 @@ class Query
             $field->setField($name);
             $field->setAlias($middleTable . '_' . $name);
         }
-        foreach ($middleModelMeta->getSqlColumns() as $name => $sqlAnnotations)
+        foreach ($middleModelMeta->getPropertyAnnotations()[Sql::class] ?? [] as $name => $sqlAnnotations)
         {
-            /** @var \Imi\Model\Annotation\Sql $sqlAnnotation */
+            /** @var Sql[] $sqlAnnotations */
             $sqlAnnotation = $sqlAnnotations[0];
             $fields[] = $field = new Field();
             $field->useRaw();
@@ -887,9 +888,9 @@ class Query
             $field->setTable($rightTable);
             $field->setField($name);
         }
-        foreach ($rightModelMeta->getSqlColumns() as $sqlAnnotations)
+        foreach ($rightModelMeta->getPropertyAnnotations()[Sql::class] ?? [] as $sqlAnnotations)
         {
-            /** @var \Imi\Model\Annotation\Sql $sqlAnnotation */
+            /** @var Sql[] $sqlAnnotations */
             $sqlAnnotation = $sqlAnnotations[0];
             $fields[] = $field = new Field();
             $field->useRaw();

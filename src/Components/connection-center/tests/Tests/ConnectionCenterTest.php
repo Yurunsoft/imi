@@ -198,6 +198,20 @@ class ConnectionCenterTest extends TestCase
         }
     }
 
+    public function testCreateConnection(): void
+    {
+        foreach (self::$names as $name)
+        {
+            $connection1 = self::$connectionCenter->createConnection($name);
+            $this->assertTrue($connection1->connected);
+
+            $connection2 = self::$connectionCenter->createConnection($name, false);
+            $this->assertFalse($connection2->connected);
+
+            $this->assertTrue(self::$connectionCenter->createConnection($name) !== self::$connectionCenter->createConnection($name));
+        }
+    }
+
     /**
      * @depends testNewInstance
      */

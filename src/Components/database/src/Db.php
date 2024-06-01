@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Imi\Db;
 
 use Imi\Config;
+use Imi\ConnectionCenter\Contract\IConnection;
 use Imi\ConnectionCenter\Facade\ConnectionCenter;
 use Imi\Db\ConnectionCenter\DatabaseDriverConfig;
 use Imi\Db\Interfaces\IDb;
@@ -19,21 +20,7 @@ class Db
     use \Imi\Util\Traits\TStaticClass;
 
     /**
-     * 获取新的数据库连接实例.
-     *
-     * @param string|null $poolName  连接池名称
-     * @param int         $queryType 查询类型
-     */
-    public static function getNewInstance(?string $poolName = null, int $queryType = QueryType::WRITE): IDb
-    {
-        $driver = ConnectionCenter::getConnectionManager(self::parsePoolName($poolName, $queryType))->getDriver();
-        $instance = $driver->createInstance();
-
-        return $driver->connect($instance);
-    }
-
-    /**
-     * 获取数据库连接实例，每个RequestContext中共用一个.
+     * 获取数据库连接实例，每个上下文中共用一个.
      *
      * @param string|null $poolName  连接池名称
      * @param int         $queryType 查询类型
@@ -41,6 +28,34 @@ class Db
     public static function getInstance(?string $poolName = null, int $queryType = QueryType::WRITE): IDb
     {
         return ConnectionCenter::getRequestContextConnection(self::parsePoolName($poolName, $queryType))->getInstance();
+    }
+
+    /**
+     * 创建新的数据库连接实例.
+     *
+     * @param string|null $poolName  连接池名称
+     * @param int         $queryType 查询类型
+     */
+    public static function createInstance(?string $poolName = null, int $queryType = QueryType::WRITE): IDb
+    {
+        return ConnectionCenter::createConnection(self::parsePoolName($poolName, $queryType));
+    }
+
+    /**
+     * 获取新的数据库连接实例.
+     *
+     * 返回的是连接池连接对象，需调用 `getInstance()` 获取实际的对象进行操作.
+     *
+     * 连接对象释放即断开连接，操作期间需要保证连接对象不被释放.
+     *
+     * 如果不是特别必要，不推荐使用此方法！！！
+     *
+     * @param string|null $poolName  连接池名称
+     * @param int         $queryType 查询类型
+     */
+    public static function getNewInstance(?string $poolName = null, int $queryType = QueryType::WRITE): IConnection
+    {
+        return ConnectionCenter::getConnection(self::parsePoolName($poolName, $queryType));
     }
 
     /**

@@ -6,9 +6,15 @@ on:
   push:
     paths:
       - ".github/workflows/daily-test.yml"
+      - ".github/docker-compose.yml"
+      - ".github/php.dockerfile"
+      - ".github/actions/ci-prepare"
   pull_request:
     paths:
       - ".github/workflows/daily-test.yml"
+      - ".github/docker-compose.yml"
+      - ".github/php.dockerfile"
+      - ".github/actions/ci-prepare"
 
 jobs:
   daily-test-3_0:

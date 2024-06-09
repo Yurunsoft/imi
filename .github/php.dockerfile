@@ -8,7 +8,7 @@ ARG SWOOLE_VERSION
 COPY script/ /tmp/script
 
 RUN set -eux \
-    && apt-get update && apt-get -y install procps libpq-dev unzip git libzip-dev libevent-dev libssl-dev libicu-dev libc-ares-dev libcurl4-openssl-dev unixodbc-dev libsqlite3-dev \
+    && apt-get update && apt-get -y install procps libpq-dev unzip git libzip-dev libevent-dev libssl-dev libicu-dev libc-ares-dev libcurl4-openssl-dev unixodbc-dev libsqlite3-dev libbrotli-dev \
     && docker-php-ext-install -j$(nproc) bcmath mysqli pdo_mysql pdo_pgsql pcntl sockets intl zip \
     && (php --ri redis || (pecl install redis && docker-php-ext-enable redis)) \
     && pecl install inotify \

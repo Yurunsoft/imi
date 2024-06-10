@@ -355,7 +355,8 @@ jobs:
       # MacOS Arm64 下需要下面的修复，否则无法编译成功
       - name: Fix include
         run: |
-          sudo ln -s $(brew --prefix pcre2)/include/pcre2.h /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/
+          sudo mkdir -p /usr/local/include
+          sudo ln -s $(brew --prefix pcre2)/include/pcre2.h /usr/local/include/
       - name: Get Openssl Dir
         id: opecssl-dir
         run: echo "path=$(brew --prefix openssl@1.1)" >> $GITHUB_OUTPUT

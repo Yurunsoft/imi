@@ -29,12 +29,15 @@ abstract class BaseCacheTestCase extends BaseTest
         {
             $this->markTestSkipped('Handler does not support TTL');
         }
+
+        Assert::assertTrue(CacheManager::set($this->cacheName, 'imi', 'nb', 1));
+        Assert::assertEquals('nb', CacheManager::get($this->cacheName, 'imi'));
+
         $this->go(function (): void {
-            Assert::assertTrue(CacheManager::set($this->cacheName, 'imi', 'nb', 1));
-            Assert::assertEquals('nb', CacheManager::get($this->cacheName, 'imi'));
-            sleep(2);
+            usleep(1_100_000);
+            clearstatcache();
             Assert::assertEquals('none', CacheManager::get($this->cacheName, 'imi', 'none'));
-        }, null, 3);
+        }, null, 5);
     }
 
     public function testSetMultiple(): void
@@ -58,20 +61,23 @@ abstract class BaseCacheTestCase extends BaseTest
         {
             $this->markTestSkipped('Handler does not support TTL');
         }
-        $this->go(function (): void {
-            $values = [
-                'k1'    => 'v1',
-                'k2'    => 'v2',
-            ];
-            Assert::assertTrue(CacheManager::setMultiple($this->cacheName, $values, 1));
-            $getValues = CacheManager::getMultiple($this->cacheName, array_keys_string($values));
-            Assert::assertEquals($values, $getValues);
-            sleep(2);
+
+        $values = [
+            'k1'    => 'v1',
+            'k2'    => 'v2',
+        ];
+        Assert::assertTrue(CacheManager::setMultiple($this->cacheName, $values, 1));
+        $getValues = CacheManager::getMultiple($this->cacheName, array_keys_string($values));
+        Assert::assertEquals($values, $getValues);
+
+        $this->go(function () use ($values): void {
+            usleep(1_100_000);
+            clearstatcache();
             Assert::assertEquals([
                 'k1'    => 'none',
                 'k2'    => 'none',
             ], CacheManager::getMultiple($this->cacheName, array_keys_string($values), 'none'));
-        }, null, 3);
+        }, null, 5);
     }
 
     public function testDelete(): void

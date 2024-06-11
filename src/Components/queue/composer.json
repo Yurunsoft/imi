@@ -20,6 +20,7 @@
         "files": [
             "../../../vendor/autoload.php",
             "../../../dev/try-include-swoole.php",
+            "../redis/vendor/autoload.php",
             "../workerman/vendor/autoload.php"
         ]
     },

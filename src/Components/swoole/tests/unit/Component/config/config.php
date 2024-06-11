@@ -73,53 +73,54 @@ return [
 
     // 连接池配置
     'pools'         => [
+    ],
+    // 连接中心配置
+    'connectionCenter' => [
         'redis_test'            => [
-            'pool'        => [
-                'class'        => \Imi\Swoole\Redis\Pool\CoroutineRedisPool::class,
-                'config'       => [
-                    'maxResources'    => 10,
-                    'minResources'    => 1,
+            'manager' => \Imi\ConnectionCenter\Handler\Pool\PoolConnectionManager::class,
+            'config'  => [
+                'driver'    => \Imi\Redis\Connector\RedisConnectionDriver::class,
+                'resources' => [
+                    [
+                        'host'      => env('REDIS_SERVER_HOST', '127.0.0.1'),
+                        'port'      => env('REDIS_SERVER_PORT', 6379),
+                        'password'  => env('REDIS_SERVER_PASSWORD'),
+                        'database'  => 1,
+
+                        'client' => 'phpredis',
+                        'mode'   => \Imi\Redis\Enum\RedisMode::Standalone,
+                    ],
                 ],
-            ],
-            'resource'    => [
-                'host'      => env('REDIS_SERVER_HOST', '127.0.0.1'),
-                'port'      => env('REDIS_SERVER_PORT', 6379),
-                'password'  => env('REDIS_SERVER_PASSWORD'),
+                'pool'    => [
+                    'maxResources'       => 8,
+                    'minResources'       => 0,
+                ],
             ],
         ],
-        'redis_cache'           => [
-            'pool'        => [
-                'class'        => \Imi\Swoole\Redis\Pool\CoroutineRedisPool::class,
-                'config'       => [
-                    'maxResources'    => 10,
-                    'minResources'    => 1,
+        'redis_cache'            => [
+            'manager' => \Imi\ConnectionCenter\Handler\Pool\PoolConnectionManager::class,
+            'config'  => [
+                'driver'    => \Imi\Redis\Connector\RedisConnectionDriver::class,
+                'resources' => [
+                    [
+                        'host'      => env('REDIS_SERVER_HOST', '127.0.0.1'),
+                        'port'      => env('REDIS_SERVER_PORT', 6379),
+                        'password'  => env('REDIS_SERVER_PASSWORD'),
+                        'database'  => 1,
+                        'serialize' => false,
+
+                        'client' => 'phpredis',
+                        'mode'   => \Imi\Redis\Enum\RedisMode::Standalone,
+                    ],
                 ],
-            ],
-            'resource'    => [
-                'host'        => env('REDIS_SERVER_HOST', '127.0.0.1'),
-                'port'        => env('REDIS_SERVER_PORT', 6379),
-                'password'    => env('REDIS_SERVER_PASSWORD'),
-                'serialize'   => false,
-                'db'          => 1,
-            ],
-        ],
-        'redis_manager_test'    => [
-            'pool'        => [
-                'class'        => \Imi\Swoole\Redis\Pool\CoroutineRedisPool::class,
-                'config'       => [
-                    'maxResources'    => 10,
-                    'minResources'    => 1,
+                'pool'    => [
+                    'maxResources'    => 8,
+                    'minResources'    => 0,
                 ],
-            ],
-            'resource'    => [
-                'host'        => env('REDIS_SERVER_HOST', '127.0.0.1'),
-                'port'        => env('REDIS_SERVER_PORT', 6379),
-                'password'    => env('REDIS_SERVER_PASSWORD'),
-                'serialize'   => false,
-                'db'          => 1,
             ],
         ],
     ],
+
     // db 配置
     'db'            => [
         // 默认连接池名

@@ -88,9 +88,14 @@ function startServer(): void
     $redis = new \Redis();
     $host = env('REDIS_SERVER_HOST', '127.0.0.1');
     $port = env('REDIS_SERVER_PORT', 6379);
+    $password = env('REDIS_SERVER_PASSWORD');
     if (!(str_contains($host, '/') ? $redis->connect($host) : $redis->connect($host, $port)))
     {
         exit('Redis connect failed');
+    }
+    if ($password)
+    {
+        $redis->auth($password);
     }
     $redis->del($redis->keys('imi-amqp:*'));
     $redis->close();

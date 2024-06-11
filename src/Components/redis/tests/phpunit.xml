@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.4/phpunit.xsd"
+         bootstrap="./bootstrap.php"
+         colors="true"
+         displayDetailsOnTestsThatTriggerDeprecations="true"
+         displayDetailsOnTestsThatTriggerNotices="true"
+         displayDetailsOnTestsThatTriggerWarnings="true"
+         displayDetailsOnTestsThatTriggerErrors="true"
+         displayDetailsOnSkippedTests="true"
+>
+    <testsuites>
+        <testsuite name="test">
+            <directory>./</directory>
+        </testsuite>
+    </testsuites>
+    <extensions>
+        <bootstrap class="Imi\Redis\Test\PHPUnitHook"/>
+    </extensions>
+    <source>
+        <include>
+            <directory suffix=".php">../src</directory>
+        </include>
+    </source>
+    <php>
+<!--        <env name="XDEBUG_MODE" value="off" force="true"/>-->
+    </php>
+</phpunit>

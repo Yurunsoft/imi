@@ -135,18 +135,33 @@ return [
         ],
     ],
 
+    'connectionCenter' => [
+        'redis'            => [
+            'manager' => \Imi\ConnectionCenter\Handler\Pool\PoolConnectionManager::class,
+            'pool'    => [
+                'maxResources'    => 10,
+                'minResources'    => 0,
+            ],
+            'config'  => [
+                'driver'    => \Imi\Redis\Connector\RedisConnectionDriver::class,
+                'resources' => [
+                    [
+                        'host'      => env('REDIS_SERVER_HOST', '127.0.0.1'),
+                        'port'      => env('REDIS_SERVER_PORT', 6379),
+                        'password'  => env('REDIS_SERVER_PASSWORD'),
+
+                        'client' => 'phpredis',
+                        'mode'   => \Imi\Redis\Enum\RedisMode::Standalone,
+                    ],
+                ],
+            ],
+        ],
+    ],
+
     // redis 配置
     'redis'           => [
         // 默认连接池名
         'defaultPool'   => 'redis',
-        'connections'   => [
-            'redis' => [
-                'host'              => env('REDIS_SERVER_HOST', '127.0.0.1'),
-                'port'              => env('REDIS_SERVER_PORT', 6379),
-                'password'          => env('REDIS_SERVER_PASSWORD'),
-                'heartbeatInterval' => 30,
-            ],
-        ],
     ],
 
     // 锁

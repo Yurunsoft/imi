@@ -34,7 +34,6 @@ jobs:
       REPOSITORY_OWNER: ${{ github.repository_owner }}
       IMAGE_VERSION: ${{ matrix.swoole.version }}
       MYSQL_DOCKER_VERSION: "8.0"
-      REDIS_SERVER_HOST: redis
       ROADRUNNER_DOCKER_VERSION: ${{ matrix.roadrunner }}
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
@@ -56,6 +55,18 @@ jobs:
         uses: ./.github/actions/ci-prepare
         with:
           env: ${{ env.ENV_SERVICE }}
+      - name: Test Env
+        if: ${{ env.test_prepared && always() }}
+        run: |
+          docker ps
+          docker logs shared-tmp || true
+          docker logs redis || true
+          docker exec ${ENV_SERVICE} bash -c "ls -lha /run/shared"
+          echo ">>> redis-cluster-node-0"
+          docker exec ${ENV_SERVICE} bash -c "echo -e 'auth l83aa26\r\ninfo server' | nc redis-cluster-node-0-1 6379 -w 1"
+          docker exec ${ENV_SERVICE} bash -c "echo -e 'auth l83aa26\r\ncluster info\r\ncluster nodes' | nc redis-cluster-node-0-1 6379 -w 1"
+          echo ">>> redis"
+          docker exec ${ENV_SERVICE} bash -c "echo -e 'auth l83aa26\r\ninfo server' | nc redis 6379 -w 1"
       - name: Test
         if: ${{ env.test_prepared && always() }}
         run: docker exec ${ENV_SERVICE} composer test
@@ -65,6 +76,10 @@ jobs:
       - name: Test database
         if: ${{ env.test_prepared && always() }}
         run: docker exec ${ENV_SERVICE} composer test-database
+      - name: Test redis
+        if: ${{ env.test_prepared && always() }}
+        run: |
+          docker exec ${ENV_SERVICE} composer test-redis
       - name: Test swoole
         if: ${{ env.test_prepared && always() }}
         run: docker exec ${ENV_SERVICE} composer test-swoole
@@ -117,100 +132,6 @@ jobs:
         if: failure()
         run: docker exec ${ENV_SERVICE} php .github/print-logs.php
 
-  ci-unix:
-    name: Linux Swoole-${{ matrix.swoole.version }} RoadRunner-${{ matrix.roadrunner }} With Redis UnixSocket
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        swoole:
-          - version: php8.2-swoole-5.1
-        roadrunner: [2.7.*]
-    env:
-      ENV_SERVICE: swoole
-      REPOSITORY_OWNER: ${{ github.repository_owner }}
-      IMAGE_VERSION: ${{ matrix.swoole.version }}
-      MYSQL_DOCKER_VERSION: "8.0"
-      REDIS_SERVER_HOST: /tmp/docker/redis.sock
-      ROADRUNNER_DOCKER_VERSION: ${{ matrix.roadrunner }}
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Prepare1
-        run: |
-          echo "REPOSITORY_OWNER=${REPOSITORY_OWNER,,}" >>${GITHUB_ENV}
-          mkdir -p /tmp/base_cache/composer
-      - name: Cache dependencies
-        uses: actions/cache@v4
-        with:
-          path: /tmp/base_cache/composer
-          key: ${{ runner.os }}-composer-${{ env.IMAGE_VERSION }}-${{ hashFiles('*/composer.json', 'src/Components/*/composer.json') }}
-          restore-keys: |
-            ${{ runner.os }}-composer-${{ env.IMAGE_VERSION }}-
-            ${{ runner.os }}-composer-
-      - name: Prepare2
-        uses: ./.github/actions/ci-prepare
-        with:
-          env: ${{ env.ENV_SERVICE }}
-      - name: Test
-        if: ${{ env.test_prepared && always() }}
-        run: docker exec ${ENV_SERVICE} composer test
-      - name: Test connection-center
-        if: ${{ env.test_prepared && always() }}
-        run: docker exec ${ENV_SERVICE} composer test-connection-center
-      - name: Test database
-        if: ${{ env.test_prepared && always() }}
-        run: docker exec ${ENV_SERVICE} composer test-database
-      - name: Test swoole
-        if: ${{ env.test_prepared && always() }}
-        run: docker exec ${ENV_SERVICE} composer test-swoole
-      - name: Test workerman
-        if: ${{ env.test_prepared && always() }}
-        run: docker exec ${ENV_SERVICE} composer test-workerman
-      - name: Test workerman-gateway
-        if: ${{ env.test_prepared && always() }}
-        run: docker exec ${ENV_SERVICE} composer test-workerman-gateway
-      - name: Test roadrunner
-        if: ${{ env.test_prepared && always() }}
-        run: docker exec ${ENV_SERVICE} composer test-roadrunner
-      - name: Test fpm
-        if: ${{ env.test_prepared && always() }}
-        run: docker exec ${ENV_SERVICE} composer test-fpm
-      - name: Test jwt
-        if: ${{ env.test_prepared && always() }}
-        run: docker exec ${ENV_SERVICE} composer test-jwt
-      - name: Test queue
-        if: ${{ env.test_prepared && always() }}
-        run: docker exec ${ENV_SERVICE} composer test-queue
-      - name: Test amqp
-        if: ${{ env.test_prepared && always() }}
-        run: docker exec ${ENV_SERVICE} composer test-amqp
-      - name: Test kafka
-        if: ${{ env.test_prepared && always() }}
-        run: docker exec ${ENV_SERVICE} composer test-kafka
-      - name: Test grpc
-        if: ${{ env.test_prepared && always() }}
-        run: docker exec ${ENV_SERVICE} composer test-grpc
-      - name: Test snowflake
-        if: ${{ env.test_prepared && always() }}
-        run: docker exec ${ENV_SERVICE} composer test-snowflake
-      - name: Test mqtt
-        if: ${{ env.test_prepared && always() }}
-        run: docker exec ${ENV_SERVICE} composer test-mqtt
-      - name: Test smarty
-        if: ${{ env.test_prepared && always() }}
-        run: docker exec ${ENV_SERVICE} composer test-smarty
-      - name: Test pgsql
-        if: ${{ env.test_prepared && always() }}
-        run: docker exec ${ENV_SERVICE} composer test-pgsql
-      - name: Test model
-        if: ${{ env.test_prepared && always() }}
-        run: docker exec ${ENV_SERVICE} composer test-model
-      - name: Print logs
-        if: failure()
-        run: docker exec ${ENV_SERVICE} php .github/print-logs.php
-
   ci-swoole-cli:
     name: Swoole-cli-${{ matrix.swoole-cli }}
     runs-on: ubuntu-latest
@@ -221,13 +142,19 @@ jobs:
     env:
       MYSQL_DOCKER_VERSION: "8.0"
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      REDIS_SERVER_HOST: "127.0.0.1"
+      REDIS_SERVER_PASSWORD: "l83aa26"
+      REDIS_SERVER_CLUSTER_PASSWORD: "l83aa26"
+      REDIS_SERVER_CLUSTER_SEEDS: "172.10.12.2:6379,172.10.12.3:6379,172.10.12.4:6379,172.10.12.5:6379,172.10.12.6:6379,172.10.12.7:6379"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Setup Services
         shell: bash
         run: |
-          sudo apt update && sudo apt install -y rsync
+          sudo apt update && sudo apt install -y rsync netcat-openbsd tree
+          docker network create imi-ci-service-network --subnet 172.10.12.0/24
+          docker compose -f ./.github/service/redis-cluster/docker-compose.yml up -d
           docker compose -f ./.github/docker-compose.yml up -d mysql postgres redis rabbitmq kafka1
           echo "127.0.0.1 kafka1" | sudo tee -a /etc/hosts
       - name: Setup swoole-cli
@@ -266,7 +193,22 @@ jobs:
           docker exec postgres psql -d db_imi_test -U root -f /imi/.github/pgsql.sql
           echo "::endgroup::"
           echo "test_prepared=1" >> $GITHUB_ENV
-
+      - name: Test Env
+        if: ${{ env.test_prepared && always() }}
+        run: |
+          docker ps
+          docker logs shared-tmp
+          docker logs redis
+          find /run/shared -name *.sock
+          tree -alfugh /run/shared
+          echo ">>> redis"
+          echo -e 'auth l83aa26\r\ninfo server' | nc 127.0.0.1 6379 -w 1
+          echo ">>> ====="
+          docker compose -f ./.github/service/redis-cluster/docker-compose.yml logs
+          echo ">>> redis-cluster"
+          echo -e 'auth l83aa26\r\ninfo server' | nc 172.10.12.2 6379 -w 1
+          echo -e 'auth l83aa26\r\ncluster info\r\ncluster nodes' | nc 172.10.12.2 6379 -w 1
+          docker compose -f ./.github/service/redis-cluster/docker-compose.yml exec node-0 cat /bitnami/redis/data/nodes.conf
       - name: Test
         if: ${{ env.test_prepared && always() }}
         run: composer test
@@ -276,6 +218,18 @@ jobs:
       - name: Test database
         if: ${{ env.test_prepared && always() }}
         run: composer test-database
+      - name: Test redis
+        if: ${{ env.test_prepared && always() }}
+        env:
+          REDIS_SERVER_UNIX_SOCK: "/run/shared/redis.sock"
+          REDIS_SERVER_TLS_CLUSTER_SEEDS: "172.10.12.2:6443,172.10.12.3:6443,172.10.12.4:6443,172.10.12.5:6443,172.10.12.6:6443,172.10.12.7:6443"
+          REDIS_SERVER_TLS_HOST: "127.0.0.1"
+          REDIS_SERVER_TLS_PORT: "6443"
+          REDIS_SERVER_TLS_PASSWORD: "l83aa26"
+          REDIS_SERVER_TLS_CA_FILE: ${{ github.workspace }}/.github/service/redis-tls/certs/ca.crt
+          REDIS_SERVER_TLS_CERT_FILE: ${{ github.workspace }}/.github/service/redis-tls/certs/client.crt
+          REDIS_SERVER_TLS_KEY_FILE: ${{ github.workspace }}/.github/service/redis-tls/certs/client.key
+        run: composer test-redis
       - name: Test swoole
         if: ${{ env.test_prepared && always() }}
         run: composer test-swoole
@@ -328,8 +282,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php: ["8.1", "8.2"]
-        swoole: [v5.1.0, v5.0.3]
+        php: ["8.2"] # ["8.1", "8.2"]
+        swoole: [v5.1.0] # [v5.1.0, v5.0.3]
         roadrunner: [2.7.*]
     env:
       MYSQL_SERVER_PASSWORD: "root"
@@ -350,8 +304,11 @@ jobs:
             socket=/tmp/mysql.sock
       - name: Setup Redis
         uses: shogo82148/actions-setup-redis@v1
+        id: setup-redis
         with:
-          redis-version: "6.x"
+          redis-version: "7.2"
+          redis-port: "6379"
+          redis-tls-port: "6443"
       # MacOS Arm64 下需要下面的修复，否则无法编译成功
       - name: Fix include
         run: |
@@ -366,7 +323,7 @@ jobs:
           php-version: ${{ matrix.php }}
           tools: pecl
           extensions: >
-            apcu, bcmath, curl, openssl, mbstring, intl, json, redis, mysqli, pdo, pdo_mysql, sockets, zip, :opcache, 
+            apcu, bcmath, curl, openssl, mbstring, intl, json, redis, mysqli, pdo, pdo_mysql, sockets, zip, :opcache,
             swoole-swoole/swoole-src@${{ matrix.swoole }}
         env:
           SWOOLE_CONFIGURE_OPTS: >
@@ -423,6 +380,16 @@ jobs:
       - name: Test database
         if: ${{ env.test_prepared && always() }}
         run: composer test-database
+      - name: Test redis
+        if: ${{ env.test_prepared && always() }}
+        env:
+          REDIS_SERVER_UNIX_SOCK: ${{ steps.setup-redis.outputs.redis-unix-socket }}
+          REDIS_SERVER_TLS_HOST: "127.0.0.1"
+          REDIS_SERVER_TLS_PORT: "6443"
+          REDIS_SERVER_TLS_CA_FILE: ${{ steps.setup-redis.outputs.redis-tls-dir }}/ca.crt
+          REDIS_SERVER_TLS_CERT_FILE: ${{ steps.setup-redis.outputs.redis-tls-dir }}/client.crt
+          REDIS_SERVER_TLS_KEY_FILE: ${{ steps.setup-redis.outputs.redis-tls-dir }}/client.key
+        run: composer test-redis
       - name: Test swoole
         if: ${{ env.test_prepared && always() }}
         run: composer test-swoole
@@ -555,6 +522,9 @@ jobs:
       - name: Test database
         if: ${{ env.test_prepared && always() }}
         run: composer test-database
+      - name: Test redis
+        if: ${{ env.test_prepared && always() }}
+        run: composer test-redis
       - name: Test fpm
         if: ${{ env.test_prepared && always() }}
         run: composer test-fpm

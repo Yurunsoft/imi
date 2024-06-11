@@ -28,6 +28,7 @@ components=(
   "connection-center"
   "database"
   "model"
+  "redis"
 )
 
 analyze_component() {

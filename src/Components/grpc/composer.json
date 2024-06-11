@@ -25,6 +25,7 @@
         "files": [
             "../../../vendor/autoload.php",
             "../../../dev/try-include-swoole.php",
+            "../redis/vendor/autoload.php",
             "../rpc/vendor/autoload.php"
         ]
     },

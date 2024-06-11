@@ -56,44 +56,30 @@ return [
     ],
 
     // 连接池配置
-    'pools'           => Imi::checkAppType('swoole') ? [
-        'redis'    => [
-            'pool'     => [
-                // 协程池类名
-                'class'         => \Imi\Swoole\Redis\Pool\CoroutineRedisPool::class,
-                'config'        => [
-                    // 池子中最多资源数
-                    'maxResources' => 10,
-                    // 池子中最少资源数
-                    'minResources' => 0,
-                    // 资源回收时间间隔，单位：秒
-                    // 'gcInterval' => 60,
-                    // 获取资源最大存活时间，单位：秒
-                    // 'maxActiveTime' => 3600,
-                    // 等待资源最大超时时间，单位：毫秒
-                    // 'waitTimeout' => 3000,
-                    // 心跳时间间隔，单位：秒
-                    // 'heartbeatInterval' => null,
-                    // 当获取资源时，是否检查状态
-                    // 'checkStateWhenGetResource' => true,
-                    // 负载均衡-轮询
-                    // 'resourceConfigMode' => ResourceConfigMode::ROUND_ROBIN,
-                    // 负载均衡-随机
-                    // 'resourceConfigMode' => ResourceConfigMode::RANDOM,
+    'pools'           => [],
+
+    // 连接中心配置
+    'connectionCenter' => Imi::checkAppType('swoole') ? [
+        'redis'            => [
+            'manager' => \Imi\ConnectionCenter\Handler\Pool\PoolConnectionManager::class,
+            'pool'    => [
+                'maxResources'    => 10,
+                'minResources'    => 0,
+            ],
+            'config'  => [
+                'driver'    => \Imi\Redis\Connector\RedisConnectionDriver::class,
+                'resources' => [
+                    [
+                        'host'      => env('REDIS_SERVER_HOST', '127.0.0.1'),
+                        'port'      => env('REDIS_SERVER_PORT', 6379),
+                        'password'  => env('REDIS_SERVER_PASSWORD'),
+
+                        'client'   => 'phpredis',
+                        'mode'     => \Imi\Redis\Enum\RedisMode::Standalone,
+                        'database' => 0,
+                    ],
                 ],
             ],
-            // 数组资源配置
-            'resource' => [
-                'host'         => env('REDIS_SERVER_HOST', '127.0.0.1'),
-                'port'         => 6379,
-                // 是否自动序列化变量
-                'serialize'    => false,
-                // 密码
-                'password'     => null,
-                // 第几个库
-                'db'           => 0,
-            ],
-            // uri资源配置，以分号;分隔多个，参数使用query参数格式，特殊字符需要转码
         ],
     ] : [],
 
@@ -107,18 +93,6 @@ return [
     'redis'           => [
         // 数默认连接池名
         'defaultPool'   => 'redis',
-        'connections'   => [
-            'redis' => [
-                'host'         => env('REDIS_SERVER_HOST', '127.0.0.1'),
-                'port'         => 6379,
-                // 是否自动序列化变量
-                'serialize'    => false,
-                // 密码
-                'password'     => null,
-                // 第几个库
-                'db'           => 0,
-            ],
-        ],
     ],
 
     // 锁

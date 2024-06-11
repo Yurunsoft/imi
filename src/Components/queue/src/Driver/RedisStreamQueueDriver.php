@@ -95,7 +95,7 @@ class RedisStreamQueueDriver implements IQueueDriver
             {
                 $this->keyName = $this->name;
             }
-        }, $this->poolName, true);
+        }, $this->poolName);
     }
 
     /**
@@ -142,7 +142,7 @@ class RedisStreamQueueDriver implements IQueueDriver
             }
 
             return $result;
-        }, $this->poolName, true);
+        }, $this->poolName);
     }
 
     /**
@@ -176,7 +176,7 @@ class RedisStreamQueueDriver implements IQueueDriver
             $message->loadFromArray($data);
 
             return $message;
-        }, $this->poolName, true);
+        }, $this->poolName);
     }
 
     /**
@@ -200,7 +200,7 @@ class RedisStreamQueueDriver implements IQueueDriver
             }
 
             return 1 == $result;
-        }, $this->poolName, true);
+        }, $this->poolName);
     }
 
     /**
@@ -210,7 +210,7 @@ class RedisStreamQueueDriver implements IQueueDriver
     {
         Redis::use(function (\Imi\Redis\RedisHandler $redis): void {
             $redis->del($this->getQueueKey());
-        }, $this->poolName, true);
+        }, $this->poolName);
     }
 
     /**
@@ -236,7 +236,7 @@ class RedisStreamQueueDriver implements IQueueDriver
             }
 
             return $result;
-        }, $this->poolName, true);
+        }, $this->poolName);
     }
 
     /**
@@ -277,7 +277,7 @@ class RedisStreamQueueDriver implements IQueueDriver
 
                 return $result ? 1 : 0;
             }
-        }, $this->poolName, true);
+        }, $this->poolName);
     }
 
     /**
@@ -332,7 +332,7 @@ class RedisStreamQueueDriver implements IQueueDriver
             $status['ready'] = $status['timeout'] = $status['delay'] = 0;
 
             return new QueueStatus($status);
-        }, $this->poolName, true);
+        }, $this->poolName);
     }
 
     /**
@@ -388,7 +388,7 @@ class RedisStreamQueueDriver implements IQueueDriver
             }
 
             return $result;
-        }, $this->poolName, true);
+        }, $this->poolName);
     }
 
     /**
@@ -464,7 +464,7 @@ class RedisStreamQueueDriver implements IQueueDriver
             }
 
             return $result;
-        }, $this->poolName, true);
+        }, $this->poolName);
     }
 
     /**

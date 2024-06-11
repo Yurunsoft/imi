@@ -12,16 +12,19 @@ runs:
     - name: Setup Services
       shell: bash
       run: |
+        docker network create imi-ci-service-network --subnet 172.10.12.0/24
+        docker compose -f ./.github/service/redis-cluster/docker-compose.yml up -d
         docker compose -f ./.github/docker-compose.yml up -d ${{ inputs.env }}
         docker exec ${{ inputs.env }} php -v
         docker exec ${{ inputs.env }} php -m
+        docker exec ${{ inputs.env }} php --ri redis
         docker exec ${{ inputs.env }} php --ri swoole
         docker exec ${{ inputs.env }} php -r "echo 'opcache config: '; print_r(opcache_get_status(false));"
         docker exec ${{ inputs.env }} composer -V
     - name: Prepare
       shell: bash
       run: |
-        docker exec ${{ inputs.env }} apt install -y rsync
+        docker exec ${{ inputs.env }} apt install -y rsync netcat-openbsd
         docker exec ${{ inputs.env }} composer config --global cache-files-dir /tmp/base_cache/composer
         docker exec ${{ inputs.env }} composer config -g process-timeout 600
         docker exec ${{ inputs.env }} composer update --no-interaction --prefer-dist --no-progress ${COMPOSER_ENV}

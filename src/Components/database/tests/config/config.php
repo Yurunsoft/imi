@@ -10,6 +10,8 @@ return [
         'Database' => 'Imi\Db',
     ],
 
+    'beans'             => [],
+
     // 日志配置
     'logger'            => [
         'channels' => [

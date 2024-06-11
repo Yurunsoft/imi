@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Imi\Snowflake;
 
 use Godruoyi\Snowflake\SequenceResolver;
+use Imi\Redis\Handler\IRedisHandler;
 use Imi\Redis\RedisManager;
 
 class ImiRedisResolver implements SequenceResolver
@@ -39,10 +40,7 @@ class ImiRedisResolver implements SequenceResolver
     public function sequence(int $currentTime)
     {
         $redis = RedisManager::getInstance($this->redisPool);
-        if (!$redis)
-        {
-            throw new \RuntimeException('Get redis instance failed');
-        }
+        /** @var $redis IRedisHandler */
 
         return $redis->evalEx(static::SEQUENCE_LUA, [$this->prefix . $currentTime, 1, 1000], 1);
     }

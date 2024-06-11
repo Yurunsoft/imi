@@ -1,12 +1,14 @@
-version: "3.4"
-volumes:
-  shared-volume:
+version: '3.5'
+
+name: ci
 services:
   shared-tmp:
     image: busybox
-    command: chmod -R 777 /tmp/docker
+    container_name: shared-tmp
+    command: /tmp/shared-env.sh
     volumes:
-      - shared-volume:/tmp/docker
+      - /run/shared:/run/shared
+      - ./shared-env.sh:/tmp/shared-env.sh
 
   mysql:
     image: mysql:${MYSQL_DOCKER_VERSION}
@@ -38,17 +40,51 @@ services:
     volumes:
       - "${GITHUB_WORKSPACE}:/imi:rw"
 
+#  redis:
+#    image: redis:6-alpine
+#    container_name: redis
+#    depends_on:
+#      - shared-tmp
+#    command: redis-server /etc/redis.conf
+#    volumes:
+#      - ./redis.conf:/etc/redis.conf
+#      - /run/shared:/run/shared
+#    ports:
+#      - 6379:6379
+
   redis:
-    image: redis:6-alpine
+    image: bitnami/redis:7.2
     container_name: redis
     depends_on:
       - shared-tmp
-    command: redis-server /etc/redis.conf
     volumes:
-      - ./redis.conf:/etc/redis.conf
-      - shared-volume:/tmp/docker
+      - "${GITHUB_WORKSPACE}/.github/service/redis-tls/certs:/opt/bitnami/redis/certs"
+      - "${GITHUB_WORKSPACE}/.github/service/redis-tls/redis-overrides.conf:/opt/bitnami/redis/redis-overrides.conf"
+      - /run/shared:/run/shared
+    environment:
+      REDIS_OVERRIDES_FILE: "/opt/bitnami/redis/redis-overrides.conf"
+      REDIS_PORT_NUMBER: 6379
+      REDIS_PASSWORD: "l83aa26"
+      REDIS_TLS_ENABLED: "true"
+      REDIS_TLS_PORT_NUMBER: 6443
+      REDIS_TLS_CERT_FILE: "/opt/bitnami/redis/certs/redis.crt"
+      REDIS_TLS_KEY_FILE: "/opt/bitnami/redis/certs/redis.key"
+      REDIS_TLS_DH_PARAMS_FILE: "/opt/bitnami/redis/certs/redis.dh"
+      REDIS_TLS_CA_FILE: "/opt/bitnami/redis/certs/ca.crt"
+      REDIS_TLS_AUTH_CLIENTS: "yes"
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -h 127.0.0.1 -p $${REDIS_PORT_NUMBER:-6379} -a $${REDIS_PASSWORD} INFO | grep 'redis_version'"]
+      interval: 3s
+      timeout: 60s
+      retries: 30
     ports:
-      - 6379:6379
+      - "6379:6379"
+      - "6443:6443"
+    networks:
+      proxies:
+        aliases:
+          - redis
+        ipv4_address: 172.10.12.111
 
   rabbitmq:
     container_name: rabbitmq
@@ -100,15 +136,29 @@ services:
       - postgres
     environment:
       MYSQL_SERVER_HOST: mysql
-      REDIS_SERVER_HOST: ${REDIS_SERVER_HOST}
+      REDIS_SERVER_HOST: ${REDIS_SERVER_HOST:-redis}
+      REDIS_SERVER_PASSWORD: ${REDIS_SERVER_PASSWORD:-l83aa26}
       PGSQL_SERVER_HOST: postgres
       MYSQL_SERVER_PASSWORD: ""
       AMQP_SERVER_HOST: "rabbitmq"
       KAFKA_BOOTSTRAP_SERVERS: "kafka1:9092"
       GITHUB_TOKEN: ${GITHUB_TOKEN}
+      REDIS_SERVER_CLUSTER_PASSWORD: "l83aa26"
+      REDIS_SERVER_CLUSTER_SEEDS: "172.10.12.2:6379,172.10.12.3:6379,172.10.12.4:6379,172.10.12.5:6379,172.10.12.6:6379,172.10.12.7:6379"
+      REDIS_SERVER_TLS_CLUSTER_SEEDS: "172.10.12.2:6443,172.10.12.3:6443,172.10.12.4:6443,172.10.12.5:6443,172.10.12.6:6443,172.10.12.7:6443"
+      REDIS_SERVER_UNIX_SOCK: "/run/shared/redis.sock"
+      REDIS_SERVER_TLS_HOST: "redis"
+      REDIS_SERVER_TLS_PORT: "6443"
+      REDIS_SERVER_TLS_PASSWORD: "l83aa26"
+      REDIS_SERVER_TLS_CA_FILE: "/imi/.github/service/redis-tls/certs/ca.crt"
+      REDIS_SERVER_TLS_CERT_FILE: "/imi/.github/service/redis-tls/certs/client.crt"
+      REDIS_SERVER_TLS_KEY_FILE: "/imi/.github/service/redis-tls/certs/client.key"
     volumes:
       - "${GITHUB_WORKSPACE}:/imi:rw"
-      - shared-volume:/tmp/docker
+      - /run/shared:/run/shared
+    networks:
+      default:
+      proxies:
     working_dir: /imi
     command: tail -f /dev/null
     tty: true
@@ -125,11 +175,22 @@ services:
     environment:
       MYSQL_SERVER_HOST: mysql
       REDIS_SERVER_HOST: ${REDIS_SERVER_HOST}
+      REDIS_SERVER_PASSWORD: ${REDIS_SERVER_PASSWORD:-l83aa26}
       PGSQL_SERVER_HOST: postgres
       MYSQL_SERVER_PASSWORD: ""
       AMQP_SERVER_HOST: "rabbitmq"
       KAFKA_BOOTSTRAP_SERVERS: "kafka1:9092"
       GITHUB_TOKEN: ${GITHUB_TOKEN}
+      REDIS_SERVER_CLUSTER_PASSWORD: "l83aa26"
+      REDIS_SERVER_CLUSTER_SEEDS: "172.10.12.2:6379,172.10.12.3:6379,172.10.12.4:6379,172.10.12.5:6379,172.10.12.6:6379,172.10.12.7:6379"
+      REDIS_SERVER_TLS_CLUSTER_SEEDS: "172.10.12.2:6443,172.10.12.3:6443,172.10.12.4:6443,172.10.12.5:6443,172.10.12.6:6443,172.10.12.7:6443"
+      REDIS_SERVER_UNIX_SOCK: "/run/shared/redis.sock"
+      REDIS_SERVER_TLS_HOST: "redis"
+      REDIS_SERVER_TLS_PORT: "6443"
+      REDIS_SERVER_TLS_PASSWORD: "l83aa26"
+      REDIS_SERVER_TLS_CA_FILE: "/imi/.github/service/redis-tls/certs/ca.crt"
+      REDIS_SERVER_TLS_CERT_FILE: "/imi/.github/service/redis-tls/certs/client.crt"
+      REDIS_SERVER_TLS_KEY_FILE: "/imi/.github/service/redis-tls/certs/client.key"
     build:
       context: .
       dockerfile: php.dockerfile
@@ -141,7 +202,10 @@ services:
     volumes:
       - "${GITHUB_WORKSPACE}:/imi:rw"
       - "/tmp/base_cache:/tmp/base_cache:rw"
-      - shared-volume:/tmp/docker
+      - /run/shared:/run/shared
+    networks:
+      default:
+      proxies:
     working_dir: /imi
     command: tail -f /dev/null
 
@@ -154,6 +218,16 @@ services:
       - "${GITHUB_WORKSPACE}:/imi:rw"
       - "/tmp/base_cache:/tmp/base_cache:rw"
       - "/tmp/base_cache/phpstan:/tmp/phpstan:rw"
+    networks:
+      default:
+      proxies:
     working_dir: /imi
     command: tail -f /dev/null
     tty: true
+
+networks:
+  default:
+    driver: bridge
+  proxies:
+    name: "imi-ci-service-network"
+    external: true

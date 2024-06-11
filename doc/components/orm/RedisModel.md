@@ -159,9 +159,9 @@ Redis模型中只有 `name`、`type` 和 `listSeparator` 生效。
 
 `type` 支持：
 
-* `json`，序列化为 JSON 字符串
-* `list`必须设置 `listSeparator`，以此来分割为数组
-* `set`，使用 `,` 分割为数组
+- `json`，序列化为 JSON 字符串
+- `list`必须设置 `listSeparator`，以此来分割为数组
+- `set`，使用 `,` 分割为数组
 
 ## 模型操作
 
@@ -231,4 +231,35 @@ TestRedisModel::deleteBatch('kkk', [
     'id'    =>    '123',
     'name'    =>    'imi'
 ]);
+```
+
+### Fork 模型
+
+Fork 模型特性，支持在运行阶段创建一个新的模型类，这个类从原模型继承。
+
+并且支持指定新模型类使用的：数据库名、数据表名、连接池名。
+
+方法定义：
+
+```php
+/**
+ * Fork 模型.
+ *
+ * @return class-string<static>
+ */
+public static function fork(?string $poolName = null, ?string $formatter = null, int $db = null)
+```
+
+例子：
+
+```php
+// 重新指定模型要使用的连接池
+$newClassName = TestModel::fork('redis_pool_2');
+
+// 重新指定模型要使用的序列化类
+$formatter = \Imi\Util\Format\PhpSerialize::class;
+$newClassName = TestModel::fork('redis_pool_2', $formatter);
+
+// 重新指定模型使用指定 db （不推荐把redis分多个库的用法）
+$newClassName = TestModel::fork('redis_pool_2', null, 3);
 ```

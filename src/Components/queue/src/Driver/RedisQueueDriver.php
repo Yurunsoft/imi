@@ -11,7 +11,12 @@ use Imi\Queue\Enum\QueueType;
 use Imi\Queue\Exception\QueueException;
 use Imi\Queue\Model\Message;
 use Imi\Queue\Model\QueueStatus;
+use Imi\Redis\Exception\RedisLuaException;
+use Imi\Redis\Handler\IRedisHandler;
+use Imi\Redis\Handler\PhpRedisHandler;
+use Imi\Redis\Handler\PredisHandler;
 use Imi\Redis\Redis;
+use Imi\Redis\RedisLuaScript;
 use Imi\Util\Traits\TDataToProperty;
 
 /**
@@ -41,6 +46,17 @@ class RedisQueueDriver implements IQueueDriver
 
     private ?string $keyName = null;
 
+    private RedisLuaScript $scriptQueuePushWithDelay;
+    private RedisLuaScript $scriptQueuePush;
+    private RedisLuaScript $scriptQueuePop;
+    private RedisLuaScript $scriptQueueDelete;
+    private RedisLuaScript $scriptQueueSuccess;
+    private RedisLuaScript $scriptQueueFail;
+    private RedisLuaScript $scriptQueueRestoreFail;
+    private RedisLuaScript $scriptQueueRestoreTimeout;
+    private RedisLuaScript $scriptQueueParseDelayMessages;
+    private RedisLuaScript $scriptQueueParseTimeoutMessages;
+
     public function __construct(
         /**
          * 队列名称.
@@ -52,7 +68,7 @@ class RedisQueueDriver implements IQueueDriver
 
     public function __init(): void
     {
-        Redis::use(function (\Imi\Redis\RedisHandler $redis): void {
+        Redis::use(function (IRedisHandler $redis): void {
             if ($redis->isCluster())
             {
                 $this->keyName = '{' . $this->name . '}';
@@ -61,7 +77,7 @@ class RedisQueueDriver implements IQueueDriver
             {
                 $this->keyName = $this->name;
             }
-        }, $this->poolName, true);
+        }, $this->poolName);
     }
 
     /**
@@ -77,97 +93,116 @@ class RedisQueueDriver implements IQueueDriver
      */
     public function push(IMessage $message, float $delay = 0, array $options = []): string
     {
-        return Redis::use(function (\Imi\Redis\RedisHandler $redis) use ($message, $delay) {
-            if ($delay > 0)
+        return Redis::use(function (IRedisHandler $redis) use ($message, $delay) {
+            try
             {
-                $args = [
-                    $this->getQueueKey(QueueType::Delay),
-                    $this->getMessageKeyPrefix(),
-                    $this->getMessageIdKey(),
-                    microtime(true) + $delay,
-                    date('Ymd'),
-                ];
-                foreach ($message->toArray() as $k => $v)
+                if ($delay > 0)
                 {
-                    $args[] = $k;
-                    $args[] = $v;
+                    $args = [
+                        microtime(true) + $delay,
+                        date('Ymd'),
+                    ];
+                    foreach ($message->toArray() as $k => $v)
+                    {
+                        $args[] = $k;
+                        $args[] = $v;
+                    }
+                    $this->scriptQueuePushWithDelay ??= RedisLuaScript::fastCreate(
+                        script: <<<'LUA'
+                        local queueKey = KEYS[1]
+                        local messageKeyPrefix = KEYS[2]
+                        local messageIdKey = KEYS[3]
+                        local delayTo = ARGV[1]
+                        local date = ARGV[2]
+                        -- 创建消息id
+                        local messageId = redis.call('hIncrby', messageIdKey, date, 1);
+                        if messageId > 0 then
+                            messageId = date .. messageId
+                        else
+                            return false
+                        end
+                        -- 创建消息
+                        local messageKey = messageKeyPrefix .. messageId;
+                        local ARGVLength = table.getn(ARGV)
+                        for i=3,ARGVLength,2 do
+                            redis.call('hset', messageKey, ARGV[i], ARGV[i + 1])
+                        end
+                        redis.call('hset', messageKey, 'messageId', messageId)
+                        -- 加入延时队列
+                        redis.call('zadd', queueKey, delayTo, messageId);
+                        return messageId
+                        LUA,
+                        keyNum: 3,
+                    );
+                    $result = $this->scriptQueuePushWithDelay->invoke(
+                        $redis,
+                        [
+                            $this->getQueueKey(QueueType::Delay),
+                            $this->getMessageKeyPrefix(),
+                            $this->getMessageIdKey(),
+                        ],
+                        ...$args,
+                    );
                 }
-                $result = $redis->evalEx(<<<'LUA'
-                local queueKey = KEYS[1]
-                local messageKeyPrefix = KEYS[2]
-                local messageIdKey = KEYS[3]
-                local delayTo = ARGV[1]
-                local date = ARGV[2]
-                -- 创建消息id
-                local messageId = redis.call('hIncrby', messageIdKey, date, 1);
-                if messageId > 0 then
-                    messageId = date .. messageId
                 else
-                    return false
-                end
-                -- 创建消息
-                local messageKey = messageKeyPrefix .. messageId;
-                local ARGVLength = table.getn(ARGV)
-                for i=3,ARGVLength,2 do
-                    redis.call('hset', messageKey, ARGV[i], ARGV[i + 1])
-                end
-                redis.call('hset', messageKey, 'messageId', messageId)
-                -- 加入延时队列
-                redis.call('zadd', queueKey, delayTo, messageId);
-                return messageId
-                LUA, $args, 3);
+                {
+                    $args = [
+                        date('Ymd'),
+                    ];
+                    foreach ($message->toArray() as $k => $v)
+                    {
+                        $args[] = $k;
+                        $args[] = $v;
+                    }
+                    $this->scriptQueuePush ??= RedisLuaScript::fastCreate(
+                        script: <<<'LUA'
+                        local queueKey = KEYS[1]
+                        local messageKeyPrefix = KEYS[2]
+                        local messageIdKey = KEYS[3]
+                        local date = ARGV[1]
+                        -- 创建消息id
+                        local messageId = redis.call('hIncrby', messageIdKey, date, 1);
+                        if messageId > 0 then
+                            messageId = date .. messageId
+                        else
+                            return false
+                        end
+                        -- 创建消息
+                        local messageKey = messageKeyPrefix .. messageId;
+                        local ARGVLength = table.getn(ARGV)
+                        for i=2,ARGVLength,2 do
+                            redis.call('hset', messageKey, ARGV[i], ARGV[i + 1])
+                        end
+                        redis.call('hset', messageKey, 'messageId', messageId)
+                        -- 加入队列
+                        redis.call('rpush', queueKey, messageId);
+                        return messageId
+                        LUA,
+                        keyNum: 3,
+                    );
+
+                    $result = $this->scriptQueuePush->invoke(
+                        $redis,
+                        [
+                            $this->getQueueKey(QueueType::Ready),
+                            $this->getMessageKeyPrefix(),
+                            $this->getMessageIdKey(),
+                        ],
+                        ...$args,
+                    );
+                }
             }
-            else
+            catch (RedisLuaException $exception)
             {
-                $args = [
-                    $this->getQueueKey(QueueType::Ready),
-                    $this->getMessageKeyPrefix(),
-                    $this->getMessageIdKey(),
-                    date('Ymd'),
-                ];
-                foreach ($message->toArray() as $k => $v)
-                {
-                    $args[] = $k;
-                    $args[] = $v;
-                }
-                $result = $redis->evalEx(<<<'LUA'
-                local queueKey = KEYS[1]
-                local messageKeyPrefix = KEYS[2]
-                local messageIdKey = KEYS[3]
-                local date = ARGV[1]
-                -- 创建消息id
-                local messageId = redis.call('hIncrby', messageIdKey, date, 1);
-                if messageId > 0 then
-                    messageId = date .. messageId
-                else
-                    return false
-                end
-                -- 创建消息
-                local messageKey = messageKeyPrefix .. messageId;
-                local ARGVLength = table.getn(ARGV)
-                for i=2,ARGVLength,2 do
-                    redis.call('hset', messageKey, ARGV[i], ARGV[i + 1])
-                end
-                redis.call('hset', messageKey, 'messageId', messageId)
-                -- 加入队列
-                redis.call('rpush', queueKey, messageId);
-                return messageId
-                LUA, $args, 3);
+                throw new QueueException('Queue push failed: ' . $exception->getMessage(), previous: $exception);
             }
             if (false === $result)
             {
-                if (null === ($error = $redis->getLastError()))
-                {
-                    throw new QueueException('Queue push failed');
-                }
-                else
-                {
-                    throw new QueueException('Queue push failed, ' . $error);
-                }
+                throw new QueueException('Queue push failed');
             }
 
             return $result;
-        }, $this->poolName, true);
+        }, $this->poolName);
     }
 
     /**
@@ -193,48 +228,57 @@ class RedisQueueDriver implements IQueueDriver
                     $time = microtime(true);
                 }
             }
-            $result = Redis::use(function (\Imi\Redis\RedisHandler $redis) {
+            $result = Redis::use(function (IRedisHandler $redis) {
                 $this->parseDelayMessages($redis);
                 $this->parseTimeoutMessages($redis);
-                $result = $redis->evalEx(<<<'LUA'
-                -- 从列表弹出
-                local messageId = redis.call('lpop', KEYS[1])
-                if false == messageId then
-                    return -1
-                end
-                -- 获取消息内容
-                local hashResult = redis.call('hgetall', KEYS[3] .. messageId)
-                local message = {}
-                for i=1,#hashResult,2 do
-                    message[hashResult[i]] = hashResult[i + 1]
-                end
-                -- 加入工作队列
-                local score = tonumber(message.workingTimeout)
-                if nil == score or score <= 0 then
-                    score = -1
-                end
-                redis.call('zadd', KEYS[2], ARGV[1] + score, messageId)
-                return hashResult
-                LUA, [
-                    $this->getQueueKey(QueueType::Ready),
-                    $this->getQueueKey(QueueType::Working),
-                    $this->getMessageKeyPrefix(),
-                    microtime(true),
-                ], 3);
+
+                $this->scriptQueuePop ??= RedisLuaScript::fastCreate(
+                    script: <<<'LUA'
+                    -- 从列表弹出
+                    local messageId = redis.call('lpop', KEYS[1])
+                    if false == messageId then
+                        return -1
+                    end
+                    -- 获取消息内容
+                    local hashResult = redis.call('hgetall', KEYS[3] .. messageId)
+                    local message = {}
+                    for i=1,#hashResult,2 do
+                        message[hashResult[i]] = hashResult[i + 1]
+                    end
+                    -- 加入工作队列
+                    local score = tonumber(message.workingTimeout)
+                    if nil == score or score <= 0 then
+                        score = -1
+                    end
+                    redis.call('zadd', KEYS[2], ARGV[1] + score, messageId)
+                    return hashResult
+                    LUA,
+                    keyNum: 3,
+                );
+
+                try
+                {
+                    $result = $this->scriptQueuePop->invoke(
+                        $redis,
+                        [
+                            $this->getQueueKey(QueueType::Ready),
+                            $this->getQueueKey(QueueType::Working),
+                            $this->getMessageKeyPrefix(),
+                        ],
+                        microtime(true),
+                    );
+                }
+                catch (RedisLuaException $exception)
+                {
+                    throw new QueueException('Queue push failed: ' . $exception->getMessage(), previous: $exception);
+                }
                 if (false === $result)
                 {
-                    if (null === ($error = $redis->getLastError()))
-                    {
-                        throw new QueueException('Queue pop failed');
-                    }
-                    else
-                    {
-                        throw new QueueException('Queue pop failed, ' . $error);
-                    }
+                    throw new QueueException('Queue push failed');
                 }
 
                 return $result;
-            }, $this->poolName, true);
+            }, $this->poolName);
             if ($result && \is_array($result))
             {
                 $data = [];
@@ -263,39 +307,46 @@ class RedisQueueDriver implements IQueueDriver
      */
     public function delete(IMessage $message): bool
     {
-        return Redis::use(function (\Imi\Redis\RedisHandler $redis) use ($message) {
-            $result = $redis->evalEx(<<<'LUA'
-            local messageId = ARGV[1]
-            -- 删除消息
-            redis.call('del', KEYS[3] .. messageId)
-            -- 从队列删除
-            if redis.call('lrem', KEYS[1], 1, messageId) <= 0 then
-                if redis.call('zrem', KEYS[2], messageId) <= 0 then
-                    return false
+        return Redis::use(function (IRedisHandler $redis) use ($message) {
+            $this->scriptQueueDelete ??= RedisLuaScript::fastCreate(
+                script: <<<'LUA'
+                local messageId = ARGV[1]
+                -- 删除消息
+                redis.call('del', KEYS[3] .. messageId)
+                -- 从队列删除
+                if redis.call('lrem', KEYS[1], 1, messageId) <= 0 then
+                    if redis.call('zrem', KEYS[2], messageId) <= 0 then
+                        return false
+                    end
                 end
-            end
-            return true
-            LUA, [
-                $this->getQueueKey(QueueType::Ready),
-                $this->getQueueKey(QueueType::Delay),
-                $this->getMessageKeyPrefix(),
-                $message->getMessageId(),
-            ], 3);
+                return true
+                LUA,
+                keyNum: 3,
+            );
 
+            try
+            {
+                $result = $this->scriptQueueDelete->invoke(
+                    $redis,
+                    [
+                        $this->getQueueKey(QueueType::Ready),
+                        $this->getQueueKey(QueueType::Delay),
+                        $this->getMessageKeyPrefix(),
+                    ],
+                    $message->getMessageId(),
+                );
+            }
+            catch (RedisLuaException $exception)
+            {
+                throw new QueueException('Queue delete failed, ' . $exception->getMessage(), previous: $exception);
+            }
             if (false === $result)
             {
-                if (null === ($error = $redis->getLastError()))
-                {
-                    return false;
-                }
-                else
-                {
-                    throw new QueueException('Queue delete failed, ' . $error);
-                }
+                return false;
             }
 
             return 1 == $result;
-        }, $this->poolName, true);
+        }, $this->poolName);
     }
 
     /**
@@ -317,9 +368,10 @@ class RedisQueueDriver implements IQueueDriver
             $keys[] = $this->getQueueKey($tmpQueueType);
         }
 
-        Redis::use(static function (\Imi\Redis\RedisHandler $redis) use ($keys): void {
+        Redis::use(static function (IRedisHandler $redis) use ($keys): void {
+            /** @var PhpRedisHandler|PredisHandler $redis */
             $redis->del(...$keys);
-        }, $this->poolName, true);
+        }, $this->poolName);
     }
 
     /**
@@ -327,36 +379,38 @@ class RedisQueueDriver implements IQueueDriver
      */
     public function success(IMessage $message): int
     {
-        return Redis::use(function (\Imi\Redis\RedisHandler $redis) use ($message) {
-            $result = $redis->evalEx(<<<'LUA'
-            -- 从工作队列删除
-            redis.call('zrem', KEYS[1], ARGV[1])
-            -- 从超时队列删除
-            redis.call('del', KEYS[3])
-            -- 删除消息
-            redis.call('del', KEYS[2] .. ARGV[1])
-            return true
-            LUA, [
-                $this->getQueueKey(QueueType::Working),
-                $this->getMessageKeyPrefix(),
-                $this->getQueueKey(QueueType::Timeout),
-                $message->getMessageId(),
-            ], 3);
-
+        return Redis::use(function (IRedisHandler $redis) use ($message) {
+            $this->scriptQueueSuccess ??= RedisLuaScript::fastCreate(
+                script: <<<'LUA'
+                -- 从工作队列删除
+                redis.call('zrem', KEYS[1], ARGV[1])
+                -- 从超时队列删除
+                redis.call('del', KEYS[3])
+                -- 删除消息
+                redis.call('del', KEYS[2] .. ARGV[1])
+                return true
+                LUA,
+                keyNum: 3,
+            );
+            try
+            {
+                $result = $this->scriptQueueSuccess->invoke($redis, [
+                    $this->getQueueKey(QueueType::Working),
+                    $this->getMessageKeyPrefix(),
+                    $this->getQueueKey(QueueType::Timeout),
+                ], $message->getMessageId());
+            }
+            catch (RedisLuaException $exception)
+            {
+                throw new QueueException('Queue success failed, ' . $exception->getMessage(), previous: $exception);
+            }
             if (false === $result)
             {
-                if (null === ($error = $redis->getLastError()))
-                {
-                    throw new QueueException('Queue success failed');
-                }
-                else
-                {
-                    throw new QueueException('Queue success failed, ' . $error);
-                }
+                throw new QueueException('Queue success failed');
             }
 
             return $result;
-        }, $this->poolName, true);
+        }, $this->poolName);
     }
 
     /**
@@ -364,32 +418,38 @@ class RedisQueueDriver implements IQueueDriver
      */
     public function fail(IMessage $message, bool $requeue = false): int
     {
-        return Redis::use(function (\Imi\Redis\RedisHandler $redis) use ($message, $requeue) {
-            $result = $redis->evalEx(<<<'LUA'
-            -- 从工作队列删除
-            redis.call('zrem', KEYS[1], ARGV[1])
-            redis.call('rpush', KEYS[2], ARGV[1])
-            return true
-            LUA, [
-                $this->getQueueKey(QueueType::Working),
-                $requeue ? $this->getQueueKey(QueueType::Ready) : $this->getQueueKey(QueueType::Fail),
-                $message->getMessageId(),
-            ], 2);
-
+        return Redis::use(function (IRedisHandler $redis) use ($message, $requeue) {
+            $this->scriptQueueFail ??= RedisLuaScript::fastCreate(
+                script: <<<'LUA'
+                -- 从工作队列删除
+                redis.call('zrem', KEYS[1], ARGV[1])
+                redis.call('rpush', KEYS[2], ARGV[1])
+                return true
+                LUA,
+                keyNum: 2,
+            );
+            try
+            {
+                $result = $this->scriptQueueFail->invoke(
+                    $redis,
+                    [
+                        $this->getQueueKey(QueueType::Working),
+                        $requeue ? $this->getQueueKey(QueueType::Ready) : $this->getQueueKey(QueueType::Fail),
+                    ],
+                    $message->getMessageId(),
+                );
+            }
+            catch (RedisLuaException $exception)
+            {
+                throw new QueueException('Queue success failed, ' . $exception->getMessage(), previous: $exception);
+            }
             if (false === $result)
             {
-                if (null === ($error = $redis->getLastError()))
-                {
-                    throw new QueueException('Queue success failed');
-                }
-                else
-                {
-                    throw new QueueException('Queue success failed, ' . $error);
-                }
+                throw new QueueException('Queue success failed');
             }
 
             return $result;
-        }, $this->poolName, true);
+        }, $this->poolName);
     }
 
     /**
@@ -397,7 +457,8 @@ class RedisQueueDriver implements IQueueDriver
      */
     public function status(): QueueStatus
     {
-        return Redis::use(function (\Imi\Redis\RedisHandler $redis) {
+        return Redis::use(function (IRedisHandler $redis) {
+            /** @var PhpRedisHandler|PredisHandler $redis */
             $status = [];
             foreach (QueueType::cases() as $case)
             {
@@ -411,7 +472,7 @@ class RedisQueueDriver implements IQueueDriver
             }
 
             return new QueueStatus($status);
-        }, $this->poolName, true);
+        }, $this->poolName);
     }
 
     /**
@@ -419,33 +480,36 @@ class RedisQueueDriver implements IQueueDriver
      */
     public function restoreFailMessages(): int
     {
-        return Redis::use(function (\Imi\Redis\RedisHandler $redis) {
-            $result = $redis->evalEx(<<<'LUA'
-            local result = 0
-            while(redis.call('Rpoplpush', KEYS[2], KEYS[1]))
-            do
-                result = result + 1
-            end
-            return result
-            LUA, [
-                $this->getQueueKey(QueueType::Ready),
-                $this->getQueueKey(QueueType::Fail),
-            ], 2);
-
+        return Redis::use(function (IRedisHandler $redis) {
+            $this->scriptQueueRestoreFail ??= RedisLuaScript::fastCreate(
+                script: <<<'LUA'
+                local result = 0
+                while(redis.call('Rpoplpush', KEYS[2], KEYS[1]))
+                do
+                    result = result + 1
+                end
+                return result
+                LUA,
+                keyNum: 2,
+            );
+            try
+            {
+                $result = $this->scriptQueueRestoreFail->invoke($redis, [
+                    $this->getQueueKey(QueueType::Ready),
+                    $this->getQueueKey(QueueType::Fail),
+                ]);
+            }
+            catch (RedisLuaException $exception)
+            {
+                throw new QueueException('Queue restoreFailMessages failed, ' . $exception->getMessage(), previous: $exception);
+            }
             if (false === $result)
             {
-                if (null === ($error = $redis->getLastError()))
-                {
-                    throw new QueueException('Queue restoreFailMessages failed');
-                }
-                else
-                {
-                    throw new QueueException('Queue restoreFailMessages failed, ' . $error);
-                }
+                throw new QueueException('Queue restoreFailMessages failed');
             }
 
             return $result;
-        }, $this->poolName, true);
+        }, $this->poolName);
     }
 
     /**
@@ -453,33 +517,36 @@ class RedisQueueDriver implements IQueueDriver
      */
     public function restoreTimeoutMessages(): int
     {
-        return Redis::use(function (\Imi\Redis\RedisHandler $redis) {
-            $result = $redis->evalEx(<<<'LUA'
-            local result = 0
-            while(redis.call('Rpoplpush', KEYS[2], KEYS[1]))
-            do
-                result = result + 1
-            end
-            return result
-            LUA, [
-                $this->getQueueKey(QueueType::Ready),
-                $this->getQueueKey(QueueType::Timeout),
-            ], 2);
-
+        return Redis::use(function (IRedisHandler $redis) {
+            $this->scriptQueueRestoreTimeout ??= RedisLuaScript::fastCreate(
+                script: <<<'LUA'
+                local result = 0
+                while(redis.call('Rpoplpush', KEYS[2], KEYS[1]))
+                do
+                    result = result + 1
+                end
+                return result
+                LUA,
+                keyNum: 2,
+            );
+            try
+            {
+                $result = $this->scriptQueueRestoreTimeout->invoke($redis, [
+                    $this->getQueueKey(QueueType::Ready),
+                    $this->getQueueKey(QueueType::Timeout),
+                ]);
+            }
+            catch (RedisLuaException $exception)
+            {
+                throw new QueueException('Queue restoreTimeoutMessages failed, ' . $exception->getMessage(), previous: $exception);
+            }
             if (false === $result)
             {
-                if (null === ($error = $redis->getLastError()))
-                {
-                    throw new QueueException('Queue restoreTimeoutMessages failed');
-                }
-                else
-                {
-                    throw new QueueException('Queue restoreTimeoutMessages failed, ' . $error);
-                }
+                throw new QueueException('Queue restoreTimeoutMessages failed');
             }
 
             return $result;
-        }, $this->poolName, true);
+        }, $this->poolName);
     }
 
     /**
@@ -487,37 +554,43 @@ class RedisQueueDriver implements IQueueDriver
      *
      * 返回消息数量
      */
-    protected function parseDelayMessages(\Imi\Redis\RedisHandler $redis, int $count = 100): int
+    protected function parseDelayMessages(IRedisHandler $redis, int $count = 100): int
     {
-        $result = $redis->evalEx(<<<'LUA'
-        -- 查询消息ID
-        local messageIds = redis.call('zrevrangebyscore', KEYS[2], ARGV[1], 0, 'limit', 0, ARGV[2])
-        local messageIdCount = table.getn(messageIds)
-        if 0 == messageIdCount then
-            return 0
-        end
-        -- 加入队列
-        redis.call('rpush', KEYS[1], unpack(messageIds))
-        -- 从延时队列删除
-        redis.call('zrem', KEYS[2], unpack(messageIds))
-        return messageIdCount
-        LUA, [
-            $this->getQueueKey(QueueType::Ready),
-            $this->getQueueKey(QueueType::Delay),
-            microtime(true),
-            $count,
-        ], 2);
-
+        $this->scriptQueueParseDelayMessages ??= RedisLuaScript::fastCreate(
+            script: <<<'LUA'
+            -- 查询消息ID
+            local messageIds = redis.call('zrevrangebyscore', KEYS[2], ARGV[1], 0, 'limit', 0, ARGV[2])
+            local messageIdCount = table.getn(messageIds)
+            if 0 == messageIdCount then
+                return 0
+            end
+            -- 加入队列
+            redis.call('rpush', KEYS[1], unpack(messageIds))
+            -- 从延时队列删除
+            redis.call('zrem', KEYS[2], unpack(messageIds))
+            return messageIdCount
+            LUA,
+            keyNum: 2,
+        );
+        try
+        {
+            $result = $this->scriptQueueParseDelayMessages->invoke(
+                $redis,
+                [
+                    $this->getQueueKey(QueueType::Ready),
+                    $this->getQueueKey(QueueType::Delay),
+                ],
+                microtime(true),
+                $count,
+            );
+        }
+        catch (RedisLuaException $exception)
+        {
+            throw new QueueException('Queue parseDelayMessages failed, ' . $exception->getMessage(), previous: $exception);
+        }
         if (false === $result)
         {
-            if (null === ($error = $redis->getLastError()))
-            {
-                throw new QueueException('Queue parseDelayMessages failed');
-            }
-            else
-            {
-                throw new QueueException('Queue parseDelayMessages failed, ' . $error);
-            }
+            throw new QueueException('Queue parseDelayMessages failed');
         }
 
         return $result;
@@ -528,37 +601,44 @@ class RedisQueueDriver implements IQueueDriver
      *
      * 返回消息数量
      */
-    protected function parseTimeoutMessages(\Imi\Redis\RedisHandler $redis, int $count = 100): int
+    protected function parseTimeoutMessages(IRedisHandler $redis, int $count = 100): int
     {
-        $result = $redis->evalEx(<<<'LUA'
-        -- 查询消息ID
-        local messageIds = redis.call('zrevrangebyscore', KEYS[1], ARGV[1], 0, 'limit', 0, ARGV[2])
-        local messageIdCount = table.getn(messageIds)
-        if 0 == messageIdCount then
-            return 0
-        end
-        -- 加入超时队列
-        redis.call('rpush', KEYS[2], unpack(messageIds))
-        -- 从工作队列删除
-        redis.call('zrem', KEYS[1], unpack(messageIds))
-        return messageIdCount
-        LUA, [
-            $this->getQueueKey(QueueType::Working),
-            $this->getQueueKey(QueueType::Timeout),
-            microtime(true),
-            $count,
-        ], 2);
+        $this->scriptQueueParseTimeoutMessages ??= RedisLuaScript::fastCreate(
+            script: <<<'LUA'
+            -- 查询消息ID
+            local messageIds = redis.call('zrevrangebyscore', KEYS[1], ARGV[1], 0, 'limit', 0, ARGV[2])
+            local messageIdCount = table.getn(messageIds)
+            if 0 == messageIdCount then
+                return 0
+            end
+            -- 加入超时队列
+            redis.call('rpush', KEYS[2], unpack(messageIds))
+            -- 从工作队列删除
+            redis.call('zrem', KEYS[1], unpack(messageIds))
+            return messageIdCount
+            LUA,
+            keyNum: 2,
+        );
+        try
+        {
+            $result = $this->scriptQueueParseTimeoutMessages->invoke(
+                $redis,
+                [
+                    $this->getQueueKey(QueueType::Working),
+                    $this->getQueueKey(QueueType::Timeout),
+                ],
+                microtime(true),
+                $count,
+            );
+        }
+        catch (RedisLuaException $exception)
+        {
+            throw new QueueException('Queue parseTimeoutMessages failed, ' . $exception->getMessage(), previous: $exception);
+        }
 
         if (false === $result)
         {
-            if (null === ($error = $redis->getLastError()))
-            {
-                throw new QueueException('Queue parseTimeoutMessages failed');
-            }
-            else
-            {
-                throw new QueueException('Queue parseTimeoutMessages failed, ' . $error);
-            }
+            throw new QueueException('Queue parseTimeoutMessages failed');
         }
 
         return (int) $result;

@@ -70,6 +70,8 @@ class PHPUnitHook implements Extension
                 App::run('AMQPApp', CliApp::class, static function (): void {
                 });
                 break;
+            default:
+                throw new \RuntimeException('Unsupported AMQP_TEST_MODE');
         }
     }
 

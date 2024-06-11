@@ -6,6 +6,7 @@ namespace Imi\Cache\Handler;
 
 use Imi\Bean\Annotation\Bean;
 use Imi\Cache\InvalidArgumentException;
+use Imi\Redis\Handler\PhpRedisHandler;
 use Imi\Redis\Redis;
 
 #[Bean(name: 'RedisHashCache')]
@@ -58,8 +59,10 @@ class RedisHash extends Base
     public function get(string $key, mixed $default = null): mixed
     {
         $this->parseKey($key, $member);
-        $result = Redis::use(static fn (\Imi\Redis\RedisHandler $redis) => $redis->hGet($key, $member), $this->poolName, true);
-        if (false === $result)
+        $result = Redis::use(static fn ($redis) =>
+            /** @var PhpRedisHandler $redis */
+            $redis->hGet($key, $member), $this->poolName);
+        if (false === $result || null === $result)
         {
             return $default;
         }
@@ -76,7 +79,9 @@ class RedisHash extends Base
     {
         $this->parseKey($key, $member);
 
-        return false !== Redis::use(fn (\Imi\Redis\RedisHandler $redis) => $redis->hSet($key, $member, $this->encode($value)), $this->poolName, true);
+        return false !== Redis::use(fn ($redis) =>
+            /** @var PhpRedisHandler $redis */
+            $redis->hSet($key, $member, $this->encode($value)), $this->poolName);
     }
 
     /**
@@ -86,16 +91,17 @@ class RedisHash extends Base
     {
         $this->parseKey($key, $member);
 
-        return Redis::use(static function (\Imi\Redis\RedisHandler $redis) use ($key, $member) {
+        return Redis::use(static function ($redis) use ($key, $member) {
+            /** @var PhpRedisHandler $redis */
             if (null === $member)
             {
-                return $redis->del($key) > 0;
+                return (int) $redis->del($key) > 0;
             }
             else
             {
-                return $redis->hDel($key, $member) > 0;
+                return (int) $redis->hDel($key, $member) > 0;
             }
-        }, $this->poolName, true);
+        }, $this->poolName);
     }
 
     /**
@@ -103,7 +109,9 @@ class RedisHash extends Base
      */
     public function clear(): bool
     {
-        return (bool) Redis::use(static fn (\Imi\Redis\RedisHandler $redis) => $redis->flushDB(), $this->poolName, true);
+        return (bool) Redis::use(static fn ($redis) =>
+            /** @var PhpRedisHandler $redis */
+            $redis->flushdbEx(), $this->poolName);
     }
 
     /**
@@ -118,7 +126,8 @@ class RedisHash extends Base
             $keysMembers[$key][] = $member;
         }
 
-        return Redis::use(function (\Imi\Redis\RedisHandler $redis) use ($keysMembers, $default, $keys) {
+        return Redis::use(function ($redis) use ($keysMembers, $default, $keys) {
+            /** @var PhpRedisHandler $redis */
             $result = [];
             $i = 0;
             foreach ($keysMembers as $key => $members)
@@ -129,7 +138,7 @@ class RedisHash extends Base
                 ), 1);
                 foreach ($evalResult as $v)
                 {
-                    if (false === $v)
+                    if (false === $v || null === $v)
                     {
                         $result[$keys[$i]] = $default;
                     }
@@ -142,7 +151,7 @@ class RedisHash extends Base
             }
 
             return $result;
-        }, $this->poolName, true);
+        }, $this->poolName);
     }
 
     /**
@@ -168,9 +177,10 @@ class RedisHash extends Base
             $setValues[$k]['value'][] = $this->encode($v);
         }
 
-        $result = Redis::use(static function (\Imi\Redis\RedisHandler $redis) use ($setValues) {
+        $result = Redis::use(static function ($redis) use ($setValues) {
             foreach ($setValues as $key => $item)
             {
+                /** @var PhpRedisHandler $redis */
                 $result = false !== $redis->evalEx(self::SET_MULTIPLE_SCRIPT, array_merge([$key], array_map($redis->_serialize(...), $item['member']), array_map($redis->_serialize(...), $item['value'])), 1);
                 if (!$result)
                 {
@@ -179,7 +189,7 @@ class RedisHash extends Base
             }
 
             return true;
-        }, $this->poolName, true);
+        }, $this->poolName);
 
         return (bool) $result;
     }
@@ -196,9 +206,10 @@ class RedisHash extends Base
             $keysMembers[$key][] = $member;
         }
 
-        return (bool) Redis::use(static function (\Imi\Redis\RedisHandler $redis) use ($keysMembers) {
+        return (bool) Redis::use(static function ($redis) use ($keysMembers) {
             foreach ($keysMembers as $key => $members)
             {
+                /** @var PhpRedisHandler $redis */
                 $result = $redis->evalEx(self::DELETE_MULTIPLE_SCRIPT, array_merge(
                     [$key],
                     array_map($redis->_serialize(...), $members),
@@ -210,7 +221,7 @@ class RedisHash extends Base
             }
 
             return true;
-        }, $this->poolName, true);
+        }, $this->poolName);
     }
 
     /**
@@ -220,7 +231,9 @@ class RedisHash extends Base
     {
         $this->parseKey($key, $member);
 
-        return (bool) Redis::use(static fn (\Imi\Redis\RedisHandler $redis) => $redis->hExists($key, $member), $this->poolName, true);
+        return (bool) Redis::use(static fn ($redis) =>
+            /** @var PhpRedisHandler $redis */
+            $redis->hExists($key, $member), $this->poolName);
     }
 
     /**

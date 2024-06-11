@@ -28,11 +28,13 @@ components=(
   "connection-center"
   "database"
   "model"
+  "redis"
 )
 
 analyze_component() {
   component="$1"
   gen_baseline="$2"
+  show_verbose="$3"
   echo "Analyzing: $component, Generate Baseline: $gen_baseline"
 
   analyse_configuration=""
@@ -48,12 +50,17 @@ analyze_component() {
     args+=("--generate-baseline=./phpstan-baseline/baseline-$component.neon" "--allow-empty-baseline")
   fi
 
+  if [ "$show_verbose" == "true" ]; then
+    args+=("-v")
+  fi
+
   echo ./vendor/bin/phpstan analyse "${args[@]}"
 
   PHPSTAN_ANALYSE_COMPONENT_NAME="$component" PHPSTAN_GENERATE_BASELINE="$gen_baseline" ./vendor/bin/phpstan analyse "${args[@]}" -vvv
 }
 
 use_baseline="false"
+use_verbose="false"
 input_components=()
 
 while [[ $# -gt 0 ]]; do
@@ -64,6 +71,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     -b)
       use_baseline="true"
+      shift
+      ;;
+    -v)
+      use_verbose="true"
       shift
       ;;
     *)
@@ -77,13 +88,13 @@ done
 if [ ${#input_components[@]} -eq 0 ]; then
   # If no arguments are provided, analyze all components
   for component in "${components[@]}"; do
-    analyze_component "$component" "$use_baseline"
+    analyze_component "$component" "$use_baseline" "$use_verbose"
   done
 else
   # Analyze the specified components provided as arguments
   for component in "${input_components[@]}"; do
     if [[ " ${components[@]} " =~ " $component " || "core" == "$component" ]]; then
-      analyze_component "$component" "$use_baseline"
+      analyze_component "$component" "$use_baseline" "$use_verbose"
     else
       echo "Invalid component name: $component"
     fi

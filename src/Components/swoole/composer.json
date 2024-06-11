@@ -25,6 +25,7 @@
         },
         "files": [
             "../../../vendor/autoload.php",
+            "../redis/vendor/autoload.php",
             "../amqp/vendor/autoload.php"
         ]
     },

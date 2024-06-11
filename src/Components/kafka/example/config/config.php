@@ -66,20 +66,6 @@ return [
 
     // 连接池配置
     'pools'             => Imi::checkAppType('swoole') ? [
-        'redis'    => [
-            'pool'        => [
-                'class'        => \Imi\Swoole\Redis\Pool\CoroutineRedisPool::class,
-                'config'       => [
-                    'maxResources'    => 10,
-                    'minResources'    => 1,
-                ],
-            ],
-            'resource'    => [
-                'host'      => env('REDIS_SERVER_HOST', '127.0.0.1'),
-                'port'      => 6379,
-                'password'  => null,
-            ],
-        ],
         'kafka'    => [
             'pool'        => [
                 'class'        => \Imi\Kafka\Pool\KafkaCoroutinePool::class,
@@ -95,17 +81,34 @@ return [
         ],
     ] : [],
 
+    // 连接中心配置
+    'connectionCenter' => [
+        'redis'            => [
+            'manager' => Imi::checkAppType('swoole') ? \Imi\ConnectionCenter\Handler\Pool\PoolConnectionManager::class : \Imi\ConnectionCenter\Handler\Singleton\SingletonConnectionManager::class,
+            'pool'    => [
+                'maxResources'    => 10,
+                'minResources'    => 0,
+            ],
+            'config'  => [
+                'driver'    => \Imi\Redis\Connector\RedisConnectionDriver::class,
+                'resources' => [
+                    [
+                        'host'      => env('REDIS_SERVER_HOST', '127.0.0.1'),
+                        'port'      => env('REDIS_SERVER_PORT', 6379),
+                        'password'  => env('REDIS_SERVER_PASSWORD'),
+
+                        'client' => 'phpredis',
+                        'mode'   => \Imi\Redis\Enum\RedisMode::Standalone,
+                    ],
+                ],
+            ],
+        ],
+    ],
+
     // redis 配置
     'redis'             => [
         // 数默认连接池名
         'defaultPool'   => 'redis',
-        'connections'   => [
-            'redis' => [
-                'host'      => env('REDIS_SERVER_HOST', '127.0.0.1'),
-                'port'      => 6379,
-                'password'  => null,
-            ],
-        ],
     ],
     'kafka'             => [
         'connections' => [

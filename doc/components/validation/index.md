@@ -183,6 +183,14 @@ class TestValidate
 
 整数验证
 
+> 能通过整数验证的数据类型为 `int | float | string`
+>
+> 对于 `string` 类型可参考[数字字符串](https://www.php.net/manual/zh/language.types.numeric-strings.php)
+> 
+> 例如，类似 `5` 、 `5.0` 、 `'5'` 均属于整数
+> 
+> 特殊的，类似 `'5.0'` 这种**带小数点的数字字符串**不属于整数
+
 验证必须为整数：
 
 `@Integer`
@@ -202,6 +210,14 @@ class TestValidate
 ### @Decimal
 
 小数验证
+
+> 能通过小数验证的数据类型为 `float | string`
+>
+> 对于 `string` 类型可参考[数字字符串](https://www.php.net/manual/zh/language.types.numeric-strings.php)
+> 
+> 例如，类似 `5.1` 、 `'5.1'` 、 `'5.0'` 均属于小数
+> 
+> 特殊的，类似 `5.0` 这种**小数部分为0的 `float` 值**不属于小数
 
 验证必须为小数：
 
@@ -227,21 +243,25 @@ class TestValidate
 
 数值验证，允许是整数或者小数
 
+> 能通过数值验证的数据类型为 `int | float | string`
+>
+> 对于 `string` 类型可参考[数字字符串](https://www.php.net/manual/zh/language.types.numeric-strings.php)
+
 验证必须为数值：
 
-`@Decimal`
+`@Number`
 
 验证必须为>=10.24的数值：
 
-`@Decimal(min=10.24)`
+`@Number(min=10.24)`
 
 验证必须为<=10.24的数值：
 
-`@Decimal(max=10.24)`
+`@Number(max=10.24)`
 
 验证必须为>=1 && <=10.24的数值：
 
-`@Decimal(min=1, max=10.24)`
+`@Number(min=1, max=10.24)`
 
 > 传入`1`，结果为`true`
 > 

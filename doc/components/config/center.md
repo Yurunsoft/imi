@@ -58,15 +58,18 @@
 
 ## 使用
 
+**配置中心必须安装：**`composer require imiphp/imi-config-center:2.1.x-dev` 
+
 ### Nacos
 
-**安装：**`composer require imiphp/imi-nacos:~2.1.0`
+**安装：**`composer require imiphp/imi-nacos:2.1.x-dev`
 
 **配置：**
 
 `@app.beans`：
 
 ```php
+use Imi\Util\Imi;
 [
     'ConfigCenter' => [
         // 'mode'    => \Imi\ConfigCenter\Enum\Mode::WORKER, // 工作进程模式
@@ -130,7 +133,7 @@ $configCenter->getDriver('nacos')->push($name, $value, [
 
 ### Etcd
 
-**安装：**`composer require imiphp/imi-etcd:~2.1.0`
+**安装：**`composer require imiphp/imi-etcd:2.1.x-dev`
 
 **配置：**
 
@@ -211,7 +214,7 @@ $configCenter->getDriver('etcd')->push($name, $value, $options);
 
 * 非 Swoole 用户请安装 [php-zookeeper](<https://github.com/php-zookeeper/php-zookeeper>) 扩展。
 
-**安装：**`composer require imiphp/imi-zookeeper:~2.1.0`
+**安装：**`composer require imiphp/imi-zookeeper:2.1.x-dev`
 
 **配置：**
 

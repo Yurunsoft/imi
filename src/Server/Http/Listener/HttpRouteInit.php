@@ -173,12 +173,6 @@ class HttpRouteInit implements IEventListener
                             'extractData'   => $extractData,
                         ];
                         $route->addRuleAnnotation($routeItem, $routeCallable, $options);
-                        if (($routeItem->autoEndSlash || ($autoEndSlash && null === $routeItem->autoEndSlash)) && !str_ends_with($routeItem->url, '/'))
-                        {
-                            $routeItem = clone $routeItem;
-                            $routeItem->url .= '/';
-                            $route->addRuleAnnotation($routeItem, $routeCallable, $options);
-                        }
                     }
                 }
             }

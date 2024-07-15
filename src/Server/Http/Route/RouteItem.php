@@ -58,4 +58,12 @@ class RouteItem
         $this->viewOption = $viewOption;
         $this->options = $options;
     }
+
+    public function __clone()
+    {
+        if ($this->annotation)
+        {
+            $this->annotation = clone $this->annotation;
+        }
+    }
 }

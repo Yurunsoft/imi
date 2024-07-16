@@ -54,7 +54,6 @@ class HttpRouteInit implements IEventListener
             $context['server'] = $server;
             /** @var HttpRoute $route */
             $route = $server->getBean('HttpRoute');
-            $autoEndSlash = $route->getAutoEndSlash();
             foreach ($controllerParser->getByServer($name) as $className => $classItem)
             {
                 /** @var \Imi\Server\Http\Route\Annotation\Controller $classAnnotation */
@@ -173,6 +172,12 @@ class HttpRouteInit implements IEventListener
                             'extractData'   => $extractData,
                         ];
                         $route->addRuleAnnotation($routeItem, $routeCallable, $options);
+                        if ($routeItem->autoEndSlash && !str_ends_with($routeItem->url, '/'))
+                        {
+                            $routeItem = clone $routeItem;
+                            $routeItem->url .= '/';
+                            $route->addRuleAnnotation($routeItem, $routeCallable, $options);
+                        }
                     }
                 }
             }

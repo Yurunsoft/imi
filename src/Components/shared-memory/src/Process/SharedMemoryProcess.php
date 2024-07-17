@@ -8,8 +8,8 @@ use Imi\Config;
 use Imi\Swoole\Process\Annotation\Process;
 use Imi\Swoole\Process\BaseProcess;
 use Imi\Util\Imi;
-use Yurun\Swoole\SharedMemory\Server;
 use Imi\Util\ImiPriority;
+use Yurun\Swoole\SharedMemory\Server;
 
 /**
  * @Process(name="sharedMemory", unique=true)

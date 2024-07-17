@@ -92,24 +92,33 @@ class HttpRoute
         {
             $routeItem->wsConfig = $options['wsConfig'];
         }
-        $data = [
-            'routeItem' => $routeItem,
-        ];
         $ignoreCase = $annotation->ignoreCase ?? $this->ignoreCase;
         if (!$ignoreCase && self::isStaticPath($path))
         {
-            $this->router->addStatic($path, $callable, $annotation->method, $ignoreCase, $checkCallables, $data);
+            $this->router->addStatic($path, $callable, $annotation->method, $ignoreCase, $checkCallables, [
+                'routeItem' => $routeItem,
+            ]);
             if ($this->autoEndSlash && !str_ends_with($path, '/'))
             {
-                $this->router->addStatic($path . '/', $callable, $annotation->method, $ignoreCase, $checkCallables, $data);
+                $routeItem = clone $routeItem;
+                $routeItem->annotation->url .= '/';
+                $this->router->addStatic($path . '/', $callable, $annotation->method, $ignoreCase, $checkCallables, [
+                    'routeItem' => $routeItem,
+                ]);
             }
         }
         else
         {
-            $this->router->add($path, $callable, $annotation->method, $ignoreCase, $checkCallables, $data);
+            $this->router->add($path, $callable, $annotation->method, $ignoreCase, $checkCallables, [
+                'routeItem' => $routeItem,
+            ]);
             if ($this->autoEndSlash && !str_ends_with($path, '/'))
             {
-                $this->router->add($path . '/', $callable, $annotation->method, $ignoreCase, $checkCallables, $data);
+                $routeItem = clone $routeItem;
+                $routeItem->annotation->url .= '/';
+                $this->router->add($path . '/', $callable, $annotation->method, $ignoreCase, $checkCallables, [
+                    'routeItem' => $routeItem,
+                ]);
             }
         }
     }

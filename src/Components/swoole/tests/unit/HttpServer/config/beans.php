@@ -36,4 +36,7 @@ return [
         'tasks' => [
         ],
     ],
+    'HttpRoute' => [
+        'autoEndSlash' => true,
+    ],
 ];

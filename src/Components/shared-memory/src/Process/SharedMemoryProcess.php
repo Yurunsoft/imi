@@ -9,6 +9,7 @@ use Imi\Swoole\Process\Annotation\Process;
 use Imi\Swoole\Process\BaseProcess;
 use Imi\Util\Imi;
 use Yurun\Swoole\SharedMemory\Server;
+use Imi\Util\ImiPriority;
 
 /**
  * @Process(name="sharedMemory", unique=true)

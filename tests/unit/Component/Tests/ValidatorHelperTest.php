@@ -29,7 +29,7 @@ class ValidatorHelperTest extends BaseTest
         Assert::assertFalse(ValidatorHelper::decimal('1'));
         Assert::assertTrue(ValidatorHelper::decimal('1.1'));
 
-        Assert::assertFalse(ValidatorHelper::decimal(1.0)); // x.0 不是有效地浮点数，强转字符串将变为整数
+        Assert::assertTrue(ValidatorHelper::decimal(1.0));
         Assert::assertTrue(ValidatorHelper::decimal('1.0'));
 
         Assert::assertFalse(ValidatorHelper::decimal(1.25, 2));

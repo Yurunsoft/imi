@@ -46,7 +46,7 @@ public $inverseResult = false;
 
 /**
  * 当验证条件不符合时的信息
- * 
+ *
  * 支持代入{:value}原始值
  * 支持代入{:data.xxx}所有数据中的某项
  * 支持以{name}这样的形式，代入注解参数值
@@ -64,7 +64,7 @@ public $callable;
 
 /**
  * 参数名数组
- * 
+ *
  * 支持代入{:value}原始值
  * 支持代入{:data}所有数据
  * 支持代入{:data.xxx}所有数据中的某项
@@ -183,13 +183,11 @@ class TestValidate
 
 整数验证
 
-> 能通过整数验证的数据类型为 `int | float | string`
+> 能通过整数验证的数据类型为 `int | string`
 >
 > 对于 `string` 类型可参考[数字字符串](https://www.php.net/manual/zh/language.types.numeric-strings.php)
-> 
-> 例如，类似 `5` 、 `5.0` 、 `'5'` 均属于整数
-> 
-> 特殊的，类似 `'5.0'` 这种**带小数点的数字字符串**不属于整数
+>
+> 例如，类似 `5` 、 `'5'` 均属于整数
 
 验证必须为整数：
 
@@ -214,10 +212,8 @@ class TestValidate
 > 能通过小数验证的数据类型为 `float | string`
 >
 > 对于 `string` 类型可参考[数字字符串](https://www.php.net/manual/zh/language.types.numeric-strings.php)
-> 
-> 例如，类似 `5.1` 、 `'5.1'` 、 `'5.0'` 均属于小数
-> 
-> 特殊的，类似 `5.0` 这种**小数部分为0的 `float` 值**不属于小数
+>
+> 例如，类似 `5.1` 、 `'5.1'` 、 `5.0` 、 `'5.0'` 均属于小数
 
 验证必须为小数：
 
@@ -236,7 +232,7 @@ class TestValidate
 `@Decimal(min=1, max=10.24)`
 
 > 传入`1`，结果为`false`
-> 
+>
 > 传入`1.0`，结果为`true`
 
 ### @Number
@@ -264,9 +260,9 @@ class TestValidate
 `@Number(min=1, max=10.24)`
 
 > 传入`1`，结果为`true`
-> 
+>
 > 传入`1.0`，结果为`true`
-> 
+>
 ### @InList
 
 列表验证，判断值是否存在于列表中
@@ -328,10 +324,10 @@ imi 支持在类、属性上使用 `@AutoValidation` 注解，当构造方法执
 ```php
 /**
  * @Bean("ValidatorTest")
- * 
+ *
  * @AutoValidation
- * 
- * 
+ *
+ *
  * @InList(name="in", list={1, 2, 3}, message="{:value} 不在列表内")
  * @Integer(name="int", min=0, max=100, message="{:value} 不符合大于等于{min}且小于等于{max}")
  * @Required(name="required", message="{name}为必须参数")
@@ -371,7 +367,7 @@ class Test
 ```php
 /**
  * @AutoValidation
- * 
+ *
  * @Required(name="id", message="用户ID为必传参数")
  * @Integer(name="id", min=1, message="用户ID不符合规则")
  * @Required(name="name", message="用户姓名为必传参数")
@@ -394,7 +390,7 @@ public function test222($id, $name)
 ```php
 /**
  * @Bean("ValidatorTest")
- * 
+ *
  * @InList(name="in", list={1, 2, 3}, message="{:value} 不在列表内")
  * @Integer(name="int", min=0, max=100, message="{:value} 不符合大于等于{min}且小于等于{max}")
  * @Required(name="required", message="{name}为必须参数")

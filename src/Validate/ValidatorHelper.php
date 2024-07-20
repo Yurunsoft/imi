@@ -28,7 +28,7 @@ class ValidatorHelper
      */
     public static function decimal($value, ?float $min = null, ?float $max = null, ?int $accuracy = null): bool
     {
-        return static::number($value, $min, $max, $accuracy) && (is_float($value) || str_contains((string) $value, '.'));
+        return static::number($value, $min, $max, $accuracy) && (\is_float($value) || str_contains((string) $value, '.'));
     }
 
     /**
@@ -39,7 +39,7 @@ class ValidatorHelper
     public static function int($value, ?int $min = null, ?int $max = null): bool
     {
         // 整数验证
-        if ((string) (int) $value !== (string) $value || is_float($value))
+        if ((string) (int) $value !== (string) $value || \is_float($value))
         {
             return false;
         }

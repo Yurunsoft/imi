@@ -90,11 +90,11 @@ if (\Imi\Util\Imi::checkAppType('swoole'))
          */
         public function stop(): void
         {
-            $this->working = false;
-            if ($this->coPool)
+            if ($this->working)
             {
                 $this->coPool->stop();
             }
+            $this->working = false;
         }
 
         protected function task(QueueConfig $config): void

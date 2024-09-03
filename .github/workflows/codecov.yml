@@ -202,17 +202,17 @@ jobs:
           composer update --prefer-dist --no-progress
           mkdir -p ./dev/cover
       - name: Download core coverage
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4.1.7
         with:
           name: core-coverage
           path: ./dev/cover/core-coverage.php
       - name: Download swoole coverage
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4.1.7
         with:
           name: swoole-coverage
           path: ./dev/cover/swoole-coverage.php
       - name: Download components coverage
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4.1.7
         with:
           name: components-coverage
           path: ./dev/cover/components-coverage.php

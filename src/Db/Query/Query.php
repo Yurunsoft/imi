@@ -1295,7 +1295,13 @@ abstract class Query implements IQuery
         $records = $result->getStatementRecords();
         if (1 === \count($rawFields))
         {
-            return array_column($records, $rawFields[0], $key);
+            $column = $rawFields[0];
+            if (strpos($column, '.'))
+            {
+                [, $column] = explode('.', $column);
+            }
+
+            return array_column($records, $column, $key);
         }
         else
         {

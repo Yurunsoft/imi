@@ -1294,7 +1294,7 @@ abstract class Query implements IQuery
 
         $records = $result->getStatementRecords();
 
-        if (is_string($key) && strpos($key, '.'))
+        if (\is_string($key) && strpos($key, '.'))
         {
             [, $key] = explode('.', $key);
         }

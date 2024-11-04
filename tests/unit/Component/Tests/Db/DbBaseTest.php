@@ -675,6 +675,38 @@ abstract class DbBaseTest extends BaseTest
     }
 
     /**
+     * @depends testBatchInsert
+     */
+    public function testAliasColumn(array $args): void
+    {
+        $origin = $args['origin'];
+
+        $data = Db::query($this->poolName)
+            ->table('tb_article', 't')
+            ->column('t.content');
+
+        $this->assertEquals(array_column($origin, 'content'), $data);
+
+        $data = Db::query($this->poolName)
+            ->table('tb_article', 't')
+            ->column('t.content', 't.id');
+
+        $this->assertEquals(array_column($origin, 'content', 'id'), $data);
+
+        $data = Db::query($this->poolName)
+            ->table('tb_article', 't')
+            ->column(['t.id', 't.content'], 't.id');
+
+        $this->assertEquals(array_column_ex($origin, ['id', 'content'], 'id'), $data);
+
+        $data = Db::query($this->poolName)
+            ->table('tb_article', 't')
+            ->column(['t.title', 't.content', 't.time'], 't.id');
+
+        $this->assertEquals(array_column_ex($origin, ['title', 'content', 'time', 'id'], 'id'), $data);
+    }
+
+    /**
      * @depends testInsert
      */
     public function testPrepare(array $args): void
